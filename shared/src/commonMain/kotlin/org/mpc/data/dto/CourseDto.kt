@@ -28,16 +28,16 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class CourseDto(
-    val serialNumber: String,
-    val classNumber: String,
+    val serialNo: String,
+    val classNo: String,
     val title: String,
     val credit: Double,
     val passwordCard: PasswordCardTypeDto,
     val teachers: Array<String>,
     val classTimes: Array<String>,
-    val limitCount: Int,
-    val admittedCount: Int,
-    val waitCount: Int,
+    val limitCnt: Int,
+    val adminCnt: Int,
+    val waitCnt: Int,
     val collegeName: String,
     val departmentName: String,
     val courseType: CourseTypeDto,
@@ -50,11 +50,11 @@ data class CourseDto(
         other as CourseDto
 
         if (credit != other.credit) return false
-        if (limitCount != other.limitCount) return false
-        if (admittedCount != other.admittedCount) return false
-        if (waitCount != other.waitCount) return false
-        if (serialNumber != other.serialNumber) return false
-        if (classNumber != other.classNumber) return false
+        if (limitCnt != other.limitCnt) return false
+        if (adminCnt != other.adminCnt) return false
+        if (waitCnt != other.waitCnt) return false
+        if (serialNo != other.serialNo) return false
+        if (classNo != other.classNo) return false
         if (title != other.title) return false
         if (passwordCard != other.passwordCard) return false
         if (!teachers.contentEquals(other.teachers)) return false
@@ -69,11 +69,11 @@ data class CourseDto(
 
     override fun hashCode(): Int {
         var result = credit.hashCode()
-        result = 31 * result + limitCount
-        result = 31 * result + admittedCount
-        result = 31 * result + waitCount
-        result = 31 * result + serialNumber.hashCode()
-        result = 31 * result + classNumber.hashCode()
+        result = 31 * result + limitCnt
+        result = 31 * result + adminCnt
+        result = 31 * result + waitCnt
+        result = 31 * result + serialNo.hashCode()
+        result = 31 * result + classNo.hashCode()
         result = 31 * result + title.hashCode()
         result = 31 * result + passwordCard.hashCode()
         result = 31 * result + teachers.contentHashCode()

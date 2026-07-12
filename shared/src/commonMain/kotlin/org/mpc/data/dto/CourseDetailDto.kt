@@ -1,5 +1,6 @@
 package org.mpc.data.dto
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /*
@@ -20,7 +21,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class CourseDetailDto(
-    val serialNumber: String,
+    val serialNo: String,
     val objectives: String,
     val content: String,
     val books: String,
@@ -34,7 +35,7 @@ data class CourseDetailDto(
 
         other as CourseDetailDto
 
-        if (serialNumber != other.serialNumber) return false
+        if (serialNo != other.serialNo) return false
         if (objectives != other.objectives) return false
         if (content != other.content) return false
         if (books != other.books) return false
@@ -46,7 +47,7 @@ data class CourseDetailDto(
     }
 
     override fun hashCode(): Int {
-        var result = serialNumber.hashCode()
+        var result = serialNo.hashCode()
         result = 31 * result + objectives.hashCode()
         result = 31 * result + content.hashCode()
         result = 31 * result + books.hashCode()
