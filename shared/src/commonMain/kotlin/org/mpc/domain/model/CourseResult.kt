@@ -1,6 +1,5 @@
 package org.mpc.domain.model
 
-import kotlinx.serialization.Serializable
 import kotlin.time.Instant
 
 data class CourseResult(

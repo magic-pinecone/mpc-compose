@@ -13,7 +13,7 @@ import kotlin.time.Instant
  */
 
 @Serializable
-data class CourseResultDto(
+internal data class CourseResultDto(
     val lastUpdated: Instant,
     val academicYear: String,
     val semester: String,
