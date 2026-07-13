@@ -27,14 +27,14 @@ import kotlinx.serialization.Serializable
     },
  */
 @Serializable
-data class CourseDto(
+internal data class CourseDto(
     val serialNo: String,
     val classNo: String,
     val title: String,
     val credit: Double,
     val passwordCard: PasswordCardTypeDto,
-    val teachers: Array<String>,
-    val classTimes: Array<String>,
+    val teachers: List<String>,
+    val classTimes: List<String>,
     val limitCnt: Int,
     val adminCnt: Int,
     val waitCnt: Int,
@@ -42,52 +42,10 @@ data class CourseDto(
     val departmentName: String,
     val courseType: CourseTypeDto,
     val detailUrl: String,
-) {
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other == null || this::class != other::class) return false
-
-        other as CourseDto
-
-        if (credit != other.credit) return false
-        if (limitCnt != other.limitCnt) return false
-        if (adminCnt != other.adminCnt) return false
-        if (waitCnt != other.waitCnt) return false
-        if (serialNo != other.serialNo) return false
-        if (classNo != other.classNo) return false
-        if (title != other.title) return false
-        if (passwordCard != other.passwordCard) return false
-        if (!teachers.contentEquals(other.teachers)) return false
-        if (!classTimes.contentEquals(other.classTimes)) return false
-        if (collegeName != other.collegeName) return false
-        if (departmentName != other.departmentName) return false
-        if (courseType != other.courseType) return false
-        if (detailUrl != other.detailUrl) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = credit.hashCode()
-        result = 31 * result + limitCnt
-        result = 31 * result + adminCnt
-        result = 31 * result + waitCnt
-        result = 31 * result + serialNo.hashCode()
-        result = 31 * result + classNo.hashCode()
-        result = 31 * result + title.hashCode()
-        result = 31 * result + passwordCard.hashCode()
-        result = 31 * result + teachers.contentHashCode()
-        result = 31 * result + classTimes.contentHashCode()
-        result = 31 * result + collegeName.hashCode()
-        result = 31 * result + departmentName.hashCode()
-        result = 31 * result + courseType.hashCode()
-        result = 31 * result + detailUrl.hashCode()
-        return result
-    }
-}
+)
 
 @Serializable
-enum class PasswordCardTypeDto {
+internal enum class PasswordCardTypeDto {
     @SerialName("REQUIRED")
     REQUIRED,
     @SerialName("OPTIONAL")
@@ -97,7 +55,7 @@ enum class PasswordCardTypeDto {
 }
 
 @Serializable
-enum class CourseTypeDto {
+internal enum class CourseTypeDto {
     @SerialName("REQUIRED")
     REQUIRED,
     @SerialName("OPTIONAL")

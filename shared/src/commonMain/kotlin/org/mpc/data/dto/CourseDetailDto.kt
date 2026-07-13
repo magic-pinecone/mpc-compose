@@ -20,46 +20,18 @@ import kotlinx.serialization.Serializable
 }
  */
 @Serializable
-data class CourseDetailDto(
+internal data class CourseDetailDto(
     val serialNo: String,
     val objectives: String,
     val content: String,
     val books: String,
     val teachingMethod: String,
     val gradingPolicy: String,
-    val distributionConditions: Array<DistributionConditionDto>,
-) {
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other == null || this::class != other::class) return false
-
-        other as CourseDetailDto
-
-        if (serialNo != other.serialNo) return false
-        if (objectives != other.objectives) return false
-        if (content != other.content) return false
-        if (books != other.books) return false
-        if (teachingMethod != other.teachingMethod) return false
-        if (gradingPolicy != other.gradingPolicy) return false
-        if (!distributionConditions.contentEquals(other.distributionConditions)) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = serialNo.hashCode()
-        result = 31 * result + objectives.hashCode()
-        result = 31 * result + content.hashCode()
-        result = 31 * result + books.hashCode()
-        result = 31 * result + teachingMethod.hashCode()
-        result = 31 * result + gradingPolicy.hashCode()
-        result = 31 * result + distributionConditions.contentHashCode()
-        return result
-    }
-}
+    val distributionConditions: List<DistributionConditionDto>,
+)
 
 @Serializable
-data class DistributionConditionDto(
+internal data class DistributionConditionDto(
     val priority: Int,
     val rule: String
 )

@@ -1,9 +1,9 @@
 package org.mpc.domain.repository
 
-import org.mpc.data.dto.CourseDetailDto
-import org.mpc.data.dto.CourseResultDto
+import org.mpc.domain.model.CourseDetail
+import org.mpc.domain.model.CourseResult
 
 interface CourseRepository {
-    suspend fun fetchAllCourses(semester: String): CourseResultDto
-    suspend fun fetchCourseDetail(semester: String, serialNo: String): CourseDetailDto
+    suspend fun fetchAllCourses(semester: String): CourseResult
+    suspend fun fetchCourseDetail(semester: String, serialNo: String): CourseDetail
 }
