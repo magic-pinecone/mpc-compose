@@ -112,6 +112,26 @@ fun CourseCard(
 }
 
 @Composable
+private fun CourseTypeBadge(courseType: CourseType) {
+    Box(
+        modifier = Modifier
+            .background(
+                color = MaterialTheme.colorScheme.secondaryContainer,
+                shape = RoundedCornerShape(8.dp),
+            )
+            .padding(horizontal = 10.dp, vertical = 5.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = courseType.description,
+            maxLines = 1,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
+            fontWeight = FontWeight.Medium,
+        )
+    }
+}
+@Composable
 private fun CourseInfoRail(courseItem: CourseItem) {
     Row(
         modifier = Modifier
@@ -129,28 +149,7 @@ private fun CourseInfoRail(courseItem: CourseItem) {
         )
         CourseInfoBadge(
             imageVector = key,
-            infoText = courseItem.passwordCard.description,
-        )
-    }
-}
-
-@Composable
-private fun CourseTypeBadge(courseType: CourseType) {
-    Box(
-        modifier = Modifier
-            .background(
-                color = MaterialTheme.colorScheme.secondaryContainer,
-                shape = RoundedCornerShape(8.dp),
-            )
-            .padding(horizontal = 10.dp, vertical = 5.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = courseType.description,
-            maxLines = 1,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSecondaryContainer,
-            fontWeight = FontWeight.Medium,
+            infoText = courseItem.passwordText(),
         )
     }
 }
@@ -186,27 +185,32 @@ private fun CourseInfoBadge(
     }
 }
 
-internal fun CourseItem.teacherText(): String = teachers.joinToString(separator = "、")
+/*
+    Some helper function to give the information on the card
+ */
+private fun CourseItem.teacherText(): String = teachers.joinToString(separator = "、")
 
-internal fun CourseItem.informationText(): String = listOf(
+private fun CourseItem.informationText(): String = listOf(
     classNo,
     "${credit.toInt()} 學分",
     teacherText(),
 ).joinToString(separator = " · ")
 
-internal fun CourseItem.departmentText(): String = "$collegeName / $departmentName"
+private fun CourseItem.departmentText(): String = "$collegeName / $departmentName"
 
-internal fun CourseItem.enrollmentText(): String = if (waitCnt > 0) {
+private fun CourseItem.enrollmentText(): String = if (waitCnt > 0) {
     "$adminCnt / $limitCnt · 候補 $waitCnt"
 } else {
     "$adminCnt / $limitCnt"
 }
 
-internal fun CourseItem.scheduleText(): String = classTimes.joinToString(separator = "、")
+private fun CourseItem.passwordText(): String = passwordCard.description
+
+private fun CourseItem.scheduleText(): String = classTimes.joinToString(separator = "、")
 
 @Composable
 @Preview
-internal fun PreviewCourseCard(
+private fun PreviewCourseCard(
     courseItem: CourseItem = CourseItem(
         serialNo = "36019",
         classNo = "ENA103-*",
