@@ -1,4 +1,4 @@
-package org.mpc.domain.model
+package org.mpc.domain.model.entity
 
 import kotlin.time.Instant
 
@@ -6,7 +6,7 @@ data class CourseResult(
     val lastUpdated: Instant,
     val academicYear: String,
     val semester: String,
-    val courses: List<CourseItem>,
+    val courses: List<CourseSummary>,
 )
 
 data class CourseDetail(

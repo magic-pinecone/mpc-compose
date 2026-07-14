@@ -5,8 +5,8 @@ import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import org.mpc.data.dataSource.CourseDataSource
 import org.mpc.data.mapper.toDomain
-import org.mpc.domain.model.CourseDetail
-import org.mpc.domain.model.CourseResult
+import org.mpc.domain.model.entity.CourseDetail
+import org.mpc.domain.model.entity.CourseResult
 import org.mpc.domain.repository.CourseRepository
 
 @ContributesBinding(AppScope::class)

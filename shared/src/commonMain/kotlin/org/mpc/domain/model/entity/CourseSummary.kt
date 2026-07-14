@@ -1,6 +1,6 @@
-package org.mpc.domain.model
+package org.mpc.domain.model.entity
 
-data class CourseItem (
+data class CourseSummary (
     val serialNo: String,
     val classNo: String,
     val title: String,

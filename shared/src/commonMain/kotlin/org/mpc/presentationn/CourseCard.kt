@@ -29,9 +29,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import org.mpc.domain.model.CourseItem
-import org.mpc.domain.model.CourseType
-import org.mpc.domain.model.PasswordCardType
+import org.mpc.domain.model.entity.CourseSummary
+import org.mpc.domain.model.entity.CourseType
+import org.mpc.domain.model.entity.PasswordCardType
 import org.mpc.presentationn.icon.apartment
 import org.mpc.presentationn.icon.groups
 import org.mpc.presentationn.icon.key
@@ -39,7 +39,7 @@ import org.mpc.presentationn.icon.schedule
 
 @Composable
 fun CourseCard(
-    courseItem: CourseItem,
+    courseSummary: CourseSummary,
     modifier: Modifier = Modifier,
     onJoinClick: () -> Unit = {},
 ) {
@@ -58,7 +58,7 @@ fun CourseCard(
                 verticalAlignment = Alignment.Top,
             ) {
                 Text(
-                    text = courseItem.title,
+                    text = courseSummary.title,
                     modifier = Modifier.weight(1f),
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
@@ -66,11 +66,11 @@ fun CourseCard(
                     fontWeight = FontWeight.SemiBold,
                 )
                 Spacer(Modifier.width(8.dp))
-                CourseTypeBadge(courseItem.courseType)
+                CourseTypeBadge(courseSummary.courseType)
             }
 
             Text(
-                text = courseItem.informationText(),
+                text = courseSummary.informationText(),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.bodyMedium,
@@ -78,7 +78,7 @@ fun CourseCard(
                 modifier = Modifier.horizontalScroll(rememberScrollState())
             )
 
-            CourseInfoRail(courseItem)
+            CourseInfoRail(courseSummary)
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -92,7 +92,7 @@ fun CourseCard(
                 )
                 Spacer(Modifier.width(6.dp))
                 Text(
-                    text = courseItem.scheduleText(),
+                    text = courseSummary.scheduleText(),
                     modifier = Modifier.weight(1f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -132,7 +132,7 @@ private fun CourseTypeBadge(courseType: CourseType) {
     }
 }
 @Composable
-private fun CourseInfoRail(courseItem: CourseItem) {
+private fun CourseInfoRail(courseSummary: CourseSummary) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -141,15 +141,15 @@ private fun CourseInfoRail(courseItem: CourseItem) {
     ) {
         CourseInfoBadge(
             imageVector = apartment,
-            infoText = courseItem.departmentText(),
+            infoText = courseSummary.departmentText(),
         )
         CourseInfoBadge(
             imageVector = groups,
-            infoText = courseItem.enrollmentText(),
+            infoText = courseSummary.enrollmentText(),
         )
         CourseInfoBadge(
             imageVector = key,
-            infoText = courseItem.passwordText(),
+            infoText = courseSummary.passwordText(),
         )
     }
 }
@@ -188,30 +188,30 @@ private fun CourseInfoBadge(
 /*
     Some helper function to give the information on the card
  */
-private fun CourseItem.teacherText(): String = teachers.joinToString(separator = "、")
+private fun CourseSummary.teacherText(): String = teachers.joinToString(separator = "、")
 
-private fun CourseItem.informationText(): String = listOf(
+private fun CourseSummary.informationText(): String = listOf(
     classNo,
     "${credit.toInt()} 學分",
     teacherText(),
 ).joinToString(separator = " · ")
 
-private fun CourseItem.departmentText(): String = "$collegeName / $departmentName"
+private fun CourseSummary.departmentText(): String = "$collegeName / $departmentName"
 
-private fun CourseItem.enrollmentText(): String = if (waitCnt > 0) {
+private fun CourseSummary.enrollmentText(): String = if (waitCnt > 0) {
     "$adminCnt / $limitCnt · 候補 $waitCnt"
 } else {
     "$adminCnt / $limitCnt"
 }
 
-private fun CourseItem.passwordText(): String = passwordCard.description
+private fun CourseSummary.passwordText(): String = passwordCard.description
 
-private fun CourseItem.scheduleText(): String = classTimes.joinToString(separator = "、")
+private fun CourseSummary.scheduleText(): String = classTimes.joinToString(separator = "、")
 
 @Composable
 @Preview
 private fun PreviewCourseCard(
-    courseItem: CourseItem = CourseItem(
+    courseSummary: CourseSummary = CourseSummary(
         serialNo = "36019",
         classNo = "ENA103-*",
         title = "專題討論（III）",
@@ -230,7 +230,7 @@ private fun PreviewCourseCard(
 ) {
     MaterialTheme {
         CourseCard(
-            courseItem = courseItem,
+            courseSummary = courseSummary,
             modifier = Modifier.width(360.dp),
         )
     }

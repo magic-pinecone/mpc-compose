@@ -6,12 +6,12 @@ import org.mpc.data.dto.CourseResultDto
 import org.mpc.data.dto.CourseTypeDto
 import org.mpc.data.dto.DistributionConditionDto
 import org.mpc.data.dto.PasswordCardTypeDto
-import org.mpc.domain.model.CourseDetail
-import org.mpc.domain.model.CourseItem
-import org.mpc.domain.model.CourseResult
-import org.mpc.domain.model.CourseType
-import org.mpc.domain.model.DistributionCondition
-import org.mpc.domain.model.PasswordCardType
+import org.mpc.domain.model.entity.CourseDetail
+import org.mpc.domain.model.entity.CourseSummary
+import org.mpc.domain.model.entity.CourseResult
+import org.mpc.domain.model.entity.CourseType
+import org.mpc.domain.model.entity.DistributionCondition
+import org.mpc.domain.model.entity.PasswordCardType
 
 internal fun CourseResultDto.toDomain(): CourseResult = CourseResult(
     lastUpdated = lastUpdated,
@@ -20,7 +20,7 @@ internal fun CourseResultDto.toDomain(): CourseResult = CourseResult(
     courses = courses.map { it.toDomain() }
 )
 
-internal fun CourseDto.toDomain(): CourseItem = CourseItem(
+internal fun CourseDto.toDomain(): CourseSummary = CourseSummary(
     serialNo = serialNo,
     classNo = classNo,
     title = title,
