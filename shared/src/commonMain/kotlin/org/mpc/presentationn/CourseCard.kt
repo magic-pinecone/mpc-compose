@@ -75,6 +75,7 @@ fun CourseCard(
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.horizontalScroll(rememberScrollState())
             )
 
             CourseInfoRail(courseItem)
@@ -110,11 +111,6 @@ fun CourseCard(
     }
 }
 
-/**
- * Keeps course metadata at one badge high. The user can reveal long or additional
- * values by scrolling; unlike an automatic carousel, the content stays still
- * while they are reading it.
- */
 @Composable
 private fun CourseInfoRail(courseItem: CourseItem) {
     Row(
