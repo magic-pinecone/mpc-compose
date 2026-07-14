@@ -14,16 +14,17 @@ data class CourseItem (
     val collegeName: String,
     val departmentName: String,
     val courseType: CourseType,
+    val detailUrl: String
 )
 
-enum class PasswordCardType(description: String) {
-    REQUIRED("全部"),
+enum class PasswordCardType(val description: String) {
+    ALL("全部"),
     OPTIONAL("部分"),
-    UNKNOWN("未知")
+    NONE("無")
 }
 
-enum class CourseType(description: String) {
+enum class CourseType(val description: String) {
     REQUIRED("必修"),
-    OPTIONAL("選修"),
+    ELECTIVE("選修"),
     UNKNOWN("未知")
 }

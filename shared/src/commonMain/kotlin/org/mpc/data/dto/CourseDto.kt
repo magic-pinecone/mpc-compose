@@ -46,20 +46,20 @@ internal data class CourseDto(
 
 @Serializable
 internal enum class PasswordCardTypeDto {
-    @SerialName("REQUIRED")
-    REQUIRED,
+    @SerialName("ALL")
+    ALL,
     @SerialName("OPTIONAL")
     OPTIONAL,
-    @SerialName("UNKNOWN")
-    UNKNOWN,
+    @SerialName("NONE")
+    NONE,
 }
 
 @Serializable
 internal enum class CourseTypeDto {
     @SerialName("REQUIRED")
     REQUIRED,
-    @SerialName("OPTIONAL")
-    OPTIONAL,
+    @SerialName("ELECTIVE")
+    ELECTIVE,
     @SerialName("UNKNOWN")
     UNKNOWN,
 }

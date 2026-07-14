@@ -33,20 +33,21 @@ internal fun CourseDto.toDomain(): CourseItem = CourseItem(
     waitCnt = waitCnt,
     collegeName = collegeName,
     departmentName = departmentName,
-    courseType = courseType.toDomain()
+    courseType = courseType.toDomain(),
+    detailUrl = detailUrl
 )
 
 internal fun PasswordCardTypeDto.toDomain(): PasswordCardType =
     when(this) {
-        PasswordCardTypeDto.REQUIRED -> PasswordCardType.REQUIRED
+        PasswordCardTypeDto.ALL -> PasswordCardType.ALL
         PasswordCardTypeDto.OPTIONAL -> PasswordCardType.OPTIONAL
-        PasswordCardTypeDto.UNKNOWN -> PasswordCardType.UNKNOWN
+        PasswordCardTypeDto.NONE -> PasswordCardType.NONE
     }
 
 internal fun CourseTypeDto.toDomain(): CourseType =
     when(this) {
         CourseTypeDto.REQUIRED -> CourseType.REQUIRED
-        CourseTypeDto.OPTIONAL -> CourseType.OPTIONAL
+        CourseTypeDto.ELECTIVE -> CourseType.ELECTIVE
         CourseTypeDto.UNKNOWN -> CourseType.UNKNOWN
     }
 
