@@ -11,8 +11,15 @@ struct ComposeView: UIViewControllerRepresentable {
 }
 
 struct ContentView: View {
+    let sharedHost: IosSharedHost
+    
     var body: some View {
-        ComposeView()
-            .ignoresSafeArea()
+        NavigationStack {
+            CourseSelectionSearchView(sharedHost: sharedHost)
+                .ignoresSafeArea(
+                    .container,
+                    edges: Edge.Set.bottom
+                )
+        }
     }
 }
