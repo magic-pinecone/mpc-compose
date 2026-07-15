@@ -2,6 +2,7 @@ package org.mpc.presentationn.courseSelection
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -54,12 +55,11 @@ fun CourseSearchResultView(
         )
     }
 
-    Box(
+    Column (
         modifier = modifier,
     ) {
         SearchBar(
             modifier = Modifier
-                .align(Alignment.TopCenter)
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
             state = searchBarState,
@@ -74,6 +74,9 @@ fun CourseSearchResultView(
                 modifier = modifier,
                 courseLoadState = uiState.result)
         }
+        CourseResultView(
+            modifier = modifier,
+            courseLoadState = uiState.result)
     }
 
 

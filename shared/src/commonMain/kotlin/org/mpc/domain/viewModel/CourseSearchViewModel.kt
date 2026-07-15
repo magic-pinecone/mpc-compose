@@ -2,6 +2,7 @@ package org.mpc.domain.viewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.touchlab.kermit.Logger
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesIntoMap
 import dev.zacsweers.metro.Inject
@@ -53,6 +54,7 @@ class CourseSearchViewModel(
                     )
                 }
             } catch (exception: Exception) {
+                Logger.i(exception.toString())
                 _state.update {
                     it.copy(
                         result = CourseLoadState.Failure(error= CourseSearchError.UNKNOWN)
@@ -104,6 +106,7 @@ class CourseSearchViewModel(
                     }
                 }
             } catch (exception: Exception) {
+                Logger.i(exception.toString())
                 _state.update {
                     it.copy(
                         result = CourseLoadState.Failure(

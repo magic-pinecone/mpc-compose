@@ -199,9 +199,9 @@ private fun CourseSummary.informationText(): String = listOf(
 private fun CourseSummary.departmentText(): String = "$collegeName / $departmentName"
 
 private fun CourseSummary.enrollmentText(): String = if (waitCnt > 0) {
-    "$adminCnt / $limitCnt · 候補 $waitCnt"
+    "$admitCnt / $limitCnt · 候補 $waitCnt"
 } else {
-    "$adminCnt / $limitCnt"
+    "$admitCnt / $limitCnt"
 }
 
 private fun CourseSummary.passwordText(): String = passwordCard.description
@@ -220,7 +220,7 @@ private fun PreviewCourseCard(
         teachers = listOf("鄭明敏", "林居慶", "林進榮", "林伯勳"),
         classTimes = listOf("5-A", "5-B", "5-C"),
         limitCnt = 0,
-        adminCnt = 0,
+        admitCnt = 0,
         waitCnt = 0,
         collegeName = "工學院",
         departmentName = "環境工程研究所碩士班",

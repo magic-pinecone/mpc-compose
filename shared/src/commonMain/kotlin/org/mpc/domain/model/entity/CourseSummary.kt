@@ -9,7 +9,7 @@ data class CourseSummary (
     val teachers: List<String>,
     val classTimes: List<String>,
     val limitCnt: Int,
-    val adminCnt: Int,
+    val admitCnt: Int,
     val waitCnt: Int,
     val collegeName: String,
     val departmentName: String,
