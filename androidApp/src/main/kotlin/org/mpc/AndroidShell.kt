@@ -10,6 +10,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import org.mpc.di.AppGraph
+import org.mpc.presentation.CourseSelectionSearchScreen
 
 @Composable
 fun AndroidAppShell(appGraph: AppGraph) {
@@ -30,7 +31,7 @@ fun AndroidAppShell(appGraph: AppGraph) {
                             .fillMaxSize()
                             .padding(paddingValues)
                     ){
-
+                        CourseSelectionSearchScreen(modifier = Modifier.fillMaxSize())
                     }
             }
         }
