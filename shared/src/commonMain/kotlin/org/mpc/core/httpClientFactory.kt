@@ -1,7 +1,6 @@
 package org.mpc.core
 
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.LogLevel
@@ -15,7 +14,7 @@ import kotlinx.serialization.json.JsonNamingStrategy
 
 @OptIn(ExperimentalSerializationApi::class)
 fun createHttpClient(): HttpClient =
-    HttpClient(CIO) {
+    HttpClient {
         install(Logging) {
             logger = object : Logger {
                 override fun log(message: String) {
