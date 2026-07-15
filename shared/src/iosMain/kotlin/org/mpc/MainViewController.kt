@@ -5,5 +5,5 @@ import org.mpc.di.createAppGraph
 
 fun MainViewController() = ComposeUIViewController {
     val appGraph = createAppGraph()
-    App()
+    App(appGraph)
 }

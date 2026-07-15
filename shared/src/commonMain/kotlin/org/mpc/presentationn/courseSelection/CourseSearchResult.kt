@@ -61,19 +61,24 @@ fun CourseSearchResultView(
         SearchBar(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 16.dp,
+                    vertical = 8.dp
+                ),
             state = searchBarState,
             inputField = inputField
         )
-        ExpandedFullScreenSearchBar(
-            modifier = modifier,
-            state = searchBarState,
-            inputField = inputField,
-        ) {
-            CourseResultView(
-                modifier = modifier,
-                courseLoadState = uiState.result)
-        }
+        CourseResultView(
+            modifier = modifier
+                .fillMaxWidth()
+                .weight(1f),
+            courseLoadState = uiState.result)
+    }
+
+    ExpandedFullScreenSearchBar(
+        modifier = modifier,
+        state = searchBarState,
+        inputField = inputField,
+    ) {
         CourseResultView(
             modifier = modifier,
             courseLoadState = uiState.result)

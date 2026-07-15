@@ -35,7 +35,8 @@ fun App(appGraph: AppGraph) {
                     .padding(paddingValues)
                 ) {
                     CourseSearchResultView(
-                        modifier= Modifier.fillMaxSize()
+                        modifier= Modifier
+                            .fillMaxWidth()
                     )
                 }
             }
