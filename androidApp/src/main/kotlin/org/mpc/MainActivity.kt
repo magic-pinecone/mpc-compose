@@ -17,17 +17,7 @@ class MainActivity : ComponentActivity() {
         val appGraph = createAppGraph()
 
         setContent {
-            AndroidApp(appGraph)
+            AndroidAppShell(appGraph)
         }
     }
-}
-
-@Composable
-fun AndroidApp(appGraph: AppGraph) {
-    App(appGraph)
-}
-
-@Preview
-@Composable
-fun AppAndroidPreview() {
 }
