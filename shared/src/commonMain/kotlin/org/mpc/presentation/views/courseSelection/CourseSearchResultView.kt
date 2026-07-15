@@ -1,14 +1,12 @@
-package org.mpc.presentationn.views.courseSelection
+package org.mpc.presentation.views.courseSelection
 
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import org.mpc.domain.model.state.CourseLoadState
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CourseSearchResultView(
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     courseLoadState: CourseLoadState
 ) {
     when(courseLoadState) {

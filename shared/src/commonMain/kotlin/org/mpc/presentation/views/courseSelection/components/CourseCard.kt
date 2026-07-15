@@ -1,4 +1,4 @@
-package org.mpc.presentationn.views.courseSelection.components
+package org.mpc.presentation.views.courseSelection.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -32,10 +32,10 @@ import androidx.compose.ui.unit.dp
 import org.mpc.domain.model.entity.CourseSummary
 import org.mpc.domain.model.entity.CourseType
 import org.mpc.domain.model.entity.PasswordCardType
-import org.mpc.presentationn.icon.apartment
-import org.mpc.presentationn.icon.groups
-import org.mpc.presentationn.icon.key
-import org.mpc.presentationn.icon.schedule
+import org.mpc.presentation.icon.apartment
+import org.mpc.presentation.icon.groups
+import org.mpc.presentation.icon.key
+import org.mpc.presentation.icon.schedule
 
 @Composable
 fun CourseCard(

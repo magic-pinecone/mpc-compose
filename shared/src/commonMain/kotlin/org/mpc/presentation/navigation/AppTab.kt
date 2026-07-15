@@ -1,4 +1,4 @@
-package org.mpc.presentationn.navigation
+package org.mpc.presentation.navigation
 
 enum class AppTab (
     val tabName: String

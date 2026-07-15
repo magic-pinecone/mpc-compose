@@ -1,4 +1,4 @@
-package org.mpc.presentationn.views.courseSelection
+package org.mpc.presentation.views.courseSelection
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -9,7 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.mpc.domain.model.entity.CourseResult
-import org.mpc.presentationn.views.courseSelection.components.CourseCard
+import org.mpc.presentation.views.courseSelection.components.CourseCard
 
 @Composable
 fun CourseResultSuccessView(modifier: Modifier, courseResult: CourseResult) {

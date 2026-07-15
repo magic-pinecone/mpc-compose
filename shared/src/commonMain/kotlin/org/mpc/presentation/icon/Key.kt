@@ -1,4 +1,4 @@
-package org.mpc.presentationn.icon
+package org.mpc.presentation.icon
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathFillType
