@@ -14,6 +14,7 @@ import kotlinx.serialization.json.JsonNamingStrategy
 
 @OptIn(ExperimentalSerializationApi::class)
 fun createHttpClient(): HttpClient =
+    // TODO: maybe assign platform specific engine via expect/actual could be an option
     HttpClient {
         install(Logging) {
             logger = object : Logger {
