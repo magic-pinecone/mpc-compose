@@ -5,13 +5,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import org.mpc.domain.model.state.CourseSearchError
 
 @Composable
-fun CourseResultLoadingView(modifier: Modifier) {
+fun CourseResultFailureView(modifier: Modifier, error: CourseSearchError) {
     Box(
         modifier = modifier,
         contentAlignment = Alignment.Center
     ) {
-        Text("Loading...")
+        Text("Failed to load: $error")
     }
 }
+

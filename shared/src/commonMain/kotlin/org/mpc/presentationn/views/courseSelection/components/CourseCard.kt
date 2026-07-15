@@ -1,4 +1,4 @@
-package org.mpc.presentationn.courseSelection
+package org.mpc.presentationn.views.courseSelection.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background

@@ -1,0 +1,35 @@
+package org.mpc.presentationn.views.courseSelection
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import org.mpc.domain.model.entity.CourseResult
+import org.mpc.presentationn.views.courseSelection.components.CourseCard
+
+@Composable
+fun CourseResultSuccessView(modifier: Modifier, courseResult: CourseResult) {
+    LazyColumn(
+        modifier = modifier,
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        items(
+            items = courseResult.courses,
+            key = { course -> course.serialNo }
+        ) {
+                course ->
+            CourseCard(
+                courseSummary = course,
+                modifier = Modifier.fillMaxWidth(),
+                onJoinClick = {}
+            )
+
+        }
+    }
+
+}
