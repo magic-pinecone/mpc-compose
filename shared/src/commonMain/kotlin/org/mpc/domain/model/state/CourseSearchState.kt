@@ -6,11 +6,10 @@ import org.mpc.domain.model.entity.CourseSummary
 data class CourseSearchState(
     val semester: String,
     val query: String,
-    val result: CourseLoadState = CourseLoadState.Idle
+    val result: CourseLoadState = CourseLoadState.Loading
 )
 
 sealed interface CourseLoadState {
-    data object Idle: CourseLoadState
     data object Loading: CourseLoadState
     data class Success(
         val courses: CourseResult

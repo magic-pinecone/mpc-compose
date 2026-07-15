@@ -33,6 +33,36 @@ class CourseSearchViewModel(
 
     val state = _state.asStateFlow()
 
+    init {
+        loadAllCourses()
+    }
+
+    fun loadAllCourses() {
+        _state.update {
+            it.copy(result = CourseLoadState.Loading)
+        }
+
+        viewModelScope.launch {
+            val semester = state.value.semester
+            try {
+                _state.update {
+                    it.copy(
+                        result = CourseLoadState.Success(
+                            courses = courseRepository.fetchAllCourses(semester)
+                        )
+                    )
+                }
+            } catch (exception: Exception) {
+                _state.update {
+                    it.copy(
+                        result = CourseLoadState.Failure(error= CourseSearchError.UNKNOWN)
+                    )
+                }
+            }
+        }
+
+    }
+
     fun updateQuery(semester: String, query: String) {
         _state.update {
             it.copy(semester=semester, query=query)

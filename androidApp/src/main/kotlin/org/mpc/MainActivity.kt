@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import org.mpc.di.AppGraph
 import org.mpc.di.createAppGraph
 
 class MainActivity : ComponentActivity() {
@@ -16,13 +17,17 @@ class MainActivity : ComponentActivity() {
         val appGraph = createAppGraph()
 
         setContent {
-            App()
+            AndroidApp(appGraph)
         }
     }
+}
+
+@Composable
+fun AndroidApp(appGraph: AppGraph) {
+    App(appGraph)
 }
 
 @Preview
 @Composable
 fun AppAndroidPreview() {
-    App()
 }
