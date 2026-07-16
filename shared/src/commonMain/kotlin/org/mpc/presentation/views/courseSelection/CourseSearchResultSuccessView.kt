@@ -24,8 +24,8 @@ fun CourseResultSuccessView(modifier: Modifier, courseResult: CourseResult) {
         ) {
                 course ->
             CourseCard(
-                courseSummary = course,
                 modifier = Modifier.fillMaxWidth(),
+                courseSummary = course,
                 onJoinClick = {}
             )
 

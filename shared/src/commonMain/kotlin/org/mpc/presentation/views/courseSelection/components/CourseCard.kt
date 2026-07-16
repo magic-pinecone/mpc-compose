@@ -39,8 +39,8 @@ import org.mpc.presentation.icon.schedule
 
 @Composable
 fun CourseCard(
-    courseSummary: CourseSummary,
     modifier: Modifier = Modifier,
+    courseSummary: CourseSummary,
     onJoinClick: () -> Unit = {},
 ) {
     Surface(
