@@ -19,6 +19,7 @@ struct CourseSelectionSearchView: View {
             text: $query,
             prompt: "搜尋課程名稱"
         )
+        // TODO: optimize user experience when using bopomofo, and maybe add a time based cooldown
         .onSubmit(of: .search) {
             bridge.submitSearch(request: CourseSearchRequest(semester: semester, query: query))
         }
