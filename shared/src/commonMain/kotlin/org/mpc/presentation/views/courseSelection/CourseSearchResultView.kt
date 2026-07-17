@@ -2,7 +2,7 @@ package org.mpc.presentation.views.courseSelection
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import org.mpc.domain.model.state.CourseLoadState
+import org.mpc.domain.repository.CourseLoadState
 
 @Composable
 fun CourseSearchResultView(

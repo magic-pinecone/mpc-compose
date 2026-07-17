@@ -1,7 +1,6 @@
-package org.mpc.domain.model.state
+package org.mpc.domain.repository
 
 import org.mpc.domain.model.entity.CourseResult
-import org.mpc.domain.model.entity.CourseSummary
 
 data class CourseSearchState(
     val semester: String,
