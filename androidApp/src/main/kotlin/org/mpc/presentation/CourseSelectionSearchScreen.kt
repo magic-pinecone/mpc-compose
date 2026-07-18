@@ -16,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.zacsweers.metrox.viewmodel.metroViewModel
-import org.mpc.domain.viewModel.CourseSearchViewModel
+import org.mpc.presentation.viewModel.CourseSearchViewModel
 import org.mpc.presentation.views.courseSelection.CourseSearchResultView
 
 @OptIn(ExperimentalMaterial3Api::class)
