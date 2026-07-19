@@ -15,6 +15,10 @@ dependencies {
     implementation(projects.shared)
 
     implementation(libs.androidx.activity.compose)
+
+    implementation(libs.androidx.datastore)
+    implementation(libs.androidx.datastorePreferences)
+
     implementation(libs.compose.material3)
 
     implementation(libs.compose.uiToolingPreview)
