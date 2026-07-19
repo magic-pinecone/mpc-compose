@@ -2,10 +2,10 @@ package org.mpc.data.local.database
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.PrimaryKey
 
 @Entity(
-    tableName = "course",
-    primaryKeys = ["semester", "serialNo"],
+    tableName = "course_plan",
     foreignKeys = [
         ForeignKey(
             entity = CourseCatalogEntity::class,
@@ -16,18 +16,8 @@ import androidx.room.ForeignKey
         ),
     ],
 )
-data class CourseEntity(
+data class CoursePlanEntity(
+    @PrimaryKey
     val semester: String,
-    val serialNo: String,
-    val classNo: String,
-    val title: String,
-    val credit: Double,
-    val passwordCard: String,
-    val limitCnt: Int,
-    val admitCnt: Int,
-    val waitCnt: Int,
-    val collegeName: String,
-    val departmentName: String,
-    val courseType: String,
-    val detailUrl: String,
+    val updatedAtEpochMillis: Long,
 )

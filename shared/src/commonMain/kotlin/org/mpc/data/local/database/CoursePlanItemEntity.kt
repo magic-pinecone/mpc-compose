@@ -4,30 +4,26 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 
 @Entity(
-    tableName = "course",
+    tableName = "course_plan_item",
     primaryKeys = ["semester", "serialNo"],
     foreignKeys = [
         ForeignKey(
-            entity = CourseCatalogEntity::class,
+            entity = CoursePlanEntity::class,
             parentColumns = ["semester"],
             childColumns = ["semester"],
             onDelete = ForeignKey.CASCADE,
             onUpdate = ForeignKey.CASCADE,
         ),
+        ForeignKey(
+            entity = CourseEntity::class,
+            parentColumns = ["semester", "serialNo"],
+            childColumns = ["semester", "serialNo"],
+            onDelete = ForeignKey.CASCADE,
+            onUpdate = ForeignKey.CASCADE,
+        ),
     ],
 )
-data class CourseEntity(
+data class CoursePlanItemEntity(
     val semester: String,
     val serialNo: String,
-    val classNo: String,
-    val title: String,
-    val credit: Double,
-    val passwordCard: String,
-    val limitCnt: Int,
-    val admitCnt: Int,
-    val waitCnt: Int,
-    val collegeName: String,
-    val departmentName: String,
-    val courseType: String,
-    val detailUrl: String,
 )
