@@ -2,6 +2,7 @@ package org.mpc
 
 import androidx.compose.ui.window.ComposeUIViewController
 import org.mpc.bridge.CourseSearchBridge
+import org.mpc.core.createDataStore
 import org.mpc.di.AppGraph
 import org.mpc.di.createAppGraph
 import org.mpc.presentation.CourseSearchResultViewBinding
@@ -17,4 +18,7 @@ class IosSharedHost internal constructor(
     }
 }
 
-fun createIosSharedHost(): IosSharedHost = IosSharedHost(createAppGraph())
+fun createIosSharedHost(): IosSharedHost {
+    val storage = createDataStore()
+    return IosSharedHost(createAppGraph(storage))
+}
