@@ -9,25 +9,30 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import org.mpc.bridge.CourseSearchBridge
 import org.mpc.presentation.viewModel.CourseSearchViewModel
+import org.mpc.presentation.viewModel.CourseSelectionViewModel
 import org.mpc.presentation.views.courseSelection.CourseSearchResultView
 
 @Composable
 fun CourseSearchResultViewBinding(
     bridge: CourseSearchBridge
 ) {
-    val viewModel: CourseSearchViewModel = metroViewModel()
-    val uiState by viewModel.state.collectAsStateWithLifecycle()
+    val searchViewModel: CourseSearchViewModel = metroViewModel()
+    val planViewModel: CourseSelectionViewModel = metroViewModel()
 
-    LaunchedEffect(bridge, viewModel) {
+    val uiState by searchViewModel.state.collectAsStateWithLifecycle()
+    val planState by planViewModel.state.collectAsStateWithLifecycle()
+
+    LaunchedEffect(bridge, searchViewModel) {
         bridge.sendRequests.collect { (semester, query) ->
-            viewModel.updateQuery(semester, query)
-            viewModel.onSearch()
+            searchViewModel.updateQuery(semester, query)
+            searchViewModel.onSearch()
         }
     }
 
     CourseSearchResultView(
         modifier = Modifier.fillMaxSize(),
         courseLoadState = uiState.result,
+        selectedCourseSerialNumbers = planState.selected.keys,
+        onToggleCourse = planViewModel::toggleCourse,
     )
-
 }

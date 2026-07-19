@@ -41,7 +41,8 @@ import org.mpc.presentation.icon.schedule
 fun CourseCard(
     modifier: Modifier = Modifier,
     courseSummary: CourseSummary,
-    onJoinClick: () -> Unit = {},
+    isSelected: Boolean,
+    onButtonClick: () -> Unit = {},
 ) {
     Surface(
         modifier = modifier,
@@ -100,11 +101,11 @@ fun CourseCard(
                 )
                 Spacer(Modifier.width(8.dp))
                 Button(
-                    onClick = onJoinClick,
+                    onClick = onButtonClick,
                     modifier = Modifier.heightIn(min = 40.dp),
                     contentPadding = ButtonDefaults.ContentPadding,
                 ) {
-                    Text("加入")
+                    Text(if (isSelected) "移除" else "加入")
                 }
             }
         }
@@ -230,8 +231,14 @@ private fun PreviewCourseCard(
 ) {
     MaterialTheme {
         CourseCard(
-            courseSummary = courseSummary,
             modifier = Modifier.width(360.dp),
+            courseSummary = courseSummary,
+            isSelected = false,
+        )
+        CourseCard(
+            modifier = Modifier.width(360.dp),
+            courseSummary = courseSummary,
+            isSelected = true,
         )
     }
 }
