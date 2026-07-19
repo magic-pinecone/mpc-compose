@@ -11,7 +11,7 @@ import org.mpc.data.dto.CourseResultDto
 
 @ContributesBinding(AppScope::class)
 @Inject
-internal class StaticRemoteDataSource(
+internal class StaticRemoteCourseDataSource(
     private val httpClient: HttpClient
 ): CourseDataSource {
     override suspend fun getAllCourses(semester: String): CourseResultDto {
