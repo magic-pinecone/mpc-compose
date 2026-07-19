@@ -4,9 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
-import org.mpc.di.AppGraph
+import org.mpc.core.createDataStore
 import org.mpc.di.createAppGraph
 
 class MainActivity : ComponentActivity() {
@@ -14,7 +12,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
-        val appGraph = createAppGraph()
+        val storage = createDataStore(applicationContext)
+        val appGraph = createAppGraph(storage)
 
         setContent {
             AndroidAppShell(appGraph)
