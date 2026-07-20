@@ -4,7 +4,6 @@ import kotlin.time.Instant
 
 data class CourseResult(
     val lastUpdated: Instant,
-    val academicYear: String,
     val semester: String,
     val courses: List<CourseSummary>,
 )

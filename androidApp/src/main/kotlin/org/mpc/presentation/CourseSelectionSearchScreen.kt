@@ -17,15 +17,18 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import org.mpc.presentation.viewModel.CourseSearchViewModel
+import org.mpc.presentation.viewModel.CourseSelectionViewModel
 import org.mpc.presentation.views.courseSelection.CourseSearchResultView
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CourseSelectionSearchScreen(
     modifier: Modifier,
-    viewModel: CourseSearchViewModel = metroViewModel()
+    searchViewModel: CourseSearchViewModel = metroViewModel(),
+    planViewModel: CourseSelectionViewModel = metroViewModel(),
 ) {
-    val uiState by viewModel.state.collectAsStateWithLifecycle()
+    val searchState by searchViewModel.state.collectAsStateWithLifecycle()
+    val planState by planViewModel.state.collectAsStateWithLifecycle()
 
     val searchBarState = rememberSearchBarState()
     val textFieldState = rememberTextFieldState()
@@ -35,11 +38,11 @@ fun CourseSelectionSearchScreen(
             textFieldState = textFieldState,
             searchBarState = searchBarState,
             onSearch = {
-                    query -> viewModel.updateQuery(
-                semester = uiState.semester,
+                    query -> searchViewModel.updateQuery(
+                semester = searchState.semester,
                 query = query
             )
-                viewModel.onSearch()
+                searchViewModel.onSearch()
             },
             placeholder = {
                 Text("搜尋課程")
@@ -64,7 +67,9 @@ fun CourseSelectionSearchScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
-            courseLoadState = uiState.result
+            courseLoadState = searchState.result,
+            selectedCourseSerialNumbers = planState.selected.keys,
+            onToggleCourse = planViewModel::toggleCourse,
         )
     }
     ExpandedFullScreenSearchBar(
@@ -76,7 +81,9 @@ fun CourseSelectionSearchScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
-            courseLoadState = uiState.result
+            courseLoadState = searchState.result,
+            selectedCourseSerialNumbers = planState.selected.keys,
+            onToggleCourse = planViewModel::toggleCourse,
         )
     }
 
