@@ -1,5 +1,6 @@
 package org.mpc.data.mapper
 
+import co.touchlab.kermit.Logger
 import org.mpc.data.dto.CourseDetailDto
 import org.mpc.data.dto.CourseDto
 import org.mpc.data.dto.CourseResultDto
@@ -30,7 +31,13 @@ internal fun CourseDto.toDomain(): CourseSummary = CourseSummary(
     credit = credit,
     passwordCard = passwordCard.toDomain(),
     teachers = teachers,
-    classTimes = classTimes.map { it.toCourseTime() },
+    classTimes = classTimes.mapNotNull { rawTime ->
+        rawTime.toCourseTimeOrNull().also { parsed ->
+            if (parsed == null) {
+                Logger.w { "Ignoring invalid course time $parsed" }
+            }
+        }
+    },
     limitCnt = limitCnt,
     admitCnt = admitCnt,
     waitCnt = waitCnt,
@@ -40,45 +47,24 @@ internal fun CourseDto.toDomain(): CourseSummary = CourseSummary(
     detailUrl = detailUrl
 )
 
-private fun String.toCourseTime(): CourseTime {
+private fun String.toCourseTimeOrNull(): CourseTime? {
     val parts = split("-", limit = 2)
-    require(parts.size == 2) {
-        "Invalid course time '$this': expected <day>-<period>"
+    if (parts.size != 2) {
+        return null
     }
 
+    val day = CourseDay.entries
+        .firstOrNull { it.code == parts[0] }
+        ?: return null
+
+    val period = CoursePeriod.entries
+        .firstOrNull { it.description == parts[1] }
+        ?: return null
+
+
     return CourseTime(
-        day = when (parts[0]) {
-            "0" -> CourseDay.UNKNOWN
-            "1" -> CourseDay.MONDAY
-            "2" -> CourseDay.TUESDAY
-            "3" -> CourseDay.WEDNESDAY
-            "4" -> CourseDay.THURSDAY
-            "5" -> CourseDay.FRIDAY
-            "6" -> CourseDay.SATURDAY
-            "7" -> CourseDay.SUNDAY
-            else -> throw IllegalArgumentException(
-                "Invalid course day '${parts[0]}' in '$this'"
-            )
-        },
-        period = when (parts[1]) {
-            "1" -> CoursePeriod.ONE
-            "2" -> CoursePeriod.TWO
-            "3" -> CoursePeriod.THREE
-            "4" -> CoursePeriod.FOUR
-            "Z" -> CoursePeriod.NOON
-            "5" -> CoursePeriod.FIVE
-            "6" -> CoursePeriod.SIX
-            "7" -> CoursePeriod.SEVEN
-            "8" -> CoursePeriod.EIGHT
-            "9" -> CoursePeriod.NINE
-            "A" -> CoursePeriod.A
-            "B" -> CoursePeriod.B
-            "C" -> CoursePeriod.C
-            "D" -> CoursePeriod.D
-            else -> throw IllegalArgumentException(
-                "Invalid course period '${parts[1]}' in '$this'"
-            )
-        },
+        day = day,
+        period = period
     )
 }
 
