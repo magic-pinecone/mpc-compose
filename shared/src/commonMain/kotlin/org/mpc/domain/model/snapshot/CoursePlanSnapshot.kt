@@ -1,11 +1,12 @@
 package org.mpc.domain.model.snapshot
 
+import org.mpc.domain.model.entity.CourseSerialNo
 import org.mpc.domain.model.entity.CourseSummary
 
 
 data class CoursePlanSnapshot(
     val semester: String,
-    val selected: Map<String, CourseSummary>,
+    val selected: Map<CourseSerialNo, CourseSummary>,
 )
 
 fun CoursePlanSnapshot.addCourse(course: CourseSummary): CoursePlanSnapshot = copy(

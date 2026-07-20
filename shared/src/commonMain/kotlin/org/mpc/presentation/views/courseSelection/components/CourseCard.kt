@@ -29,7 +29,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import org.mpc.domain.model.entity.CourseDay
+import org.mpc.domain.model.entity.CoursePeriod
+import org.mpc.domain.model.entity.CourseSerialNo
 import org.mpc.domain.model.entity.CourseSummary
+import org.mpc.domain.model.entity.CourseTime
 import org.mpc.domain.model.entity.CourseType
 import org.mpc.domain.model.entity.PasswordCardType
 import org.mpc.presentation.icon.apartment
@@ -207,19 +211,25 @@ private fun CourseSummary.enrollmentText(): String = if (waitCnt > 0) {
 
 private fun CourseSummary.passwordText(): String = passwordCard.description
 
-private fun CourseSummary.scheduleText(): String = classTimes.joinToString(separator = "、")
+private fun CourseSummary.scheduleText(): String = classTimes.joinToString(separator = "、") {
+    "${it.day.code}-${it.period.description}"
+}
 
 @Composable
 @Preview
 private fun PreviewCourseCard(
     courseSummary: CourseSummary = CourseSummary(
-        serialNo = "36019",
+        serialNo = CourseSerialNo("36019"),
         classNo = "ENA103-*",
         title = "專題討論（III）",
         credit = 0.0,
         passwordCard = PasswordCardType.NONE,
         teachers = listOf("鄭明敏", "林居慶", "林進榮", "林伯勳"),
-        classTimes = listOf("5-A", "5-B", "5-C"),
+        classTimes = listOf(
+            CourseTime(CourseDay.FRIDAY, CoursePeriod.A),
+            CourseTime(CourseDay.FRIDAY, CoursePeriod.B),
+            CourseTime(CourseDay.FRIDAY, CoursePeriod.C),
+        ),
         limitCnt = 0,
         admitCnt = 0,
         waitCnt = 0,

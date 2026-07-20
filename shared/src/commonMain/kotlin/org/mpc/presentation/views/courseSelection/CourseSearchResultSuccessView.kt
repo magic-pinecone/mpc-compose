@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.mpc.domain.model.entity.CourseResult
+import org.mpc.domain.model.entity.CourseSerialNo
 import org.mpc.domain.model.entity.CourseSummary
 import org.mpc.presentation.views.courseSelection.components.CourseCard
 
@@ -16,7 +17,7 @@ import org.mpc.presentation.views.courseSelection.components.CourseCard
 fun CourseResultSuccessView(
     modifier: Modifier,
     courseResult: CourseResult,
-    selectedCourseSerialNumbers: Set<String>,
+    selectedCourseSerialNumbers: Set<CourseSerialNo>,
     onCourseToggle: (CourseSummary) -> Unit,
 ) {
     LazyColumn(

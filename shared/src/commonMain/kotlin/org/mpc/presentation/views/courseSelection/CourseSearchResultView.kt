@@ -2,6 +2,7 @@ package org.mpc.presentation.views.courseSelection
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import org.mpc.domain.model.entity.CourseSerialNo
 import org.mpc.domain.model.entity.CourseSummary
 import org.mpc.domain.repository.CourseLoadState
 
@@ -9,7 +10,7 @@ import org.mpc.domain.repository.CourseLoadState
 fun CourseSearchResultView(
     modifier: Modifier = Modifier,
     courseLoadState: CourseLoadState,
-    selectedCourseSerialNumbers: Set<String>,
+    selectedCourseSerialNumbers: Set<CourseSerialNo>,
     onToggleCourse: (CourseSummary) -> Unit,
 ) {
     when (courseLoadState) {
