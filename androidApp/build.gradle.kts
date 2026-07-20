@@ -19,6 +19,9 @@ dependencies {
     implementation(libs.androidx.datastore)
     implementation(libs.androidx.datastorePreferences)
 
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.sqlite.bundled)
+
     implementation(libs.compose.material3)
 
     implementation(libs.compose.uiToolingPreview)

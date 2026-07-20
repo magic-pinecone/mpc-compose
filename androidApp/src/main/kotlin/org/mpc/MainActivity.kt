@@ -5,6 +5,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import org.mpc.core.createDataStore
+import org.mpc.core.createDatabase
+import org.mpc.core.createDatabaseBuilder
 import org.mpc.di.createAppGraph
 
 class MainActivity : ComponentActivity() {
@@ -13,7 +15,11 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val storage = createDataStore(applicationContext)
-        val appGraph = createAppGraph(storage)
+        val database = createDatabase(
+            createDatabaseBuilder(applicationContext)
+        )
+
+        val appGraph = createAppGraph(storage, database)
 
         setContent {
             AndroidAppShell(appGraph)

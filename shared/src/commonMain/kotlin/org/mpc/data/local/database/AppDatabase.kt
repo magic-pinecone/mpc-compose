@@ -4,6 +4,8 @@ import androidx.room.ConstructedBy
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.RoomDatabaseConstructor
+import org.mpc.data.local.dao.CourseCatalogDao
+import org.mpc.data.local.dao.CoursePlanDao
 
 @Database(
     entities = [
@@ -17,9 +19,11 @@ import androidx.room.RoomDatabaseConstructor
     version = 1,
 )
 @ConstructedBy(AppDatabaseConstructor::class)
-abstract class AppDatabase : RoomDatabase()
+abstract class AppDatabase : RoomDatabase() {
+    abstract fun courseCatalogDao(): CourseCatalogDao
+    abstract fun coursePlanDao(): CoursePlanDao
+}
 
-@Suppress("KotlinNoActualForExpect")
 expect object AppDatabaseConstructor : RoomDatabaseConstructor<AppDatabase> {
     override fun initialize(): AppDatabase
 }
