@@ -27,7 +27,7 @@ fun CourseResultSuccessView(
     ) {
         items(
             items = courseResult.courses,
-            key = { course -> course.serialNo }
+            key = { course -> course.serialNo.value }
         ) { course ->
             CourseCard(
                 modifier = Modifier.fillMaxWidth(),
