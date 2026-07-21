@@ -16,6 +16,48 @@ plugins {
     alias(libs.plugins.detekt) apply false
 }
 
+val swiftLint by tasks.registering(Exec::class) {
+    group = "verification"
+    description = "Runs SwiftLint against the iOS application."
+
+    val swiftLintConfig = rootProject.file(".swiftlint.yml")
+    val swiftSources = rootProject.file("iosApp/iosApp")
+    val swiftLintCache = layout.buildDirectory.file("swiftlint/cache")
+
+    inputs.file(swiftLintConfig)
+    inputs.files(
+        fileTree(swiftSources) {
+            include("**/*.swift")
+        },
+    )
+
+    commandLine(
+        "swiftlint",
+        "lint",
+        "--strict",
+        "--config",
+        swiftLintConfig.absolutePath,
+        "--cache-path",
+        swiftLintCache.get().asFile.absolutePath,
+        swiftSources.absolutePath,
+    )
+}
+
+tasks.register("check") {
+    group = "verification"
+    description = "Runs all project verification checks."
+
+    dependsOn(
+        ":shared:check",
+        ":shared:detektMainAndroid",
+        ":shared:detektHostTestAndroid",
+        ":androidApp:check",
+        ":androidApp:detektDebug",
+        ":androidApp:lintDebug",
+        swiftLint,
+    )
+}
+
 /*
     make detekt to only runs on staged files
     Sources: https://detekt.dev/docs/next/gettingstarted/git-pre-commit-hook#only-run-on-staged-files---gradle
@@ -37,7 +79,9 @@ subprojects {
     pluginManager.withPlugin("dev.detekt") {
         tasks.withType<Detekt>().configureEach {
 
-            exclude("**/build/generated/**")
+            exclude {
+                "/build/generated/" in it.file.invariantSeparatorsPath
+            }
             exclude("**/build/reports/**")
 
             if (project.hasProperty("precommit")) {
