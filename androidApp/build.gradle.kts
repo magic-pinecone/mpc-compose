@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.detekt)
 }
 
 kotlin {
@@ -28,6 +29,8 @@ dependencies {
     debugImplementation(libs.compose.uiTooling)
 
     implementation(libs.metrox.viewmodel.compose)
+
+    detektPlugins(libs.detekt.ktlint)
 }
 
 android {
@@ -55,4 +58,9 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+}
+
+detekt {
+    config.setFrom(rootProject.file("config/detekt/detekt.yml"))
+    buildUponDefaultConfig = true
 }

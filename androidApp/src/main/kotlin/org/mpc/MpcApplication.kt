@@ -16,7 +16,7 @@ class MpcApplication : Application() {
 
         val storage = createDataStore(this)
         val database = createDatabase(
-            createDatabaseBuilder(this)
+            createDatabaseBuilder(this),
         )
 
         appGraph = createAppGraph(storage, database)

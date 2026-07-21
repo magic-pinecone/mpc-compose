@@ -21,18 +21,17 @@ fun AndroidAppShell(appGraph: AppGraph) {
                     TopAppBar(
                         title = {
                             Text("Magic Pinecone")
-                        }
+                        },
                     )
+                },
+            ) { paddingValues ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                ) {
+                    CourseSelectionSearchScreen(modifier = Modifier.fillMaxSize())
                 }
-            ) {
-                paddingValues ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues)
-                    ){
-                        CourseSelectionSearchScreen(modifier = Modifier.fillMaxSize())
-                    }
             }
         }
     }

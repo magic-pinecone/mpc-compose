@@ -12,13 +12,12 @@ plugins {
     alias(libs.plugins.detekt)
 }
 
-
 val ktorVersion: String by project
 
 kotlin {
     listOf(
         iosArm64(),
-        iosSimulatorArm64()
+        iosSimulatorArm64(),
     ).forEach { iosTarget ->
         iosTarget.binaries.framework {
             baseName = "Shared"
@@ -84,6 +83,7 @@ dependencies {
     add("kspAndroid", libs.androidx.room.compiler)
     add("kspIosSimulatorArm64", libs.androidx.room.compiler)
     add("kspIosArm64", libs.androidx.room.compiler)
+    detektPlugins(libs.detekt.ktlint)
 }
 
 room {
@@ -92,6 +92,6 @@ room {
 
 detekt {
     toolVersion = "2.0.0-alpha.5"
-    config.setFrom(file("config/detekt/detekt.yml"))
+    config.setFrom(rootProject.file("config/detekt/detekt.yml"))
     buildUponDefaultConfig = true
 }
