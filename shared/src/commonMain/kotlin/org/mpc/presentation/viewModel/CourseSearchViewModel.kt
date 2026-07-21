@@ -12,9 +12,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.mpc.domain.repository.CourseLoadState
-import org.mpc.domain.repository.CourseSearchError
-import org.mpc.domain.repository.CourseSearchState
+import org.mpc.domain.model.state.CourseLoadState
+import org.mpc.domain.model.state.CourseSearchError
+import org.mpc.domain.model.state.CourseSearchState
 import org.mpc.domain.repository.CourseRepository
 
 @Inject

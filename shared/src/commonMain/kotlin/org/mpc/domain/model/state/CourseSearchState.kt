@@ -1,4 +1,4 @@
-package org.mpc.domain.repository
+package org.mpc.domain.model.state
 
 import org.mpc.domain.model.entity.CourseResult
 

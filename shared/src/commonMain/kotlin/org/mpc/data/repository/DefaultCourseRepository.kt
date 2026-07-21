@@ -4,12 +4,13 @@ import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import org.mpc.data.dataSource.CourseDataSource
-import org.mpc.data.mapper.toDomain
+import org.mpc.data.mapper.dto.toDomain
 import org.mpc.domain.model.entity.CourseDetail
 import org.mpc.domain.model.entity.CourseResult
+import org.mpc.domain.model.entity.CourseSerialNo
 import org.mpc.domain.repository.CourseRepository
 
-// TODO: Cache the result json fetch from remote
+// TODO: Cache the result JSON fetch from remote
 @ContributesBinding(AppScope::class)
 @Inject
 internal class DefaultCourseRepository(
@@ -32,6 +33,21 @@ internal class DefaultCourseRepository(
                 ignoreCase = true
             )
         }
+        return result.copy(courses = filteredCourse)
+    }
+
+    override suspend fun fetchCoursesBySerialNo(
+        semester: String,
+        serialNos: List<CourseSerialNo>
+    ): CourseResult {
+        val result = courseDataSource.getAllCourses(semester).toDomain()
+
+        val serialNoSet = serialNos.toSet()
+
+        val filteredCourse = result.courses.filter {
+            course -> course.serialNo in serialNoSet
+        }
+
         return result.copy(courses = filteredCourse)
     }
 
