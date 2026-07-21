@@ -39,16 +39,16 @@ fun CourseSelectionSearchScreen(
         SearchBarDefaults.InputField(
             textFieldState = textFieldState,
             searchBarState = searchBarState,
-            onSearch = {
-                    query -> searchViewModel.updateQuery(
-                semester = searchState.semester,
-                query = query
-            )
+            onSearch = { query ->
+                searchViewModel.updateQuery(
+                    semester = searchState.semester,
+                    query = query,
+                )
                 searchViewModel.onSearch()
             },
             placeholder = {
                 Text("搜尋課程")
-            }
+            },
         )
     }
 
@@ -59,16 +59,17 @@ fun CourseSelectionSearchScreen(
     }
 
     Column(
-        modifier = modifier
+        modifier = modifier,
     ) {
         SearchBar(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp,
-                    vertical = 8.dp
+                .padding(
+                    horizontal = 16.dp,
+                    vertical = 8.dp,
                 ),
             state = searchBarState,
-            inputField = inputField
+            inputField = inputField,
         )
 
         CourseSearchResultView(
@@ -94,5 +95,4 @@ fun CourseSelectionSearchScreen(
             onToggleCourse = planViewModel::toggleCourse,
         )
     }
-
 }

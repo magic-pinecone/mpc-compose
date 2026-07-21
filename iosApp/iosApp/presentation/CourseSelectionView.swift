@@ -3,13 +3,12 @@ import SwiftUI
 
 struct CourseSelectionView: View {
     let sharedHost: IosSharedHost
-    
-    
+
     enum Section {
         case search
         case timetable
     }
-    
+
     @State var selection: Section = .search
 
     var body: some View {
@@ -37,7 +36,6 @@ struct CourseSelectionView: View {
                 }
             }
         }
-        
+
     }
 }
-
