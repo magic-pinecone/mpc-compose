@@ -19,7 +19,7 @@ fun CourseSearchResultViewBinding(
     val searchViewModel: CourseSearchViewModel = metroViewModel()
     val planViewModel: CourseSelectionViewModel = metroViewModel()
 
-    val uiState by searchViewModel.state.collectAsStateWithLifecycle()
+    val searchState by searchViewModel.state.collectAsStateWithLifecycle()
     val planState by planViewModel.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(bridge, searchViewModel) {
@@ -31,7 +31,7 @@ fun CourseSearchResultViewBinding(
 
     CourseSearchResultView(
         modifier = Modifier.fillMaxSize(),
-        courseLoadState = uiState.result,
+        courseLoadState = searchState.result,
         selectedCourseSerialNumbers = planState.selected.keys,
         onToggleCourse = planViewModel::toggleCourse,
     )

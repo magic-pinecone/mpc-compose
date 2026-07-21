@@ -8,6 +8,7 @@ import org.mpc.core.createDatabaseBuilder
 import org.mpc.di.AppGraph
 import org.mpc.di.createAppGraph
 import org.mpc.presentation.CourseSearchResultViewBinding
+import org.mpc.presentation.CourseSelectionTimetableViewBinding
 import platform.UIKit.UIViewController
 
 class IosSharedHost internal constructor(
@@ -16,6 +17,12 @@ class IosSharedHost internal constructor(
     fun courseSearchScreenController(bridge: CourseSearchBridge): UIViewController = ComposeUIViewController {
         ProvideAppDependencies(appGraph) {
             CourseSearchResultViewBinding(bridge)
+        }
+    }
+
+    fun courseSelectionTimetableScreenController(): UIViewController = ComposeUIViewController {
+        ProvideAppDependencies(appGraph) {
+            CourseSelectionTimetableViewBinding()
         }
     }
 }
