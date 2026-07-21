@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.metro)
     alias(libs.plugins.ksp)
     alias(libs.plugins.androidx.room)
+    alias(libs.plugins.detekt)
 }
 
 
@@ -87,4 +88,10 @@ dependencies {
 
 room {
     schemaDirectory("$projectDir/schemas")
+}
+
+detekt {
+    toolVersion = "2.0.0-alpha.5"
+    config.setFrom(file("config/detekt/detekt.yml"))
+    buildUponDefaultConfig = true
 }
