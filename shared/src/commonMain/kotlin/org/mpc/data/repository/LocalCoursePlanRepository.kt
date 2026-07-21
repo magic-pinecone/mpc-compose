@@ -20,6 +20,13 @@ class LocalCoursePlanRepository(
     override suspend fun loadPlan(semester: String): CoursePlanSnapshot {
         val selectedCourses = coursePlanDao.findSelectedSerialNumbers(semester).map { CourseSerialNo(it) }
 
+        if (selectedCourses.isEmpty()) {
+            return CoursePlanSnapshot(
+                semester = semester,
+                selected = mapOf()
+            )
+        }
+
         val courseResult = courseRepository.fetchCoursesBySerialNo(semester, selectedCourses)
 
         return CoursePlanSnapshot(
