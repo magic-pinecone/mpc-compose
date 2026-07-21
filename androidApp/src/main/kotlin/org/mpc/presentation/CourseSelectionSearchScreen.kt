@@ -16,9 +16,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.zacsweers.metrox.viewmodel.metroViewModel
+import org.mpc.domain.model.state.CoursePlanState
 import org.mpc.presentation.viewModel.CourseSearchViewModel
 import org.mpc.presentation.viewModel.CourseSelectionViewModel
 import org.mpc.presentation.views.courseSelection.CourseSearchResultView
+import kotlin.collections.emptySet
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,6 +52,12 @@ fun CourseSelectionSearchScreen(
         )
     }
 
+    val selectedCourseSerialNumbers = when (val current = planState) {
+        CoursePlanState.Loading -> emptySet()
+        is CoursePlanState.Failure -> emptySet()
+        is CoursePlanState.Success -> current.snapshot.selected.keys
+    }
+
     Column(
         modifier = modifier
     ) {
@@ -68,7 +76,7 @@ fun CourseSelectionSearchScreen(
                 .fillMaxWidth()
                 .weight(1f),
             courseLoadState = searchState.result,
-            selectedCourseSerialNumbers = planState.selected.keys,
+            selectedCourseSerialNumbers = selectedCourseSerialNumbers,
             onToggleCourse = planViewModel::toggleCourse,
         )
     }
@@ -82,7 +90,7 @@ fun CourseSelectionSearchScreen(
                 .fillMaxWidth()
                 .weight(1f),
             courseLoadState = searchState.result,
-            selectedCourseSerialNumbers = planState.selected.keys,
+            selectedCourseSerialNumbers = selectedCourseSerialNumbers,
             onToggleCourse = planViewModel::toggleCourse,
         )
     }
