@@ -14,7 +14,7 @@ import org.mpc.presentation.model.toTimetableBlocks
 
 
 @Composable
-fun COursSelectionTimetableSuccessView(
+fun CourseSelectionTimetableSuccessView(
     snapshot: CoursePlanSnapshot,
     displayWeekends: Boolean,
     modifier: Modifier,

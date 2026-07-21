@@ -15,6 +15,6 @@ fun CourseSelectionTimetableFailureView(
         modifier = modifier,
         contentAlignment = Alignment.Center
     ) {
-        Text("Failed to load: $cause")
+        Text("Failed to load: ${cause.message ?: "Unknown error"}")
     }
 }

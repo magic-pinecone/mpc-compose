@@ -13,10 +13,10 @@ fun CourseSelectionTimetableView(
     when(state) {
         is CoursePlanState.Failure -> CourseSelectionTimetableFailureView(modifier, state.cause)
         CoursePlanState.Loading -> CourseSelectionTimetableLoadingView(modifier)
-        is CoursePlanState.Success -> COursSelectionTimetableSuccessView(
+        is CoursePlanState.Success -> CourseSelectionTimetableSuccessView(
             snapshot = state.snapshot,
             displayWeekends = displayWeekends,
-            modifier = modifier
+            modifier = modifier,
         )
     }
 }

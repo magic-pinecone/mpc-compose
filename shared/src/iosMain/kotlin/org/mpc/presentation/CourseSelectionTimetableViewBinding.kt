@@ -10,7 +10,7 @@ import org.mpc.presentation.viewModel.CourseSelectionViewModel
 import org.mpc.presentation.views.courseSelection.CourseSelectionTimetableView
 
 @Composable
-fun CourseSelectionTimetableViewBinding(){
+fun CourseSelectionTimetableViewBinding() {
     val planViewModel: CourseSelectionViewModel = metroViewModel()
 
     val planState by planViewModel.state.collectAsStateWithLifecycle()
