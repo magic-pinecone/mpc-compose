@@ -2,7 +2,7 @@ import Shared
 import SwiftUI
 
 @main
-struct iOSApp: App {
+struct IOSApp: App {
     private let sharedHost: IosSharedHost = IosSharedHostKt.createIosSharedHost()
     var body: some Scene {
         WindowGroup {
