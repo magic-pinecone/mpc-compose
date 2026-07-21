@@ -16,7 +16,7 @@ fun CourseSelectionTimetableViewBinding(){
     val planState by planViewModel.state.collectAsStateWithLifecycle()
 
     CourseSelectionTimetableView(
-        snapshot = planState,
+        state = planState,
         displayWeekends = false,
         modifier = Modifier.fillMaxSize()
     )
