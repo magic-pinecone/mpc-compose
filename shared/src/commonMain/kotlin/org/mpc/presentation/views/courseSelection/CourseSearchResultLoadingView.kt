@@ -7,7 +7,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
 @Composable
-fun CourseResultLoadingView(modifier: Modifier) {
+fun CourseSearchResultLoadingView(modifier: Modifier) {
     Box(
         modifier = modifier,
         contentAlignment = Alignment.Center

@@ -21,7 +21,7 @@ fun CourseSearchResultView(
             onCourseToggle = onToggleCourse,
         )
         is CourseLoadState.Failure -> CourseResultFailureView(modifier, courseLoadState.error)
-        CourseLoadState.Loading -> CourseResultLoadingView(modifier)
+        CourseLoadState.Loading -> CourseSearchResultLoadingView(modifier)
     }
 }
 
