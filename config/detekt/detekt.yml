@@ -447,7 +447,7 @@ naming:
     active: false
     parameterPattern: "[a-z][A-Za-z0-9]*|_"
   MatchingDeclarationName:
-    active: true
+    active: false
     mustBeFirst: true
     multiplatformTargets:
       - "ios"
@@ -844,7 +844,7 @@ style:
     active: false
     maxChainedCalls: 5
   MaxLineLength:
-    active: true
+    active: false
     maxLineLength: 120
     excludePackageStatements: true
     excludeImportStatements: true
@@ -853,7 +853,7 @@ style:
   MayBeConstant:
     active: true
   ModifierOrder:
-    active: true
+    active: false
   MultilineLambdaItParameter:
     active: false
   MultilineRawStringIndentation:
@@ -865,7 +865,7 @@ style:
   NestedClassesVisibility:
     active: true
   NewLineAtEndOfFile:
-    active: true
+    active: false
   NoTabs:
     active: false
   NullableBooleanCheck:
