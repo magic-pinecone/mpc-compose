@@ -7,11 +7,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
 @Composable
-fun CourseResultLoadingView(modifier: Modifier) {
+fun CourseSelectionTimetableFailureView(
+    modifier: Modifier,
+    cause: Throwable
+) {
     Box(
         modifier = modifier,
         contentAlignment = Alignment.Center
     ) {
-        Text("Loading...")
+        Text("Failed to load: ${cause.message ?: "Unknown error"}")
     }
 }

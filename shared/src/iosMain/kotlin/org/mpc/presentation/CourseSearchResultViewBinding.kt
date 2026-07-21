@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import org.mpc.bridge.CourseSearchBridge
+import org.mpc.domain.model.state.CoursePlanState
 import org.mpc.presentation.viewModel.CourseSearchViewModel
 import org.mpc.presentation.viewModel.CourseSelectionViewModel
 import org.mpc.presentation.views.courseSelection.CourseSearchResultView
@@ -19,8 +20,14 @@ fun CourseSearchResultViewBinding(
     val searchViewModel: CourseSearchViewModel = metroViewModel()
     val planViewModel: CourseSelectionViewModel = metroViewModel()
 
-    val uiState by searchViewModel.state.collectAsStateWithLifecycle()
+    val searchState by searchViewModel.state.collectAsStateWithLifecycle()
     val planState by planViewModel.state.collectAsStateWithLifecycle()
+
+    val selectedCourseSerialNumbers = when (val current = planState) {
+        CoursePlanState.Loading -> emptySet()
+        is CoursePlanState.Failure -> emptySet()
+        is CoursePlanState.Success -> current.snapshot.selected.keys
+    }
 
     LaunchedEffect(bridge, searchViewModel) {
         bridge.sendRequests.collect { (semester, query) ->
@@ -31,8 +38,8 @@ fun CourseSearchResultViewBinding(
 
     CourseSearchResultView(
         modifier = Modifier.fillMaxSize(),
-        courseLoadState = uiState.result,
-        selectedCourseSerialNumbers = planState.selected.keys,
+        courseLoadState = searchState.result,
+        selectedCourseSerialNumbers = selectedCourseSerialNumbers,
         onToggleCourse = planViewModel::toggleCourse,
     )
 }

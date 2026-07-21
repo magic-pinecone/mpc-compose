@@ -1,18 +1,22 @@
 package org.mpc.presentation.views.courseSelection
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import org.mpc.domain.model.state.CoursePlanState
 
 @Composable
-fun CourseSelectionTimeTableView(
+fun CourseSelectionTimetableView(
+    state: CoursePlanState,
+    displayWeekends: Boolean,
     modifier: Modifier,
-    displayWeekends: Boolean
 ) {
-    Box(
-        modifier = modifier
-    ) {
-
+    when(state) {
+        is CoursePlanState.Failure -> CourseSelectionTimetableFailureView(modifier, state.cause)
+        CoursePlanState.Loading -> CourseSelectionTimetableLoadingView(modifier)
+        is CoursePlanState.Success -> CourseSelectionTimetableSuccessView(
+            snapshot = state.snapshot,
+            displayWeekends = displayWeekends,
+            modifier = modifier,
+        )
     }
 }

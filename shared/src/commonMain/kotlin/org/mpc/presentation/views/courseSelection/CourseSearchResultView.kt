@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import org.mpc.domain.model.entity.CourseSerialNo
 import org.mpc.domain.model.entity.CourseSummary
-import org.mpc.domain.repository.CourseLoadState
+import org.mpc.domain.model.state.CourseLoadState
 
 @Composable
 fun CourseSearchResultView(
@@ -21,7 +21,7 @@ fun CourseSearchResultView(
             onCourseToggle = onToggleCourse,
         )
         is CourseLoadState.Failure -> CourseResultFailureView(modifier, courseLoadState.error)
-        CourseLoadState.Loading -> CourseResultLoadingView(modifier)
+        CourseLoadState.Loading -> CourseSearchResultLoadingView(modifier)
     }
 }
 

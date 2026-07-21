@@ -1,4 +1,4 @@
-package org.mpc.data.mapper
+package org.mpc.data.mapper.dto
 
 import co.touchlab.kermit.Logger
 import org.mpc.data.dto.CourseDetailDto
