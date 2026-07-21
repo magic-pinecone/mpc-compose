@@ -14,7 +14,6 @@ struct CourseSelectionSearchView: View {
             sharedHost: sharedHost,
             bridge: bridge
         )
-        .navigationTitle("課程搜尋")
         .searchable(
             text: $query,
             prompt: "搜尋課程名稱"
@@ -23,5 +22,9 @@ struct CourseSelectionSearchView: View {
         .onSubmit(of: .search) {
             bridge.submitSearch(request: CourseSearchRequest(semester: semester, query: query))
         }
+        .ignoresSafeArea(
+            .container,
+            edges: .bottom
+        )
     }
 }

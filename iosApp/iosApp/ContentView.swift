@@ -17,20 +17,12 @@ struct ContentView: View {
         TabView {
             Tab("選課", systemImage: "calendar") {
                 NavigationStack {
-                    CourseSelectionSearchView(sharedHost: sharedHost)
-                        .ignoresSafeArea(
-                            .container,
-                            edges: .bottom
-                        )
+                    CourseSelectionView(sharedHost: sharedHost)
                 }
             }
             Tab("設定", systemImage: "gear") {
                 NavigationStack {
-                    CourseSelectionSearchView(sharedHost: sharedHost)
-                        .ignoresSafeArea(
-                            .container,
-                            edges: .bottom
-                        )
+                    CourseSelectionView(sharedHost: sharedHost)
                 }
             }
         }
