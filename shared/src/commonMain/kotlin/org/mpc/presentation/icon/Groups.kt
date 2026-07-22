@@ -16,14 +16,14 @@ public val groups: ImageVector
             return _groups!!
         }
         _groups =
-            ImageVector.Builder(
-                name = "groups",
-                defaultWidth = 20.dp,
-                defaultHeight = 20.dp,
-                viewportWidth = 20f,
-                viewportHeight = 20f,
-            )
-                .apply {
+            ImageVector
+                .Builder(
+                    name = "groups",
+                    defaultWidth = 20.dp,
+                    defaultHeight = 20.dp,
+                    viewportWidth = 20f,
+                    viewportHeight = 20f,
+                ).apply {
                     path(
                         fill = SolidColor(Color.Black),
                         fillAlpha = 1f,
@@ -122,8 +122,7 @@ public val groups: ImageVector
                         moveToRelative(0f, -6f)
                         close()
                     }
-                }
-                .build()
+                }.build()
         return _groups!!
     }
 

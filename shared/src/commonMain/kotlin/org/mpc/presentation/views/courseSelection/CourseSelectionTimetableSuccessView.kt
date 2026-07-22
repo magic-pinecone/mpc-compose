@@ -9,33 +9,28 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import org.mpc.domain.model.snapshot.CoursePlanSnapshot
+import org.mpc.domain.model.CoursePlan
 import org.mpc.presentation.model.toTimetableBlocks
-
 
 @Composable
 fun CourseSelectionTimetableSuccessView(
-    snapshot: CoursePlanSnapshot,
-    displayWeekends: Boolean,
+    plan: CoursePlan,
     modifier: Modifier,
 ) {
     Box(
-        modifier = modifier
+        modifier = modifier,
     ) {
         LazyColumn(
             modifier = modifier,
             contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             items(
-                items = snapshot.selected.values.flatMap { it.toTimetableBlocks() },
-                key = { course -> course.serialNo.value }
+                items = plan.selectedCourses.values.flatMap { it.toTimetableBlocks() },
+                key = { course -> course.serialNo.value },
             ) { items ->
                 Text("${items.title}：${items.type.description}")
             }
-
         }
-
-
     }
 }

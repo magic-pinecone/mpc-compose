@@ -1,14 +1,13 @@
 package org.mpc.presentation.state
 
-import org.mpc.domain.model.entity.CourseDay
-import org.mpc.domain.model.entity.CoursePeriod
-import org.mpc.domain.model.entity.CourseSerialNo
-import org.mpc.domain.model.entity.CourseSummary
-import org.mpc.domain.model.entity.CourseTime
-import org.mpc.domain.model.entity.CourseType
-import org.mpc.domain.model.entity.PasswordCardType
-import org.mpc.domain.model.snapshot.CoursePlanSnapshot
-import org.mpc.domain.model.state.CoursePlanState
+import org.mpc.domain.model.CourseDay
+import org.mpc.domain.model.CoursePeriod
+import org.mpc.domain.model.CoursePlan
+import org.mpc.domain.model.CourseSerialNo
+import org.mpc.domain.model.CourseSummary
+import org.mpc.domain.model.CourseTime
+import org.mpc.domain.model.CourseType
+import org.mpc.domain.model.PasswordCardType
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -18,16 +17,16 @@ class CoursePlanDraftStoreTest {
     @Test
     fun toggleCourseUpdatesTheSharedStateFlow() {
         val store = CoursePlanDraftStore()
-        val searchState = store.state
-        val timetableState = store.state
+        val searchUiState = store.uiState
+        val timetableUiState = store.uiState
         val course = courseSummary()
 
-        store.acceptLoadedSnapshot(emptySnapshot())
+        store.acceptLoadedPlan(emptyPlan())
         store.toggleCourse(course)
 
-        assertSame(searchState, timetableState)
-        val state = assertIs<CoursePlanState.Success>(timetableState.value)
-        assertEquals(course, state.snapshot.selected[course.serialNo])
+        assertSame(searchUiState, timetableUiState)
+        val uiState = assertIs<CoursePlanUiState.Success>(timetableUiState.value)
+        assertEquals(course, uiState.plan.selectedCourses[course.serialNo])
     }
 
     @Test
@@ -35,13 +34,13 @@ class CoursePlanDraftStoreTest {
         val store = CoursePlanDraftStore()
         val course = courseSummary()
 
-        store.acceptLoadedSnapshot(
-            emptySnapshot().copy(selected = mapOf(course.serialNo to course))
+        store.acceptLoadedPlan(
+            emptyPlan().copy(selectedCourses = mapOf(course.serialNo to course)),
         )
         store.toggleCourse(course)
 
-        val state = assertIs<CoursePlanState.Success>(store.state.value)
-        assertEquals(emptyMap(), state.snapshot.selected)
+        val uiState = assertIs<CoursePlanUiState.Success>(store.uiState.value)
+        assertEquals(emptyMap(), uiState.plan.selectedCourses)
     }
 
     @Test
@@ -49,45 +48,48 @@ class CoursePlanDraftStoreTest {
         val store = CoursePlanDraftStore()
         val course = courseSummary()
 
-        store.acceptLoadedSnapshot(emptySnapshot())
+        store.acceptLoadedPlan(emptyPlan())
         store.toggleCourse(course)
-        store.acceptLoadedSnapshot(emptySnapshot())
+        store.acceptLoadedPlan(emptyPlan())
 
-        val state = assertIs<CoursePlanState.Success>(store.state.value)
-        assertEquals(course, state.snapshot.selected[course.serialNo])
+        val uiState = assertIs<CoursePlanUiState.Success>(store.uiState.value)
+        assertEquals(course, uiState.plan.selectedCourses[course.serialNo])
     }
 
     @Test
     fun aLateLoadFailureDoesNotReplaceAnExistingDraft() {
         val store = CoursePlanDraftStore()
 
-        store.acceptLoadedSnapshot(emptySnapshot())
+        store.acceptLoadedPlan(emptyPlan())
         store.acceptLoadFailure(IllegalStateException("late failure"))
 
-        assertIs<CoursePlanState.Success>(store.state.value)
+        assertIs<CoursePlanUiState.Success>(store.uiState.value)
     }
 }
 
-private fun emptySnapshot() = CoursePlanSnapshot(
-    semester = "115-1",
-    selected = emptyMap(),
-)
+private fun emptyPlan() =
+    CoursePlan(
+        semester = "115-1",
+        selectedCourses = emptyMap(),
+    )
 
-private fun courseSummary() = CourseSummary(
-    serialNo = CourseSerialNo("12345"),
-    classNo = "CS101",
-    title = "Functional Programming",
-    credit = 3.0,
-    passwordCard = PasswordCardType.NONE,
-    teachers = listOf("Teacher"),
-    classTimes = listOf(
-        CourseTime(CourseDay.MONDAY, CoursePeriod.ONE)
-    ),
-    limitCnt = 50,
-    admitCnt = 0,
-    waitCnt = 0,
-    collegeName = "College",
-    departmentName = "Department",
-    courseType = CourseType.ELECTIVE,
-    detailUrl = "https://example.com/course/12345",
-)
+private fun courseSummary() =
+    CourseSummary(
+        serialNo = CourseSerialNo("12345"),
+        classNo = "CS101",
+        title = "Functional Programming",
+        credit = 3.0,
+        passwordCard = PasswordCardType.NONE,
+        teachers = listOf("Teacher"),
+        classTimes =
+            listOf(
+                CourseTime(CourseDay.MONDAY, CoursePeriod.ONE),
+            ),
+        limitCnt = 50,
+        admitCnt = 0,
+        waitCnt = 0,
+        collegeName = "College",
+        departmentName = "Department",
+        courseType = CourseType.ELECTIVE,
+        detailUrl = "https://example.com/course/12345",
+    )

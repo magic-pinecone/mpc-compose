@@ -48,8 +48,10 @@ internal data class CourseDto(
 internal enum class PasswordCardTypeDto {
     @SerialName("ALL")
     ALL,
+
     @SerialName("OPTIONAL")
     OPTIONAL,
+
     @SerialName("NONE")
     NONE,
 }
@@ -58,8 +60,10 @@ internal enum class PasswordCardTypeDto {
 internal enum class CourseTypeDto {
     @SerialName("REQUIRED")
     REQUIRED,
+
     @SerialName("ELECTIVE")
     ELECTIVE,
+
     @SerialName("UNKNOWN")
     UNKNOWN,
 }

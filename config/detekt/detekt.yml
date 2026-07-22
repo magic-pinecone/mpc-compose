@@ -667,6 +667,7 @@ potential-bugs:
     active: true
     excludes:
       [
+        "**/presentation/icon/**",
         "**/test/**",
         "**/androidTest/**",
         "**/commonTest/**",
@@ -819,6 +820,7 @@ style:
         "**/jvmTest/**",
         "**/androidUnitTest/**",
         "**/androidInstrumentedTest/**",
+        "**/androidHostTest/**",
         "**/jsTest/**",
         "**/iosTest/**",
         "**/*.kts",
@@ -835,7 +837,7 @@ style:
     ignoreCompanionObjectPropertyDeclaration: true
     ignoreAnnotation: false
     ignoreNamedArgument: true
-    ignoreEnums: false
+    ignoreEnums: true
     ignoreRanges: false
     ignoreExtensionFunctions: true
   MandatoryBracesLoops:
@@ -895,7 +897,7 @@ style:
       - "equals"
     excludeLabeled: false
     excludeReturnFromLambda: true
-    excludeGuardClauses: false
+    excludeGuardClauses: true
   SafeCast:
     active: true
   SerialVersionUIDInSerializableClass:

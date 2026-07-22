@@ -1,4 +1,3 @@
 package org.mpc.domain.repository
 
-interface KeyValueRepository {
-}
+interface KeyValueRepository

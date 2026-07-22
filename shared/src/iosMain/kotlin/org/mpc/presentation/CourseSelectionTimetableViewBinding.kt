@@ -13,11 +13,10 @@ import org.mpc.presentation.views.courseSelection.CourseSelectionTimetableView
 fun CourseSelectionTimetableViewBinding() {
     val planViewModel: CourseSelectionViewModel = metroViewModel()
 
-    val planState by planViewModel.state.collectAsStateWithLifecycle()
+    val planUiState by planViewModel.uiState.collectAsStateWithLifecycle()
 
     CourseSelectionTimetableView(
-        state = planState,
-        displayWeekends = false,
-        modifier = Modifier.fillMaxSize()
+        uiState = planUiState,
+        modifier = Modifier.fillMaxSize(),
     )
 }

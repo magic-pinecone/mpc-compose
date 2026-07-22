@@ -16,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.zacsweers.metrox.viewmodel.metroViewModel
-import org.mpc.domain.model.state.CoursePlanState
+import org.mpc.presentation.state.CoursePlanUiState
 import org.mpc.presentation.viewModel.CourseSearchViewModel
 import org.mpc.presentation.viewModel.CourseSelectionViewModel
 import org.mpc.presentation.views.courseSelection.CourseSearchResultView
@@ -29,8 +29,8 @@ fun CourseSelectionSearchScreen(
     searchViewModel: CourseSearchViewModel = metroViewModel(),
     planViewModel: CourseSelectionViewModel = metroViewModel(),
 ) {
-    val searchState by searchViewModel.state.collectAsStateWithLifecycle()
-    val planState by planViewModel.state.collectAsStateWithLifecycle()
+    val searchUiState by searchViewModel.uiState.collectAsStateWithLifecycle()
+    val planUiState by planViewModel.uiState.collectAsStateWithLifecycle()
 
     val searchBarState = rememberSearchBarState()
     val textFieldState = rememberTextFieldState()
@@ -41,7 +41,7 @@ fun CourseSelectionSearchScreen(
             searchBarState = searchBarState,
             onSearch = { query ->
                 searchViewModel.updateQuery(
-                    semester = searchState.semester,
+                    semester = searchUiState.semester,
                     query = query,
                 )
                 searchViewModel.onSearch()
@@ -52,31 +52,34 @@ fun CourseSelectionSearchScreen(
         )
     }
 
-    val selectedCourseSerialNumbers = when (val current = planState) {
-        CoursePlanState.Loading -> emptySet()
-        is CoursePlanState.Failure -> emptySet()
-        is CoursePlanState.Success -> current.snapshot.selected.keys
-    }
+    val selectedCourseSerialNumbers =
+        when (val current = planUiState) {
+            CoursePlanUiState.Loading -> emptySet()
+            is CoursePlanUiState.Failure -> emptySet()
+            is CoursePlanUiState.Success -> current.plan.selectedCourses.keys
+        }
 
     Column(
         modifier = modifier,
     ) {
         SearchBar(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    horizontal = 16.dp,
-                    vertical = 8.dp,
-                ),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        horizontal = 16.dp,
+                        vertical = 8.dp,
+                    ),
             state = searchBarState,
             inputField = inputField,
         )
 
         CourseSearchResultView(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            courseLoadState = searchState.result,
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+            uiState = searchUiState.result,
             selectedCourseSerialNumbers = selectedCourseSerialNumbers,
             onToggleCourse = planViewModel::toggleCourse,
         )
@@ -87,10 +90,11 @@ fun CourseSelectionSearchScreen(
         inputField = inputField,
     ) {
         CourseSearchResultView(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            courseLoadState = searchState.result,
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+            uiState = searchUiState.result,
             selectedCourseSerialNumbers = selectedCourseSerialNumbers,
             onToggleCourse = planViewModel::toggleCourse,
         )

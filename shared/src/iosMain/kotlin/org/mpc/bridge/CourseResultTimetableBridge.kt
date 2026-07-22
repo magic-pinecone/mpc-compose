@@ -1,4 +1,3 @@
 package org.mpc.bridge
 
-class CourseResultTimetableBridge {
-}
+class CourseResultTimetableBridge

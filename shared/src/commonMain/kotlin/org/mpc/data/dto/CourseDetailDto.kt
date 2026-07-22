@@ -32,5 +32,5 @@ internal data class CourseDetailDto(
 @Serializable
 internal data class DistributionConditionDto(
     val priority: Int,
-    val rule: String
+    val rule: String,
 )

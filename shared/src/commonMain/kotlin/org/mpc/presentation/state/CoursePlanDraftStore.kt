@@ -6,42 +6,41 @@ import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import org.mpc.domain.model.entity.CourseSummary
-import org.mpc.domain.model.snapshot.CoursePlanSnapshot
-import org.mpc.domain.model.snapshot.addCourse
-import org.mpc.domain.model.snapshot.removeCourse
-import org.mpc.domain.model.state.CoursePlanState
+import org.mpc.domain.model.CoursePlan
+import org.mpc.domain.model.CourseSummary
+import org.mpc.domain.model.addCourse
+import org.mpc.domain.model.removeCourse
 
 @Inject
 @SingleIn(AppScope::class)
 class CoursePlanDraftStore {
-    private val _state = MutableStateFlow<CoursePlanState>(CoursePlanState.Loading)
+    private val _uiState = MutableStateFlow<CoursePlanUiState>(CoursePlanUiState.Loading)
 
-    val state = _state.asStateFlow()
+    val uiState = _uiState.asStateFlow()
 
     fun shouldLoad(semester: String): Boolean {
-        val currentState = state.value
-        return currentState !is CoursePlanState.Success ||
-            currentState.snapshot.semester != semester
+        val currentState = uiState.value
+        return currentState !is CoursePlanUiState.Success ||
+            currentState.plan.semester != semester
     }
 
-    fun acceptLoadedSnapshot(snapshot: CoursePlanSnapshot) {
-        _state.update { currentState ->
+    fun acceptLoadedPlan(plan: CoursePlan) {
+        _uiState.update { currentState ->
             if (
-                currentState is CoursePlanState.Success &&
-                currentState.snapshot.semester == snapshot.semester
+                currentState is CoursePlanUiState.Success &&
+                currentState.plan.semester == plan.semester
             ) {
                 currentState
             } else {
-                CoursePlanState.Success(snapshot)
+                CoursePlanUiState.Success(plan)
             }
         }
     }
 
     fun acceptLoadFailure(cause: Throwable) {
-        _state.update { currentState ->
-            if (currentState is CoursePlanState.Loading) {
-                CoursePlanState.Failure(cause)
+        _uiState.update { currentState ->
+            if (currentState is CoursePlanUiState.Loading) {
+                CoursePlanUiState.Failure(cause)
             } else {
                 currentState
             }
@@ -49,20 +48,21 @@ class CoursePlanDraftStore {
     }
 
     fun toggleCourse(course: CourseSummary) {
-        _state.update { currentState ->
-            if (currentState !is CoursePlanState.Success) {
+        _uiState.update { currentState ->
+            if (currentState !is CoursePlanUiState.Success) {
                 return@update currentState
             }
 
-            val updatedSnapshot = if (
-                currentState.snapshot.selected.containsKey(course.serialNo)
-            ) {
-                currentState.snapshot.removeCourse(course)
-            } else {
-                currentState.snapshot.addCourse(course)
-            }
+            val updatedPlan =
+                if (
+                    currentState.plan.selectedCourses.containsKey(course.serialNo)
+                ) {
+                    currentState.plan.removeCourse(course)
+                } else {
+                    currentState.plan.addCourse(course)
+                }
 
-            CoursePlanState.Success(updatedSnapshot)
+            CoursePlanUiState.Success(updatedPlan)
         }
     }
 }

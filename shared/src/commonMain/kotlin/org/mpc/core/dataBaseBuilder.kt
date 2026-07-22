@@ -6,11 +6,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import org.mpc.data.local.database.AppDatabase
 
-fun createDatabase(
-    builder: RoomDatabase.Builder<AppDatabase>
-): AppDatabase = builder
-    .setDriver(BundledSQLiteDriver())
-    .setQueryCoroutineContext(Dispatchers.IO)
-    .build()
+@Suppress("InjectDispatcher")
+fun createDatabase(builder: RoomDatabase.Builder<AppDatabase>): AppDatabase =
+    builder
+        .setDriver(BundledSQLiteDriver())
+        .setQueryCoroutineContext(Dispatchers.IO)
+        .build()
 
-internal const val databaseName = "mpc.db"
+internal const val DATABASE_NAME = "mpc.db"

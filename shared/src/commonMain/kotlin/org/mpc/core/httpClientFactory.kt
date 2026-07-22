@@ -17,11 +17,13 @@ fun createHttpClient(): HttpClient =
     // TODO: maybe assign platform specific engine via expect/actual could be an option
     HttpClient {
         install(Logging) {
-            logger = object : Logger {
-                override fun log(message: String) {
-                    co.touchlab.kermit.Logger.d(tag = "HTTP_CLIENT") { message }
+            logger =
+                object : Logger {
+                    override fun log(message: String) {
+                        co.touchlab.kermit.Logger
+                            .d(tag = "HTTP_CLIENT") { message }
+                    }
                 }
-            }
             level = LogLevel.HEADERS
         }
         install(HttpCache) {
@@ -33,7 +35,7 @@ fun createHttpClient(): HttpClient =
                     ignoreUnknownKeys = true
                     explicitNulls = false
                 },
-                contentType = ContentType.Text.Plain
+                contentType = ContentType.Text.Plain,
             )
 
             json(
@@ -42,8 +44,7 @@ fun createHttpClient(): HttpClient =
                     ignoreUnknownKeys = true
                     explicitNulls = false
                 },
-                contentType = ContentType.Application.Json
+                contentType = ContentType.Application.Json,
             )
         }
-
     }

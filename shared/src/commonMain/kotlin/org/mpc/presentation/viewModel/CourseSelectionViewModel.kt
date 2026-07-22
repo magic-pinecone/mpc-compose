@@ -8,7 +8,7 @@ import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.binding
 import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import kotlinx.coroutines.launch
-import org.mpc.domain.model.entity.CourseSummary
+import org.mpc.domain.model.CourseSummary
 import org.mpc.domain.repository.CoursePlanRepository
 import org.mpc.presentation.state.CoursePlanDraftStore
 
@@ -16,7 +16,7 @@ import org.mpc.presentation.state.CoursePlanDraftStore
 @ViewModelKey
 @ContributesIntoMap(
     scope = AppScope::class,
-    binding = binding<ViewModel>()
+    binding = binding<ViewModel>(),
 )
 class CourseSelectionViewModel(
     private val coursePlanRepository: CoursePlanRepository,
@@ -26,12 +26,13 @@ class CourseSelectionViewModel(
 
     private val semester = "115-1"
 
-    val state = draftStore.state
+    val uiState = draftStore.uiState
 
     init {
         loadPlan()
     }
 
+    @Suppress("TooGenericExceptionCaught")
     private fun loadPlan() {
         if (!draftStore.shouldLoad(semester)) {
             return
@@ -39,8 +40,8 @@ class CourseSelectionViewModel(
 
         viewModelScope.launch {
             try {
-                draftStore.acceptLoadedSnapshot(
-                    coursePlanRepository.loadPlan(semester)
+                draftStore.acceptLoadedPlan(
+                    coursePlanRepository.loadPlan(semester),
                 )
             } catch (exception: Exception) {
                 draftStore.acceptLoadFailure(exception)

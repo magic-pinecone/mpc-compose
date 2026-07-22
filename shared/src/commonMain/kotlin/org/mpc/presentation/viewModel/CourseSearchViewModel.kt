@@ -12,106 +12,114 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.mpc.domain.model.state.CourseLoadState
-import org.mpc.domain.model.state.CourseSearchError
-import org.mpc.domain.model.state.CourseSearchState
 import org.mpc.domain.repository.CourseRepository
+import org.mpc.presentation.state.CourseSearchError
+import org.mpc.presentation.state.CourseSearchResultUiState
+import org.mpc.presentation.state.CourseSearchUiState
 
 @Inject
 @ViewModelKey
 @ContributesIntoMap(
     scope = AppScope::class,
-    binding = binding<ViewModel>()
+    binding = binding<ViewModel>(),
 )
 class CourseSearchViewModel(
     private val courseRepository: CourseRepository,
-):
-    ViewModel() {
+) : ViewModel() {
     // TODO: update semester so it's not hard coded
-    private val _state: MutableStateFlow<CourseSearchState> = MutableStateFlow(
-        CourseSearchState(semester = "115-1", query = "")
-    )
+    private val _uiState: MutableStateFlow<CourseSearchUiState> =
+        MutableStateFlow(
+            CourseSearchUiState(semester = "115-1", query = ""),
+        )
 
-    val state = _state.asStateFlow()
+    val uiState = _uiState.asStateFlow()
 
     init {
         loadAllCourses()
     }
 
+    @Suppress("TooGenericExceptionCaught")
     fun loadAllCourses() {
-        _state.update {
-            it.copy(result = CourseLoadState.Loading)
+        _uiState.update {
+            it.copy(result = CourseSearchResultUiState.Loading)
         }
 
         viewModelScope.launch {
-            val semester = state.value.semester
+            val semester = uiState.value.semester
             try {
-                _state.update {
+                _uiState.update {
                     it.copy(
-                        result = CourseLoadState.Success(
-                            courses = courseRepository.fetchAllCourses(semester)
-                        )
+                        result =
+                            CourseSearchResultUiState.Success(
+                                result = courseRepository.fetchAllCourses(semester),
+                            ),
                     )
                 }
             } catch (exception: Exception) {
                 Logger.i(exception.toString())
-                _state.update {
+                _uiState.update {
                     it.copy(
-                        result = CourseLoadState.Failure(error= CourseSearchError.UNKNOWN)
+                        result = CourseSearchResultUiState.Failure(error = CourseSearchError.UNKNOWN),
                     )
                 }
             }
         }
-
     }
 
-    fun updateQuery(semester: String, query: String) {
-        _state.update {
-            it.copy(semester=semester, query=query)
+    fun updateQuery(
+        semester: String,
+        query: String,
+    ) {
+        _uiState.update {
+            it.copy(semester = semester, query = query)
         }
     }
 
+    @Suppress("TooGenericExceptionCaught")
     fun onSearch() {
-        val semester = state.value.semester
-        val query = state.value.query
+        val semester = uiState.value.semester
+        val query = uiState.value.query
         // TODO: do proper validation
         if (semester != "115-1") {
-            _state.update {
-                it.copy(result = CourseLoadState.Failure(CourseSearchError.INVALID_SEMESTER))
+            _uiState.update {
+                it.copy(result = CourseSearchResultUiState.Failure(CourseSearchError.INVALID_SEMESTER))
             }
             return
         }
 
-        _state.update {
-            it.copy(result = CourseLoadState.Loading)
+        _uiState.update {
+            it.copy(result = CourseSearchResultUiState.Loading)
         }
 
         viewModelScope.launch {
             try {
                 if (query.isBlank()) {
-                    _state.update {
+                    _uiState.update {
                         it.copy(
-                            result = CourseLoadState.Success(
-                                courses = courseRepository.fetchAllCourses(semester)
-                            )
+                            result =
+                                CourseSearchResultUiState.Success(
+                                    result = courseRepository.fetchAllCourses(semester),
+                                ),
                         )
                     }
                 } else {
-                    _state.update {
+                    _uiState.update {
                         it.copy(
-                            result = CourseLoadState.Success(
-                                courses = courseRepository.fetchCourses(semester, query)
-                            )
+                            result =
+                                CourseSearchResultUiState.Success(
+                                    result = courseRepository.fetchCourses(semester, query),
+                                ),
                         )
                     }
                 }
             } catch (exception: Exception) {
                 Logger.i(exception.toString())
-                _state.update {
+                _uiState.update {
                     it.copy(
-                        result = CourseLoadState.Failure(
-                            error = CourseSearchError.UNKNOWN
-                        )
+                        result =
+                            CourseSearchResultUiState.Failure(
+                                error = CourseSearchError.UNKNOWN,
+                            ),
                     )
                 }
             }

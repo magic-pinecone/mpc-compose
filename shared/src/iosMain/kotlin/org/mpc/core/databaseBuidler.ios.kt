@@ -10,20 +10,22 @@ import platform.Foundation.NSUserDomainMask
 
 @OptIn(ExperimentalForeignApi::class)
 fun createDatabaseBuilder(): RoomDatabase.Builder<AppDatabase> {
-    val applicationSupportPath = requireNotNull(
-        NSFileManager.defaultManager.URLForDirectory(
-            NSApplicationSupportDirectory,
-            inDomain = NSUserDomainMask,
-            appropriateForURL = null,
-            create = true,
-            error = null
+    val applicationSupportPath =
+        requireNotNull(
+            NSFileManager.defaultManager.URLForDirectory(
+                NSApplicationSupportDirectory,
+                inDomain = NSUserDomainMask,
+                appropriateForURL = null,
+                create = true,
+                error = null,
+            ),
         )
-    )
-    val databasePath = requireNotNull(
-        applicationSupportPath.URLByAppendingPathComponent(databaseName)?.path
-    )
+    val databasePath =
+        requireNotNull(
+            applicationSupportPath.URLByAppendingPathComponent(DATABASE_NAME)?.path,
+        )
 
     return Room.databaseBuilder(
-        name = databasePath
+        name = databasePath,
     )
 }

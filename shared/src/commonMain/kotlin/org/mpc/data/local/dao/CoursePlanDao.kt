@@ -14,19 +14,21 @@ interface CoursePlanDao {
             SELECT serialNo 
             FROM course_plan_item
             WHERE semester = :semester
-        """
+        """,
     )
     suspend fun findSelectedSerialNumbers(semester: String): List<String>
 
     @Upsert
     suspend fun upsertPlan(entity: CoursePlanEntity)
 
-
     @Upsert
     suspend fun upsertItems(entity: List<CoursePlanItemEntity>)
 
     @Transaction
-    suspend fun replaceItems(plan: CoursePlanEntity, items: List<CoursePlanItemEntity>) {
+    suspend fun replaceItems(
+        plan: CoursePlanEntity,
+        items: List<CoursePlanItemEntity>,
+    ) {
         upsertPlan(plan)
         deleteItems(plan.semester)
         upsertItems(items)
@@ -35,7 +37,6 @@ interface CoursePlanDao {
     @Query("DELETE FROM course_plan WHERE semester = :semester")
     suspend fun deletePlan(semester: String)
 
-    @Query( "DELETE FROM course_plan_item WHERE semester = :semester" )
+    @Query("DELETE FROM course_plan_item WHERE semester = :semester")
     suspend fun deleteItems(semester: String)
-
 }

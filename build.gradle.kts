@@ -63,17 +63,18 @@ tasks.register("check") {
     Sources: https://detekt.dev/docs/next/gettingstarted/git-pre-commit-hook#only-run-on-staged-files---gradle
  */
 
-fun Project.getGitStagedFiles(rootDir: File): Provider<List<File>> {
-    return providers.exec {
-        commandLine("git", "--no-pager", "diff", "--name-only", "--cached")
-    }.standardOutput.asText
+fun Project.getGitStagedFiles(rootDir: File): Provider<List<File>> =
+    providers
+        .exec {
+            commandLine("git", "--no-pager", "diff", "--name-only", "--cached")
+        }.standardOutput.asText
         .map { outputText ->
-            outputText.trim()
+            outputText
+                .trim()
                 .split("\n")
                 .filter { it.isNotBlank() }
                 .map { File(rootDir, it) }
         }
-}
 
 subprojects {
     pluginManager.withPlugin("dev.detekt") {
@@ -93,21 +94,19 @@ subprojects {
                 setSource(
                     getGitStagedFiles(rootDir)
                         .map { stagedFiles ->
-                            val stagedFilesFromThisProject = stagedFiles
-                                .filter { it.startsWith(projectDir) }
+                            val stagedFilesFromThisProject =
+                                stagedFiles
+                                    .filter { it.startsWith(projectDir) }
 
                             fileCollection.setFrom(*stagedFilesFromThisProject.toTypedArray())
 
                             fileCollection.asFileTree
-                        }
+                        },
                 )
-
             }
         }
     }
 }
-
-
 
 afterEvaluate {
     tasks.withType(Detekt::class.java).configureEach {
