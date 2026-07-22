@@ -13,6 +13,7 @@ import org.mpc.data.local.database.AppDatabase
 class DatabaseProvider {
     @Provides
     fun providesCourseCatalogDao(database: AppDatabase): CourseCatalogDao = database.courseCatalogDao()
+
     @Provides
     fun providesCoursePlanDao(database: AppDatabase): CoursePlanDao = database.coursePlanDao()
 }

@@ -11,17 +11,19 @@ import org.mpc.data.local.database.AppDatabase
 import org.mpc.domain.repository.CourseRepository
 
 @DependencyGraph(AppScope::class)
-interface AppGraph: ViewModelGraph {
+interface AppGraph : ViewModelGraph {
     val courseRepository: CourseRepository
+
     @DependencyGraph.Factory
     fun interface Factory {
         fun create(
             @Provides storage: Storage<Preferences>,
-            @Provides database: AppDatabase
+            @Provides database: AppDatabase,
         ): AppGraph
     }
-
 }
 
-fun createAppGraph(storage: Storage<Preferences>, database: AppDatabase): AppGraph =
-    createGraphFactory<AppGraph.Factory>().create(storage, database)
+fun createAppGraph(
+    storage: Storage<Preferences>,
+    database: AppDatabase,
+): AppGraph = createGraphFactory<AppGraph.Factory>().create(storage, database)

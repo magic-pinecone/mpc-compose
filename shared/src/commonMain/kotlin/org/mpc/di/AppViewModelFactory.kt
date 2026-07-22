@@ -12,5 +12,5 @@ import kotlin.reflect.KClass
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class)
 class AppViewModelFactory(
-    override val viewModelProviders: Map<KClass<out ViewModel>, () -> ViewModel>
-): MetroViewModelFactory()
+    override val viewModelProviders: Map<KClass<out ViewModel>, () -> ViewModel>,
+) : MetroViewModelFactory()

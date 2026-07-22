@@ -16,14 +16,14 @@ public val schedule: ImageVector
             return _schedule!!
         }
         _schedule =
-            ImageVector.Builder(
-                name = "schedule",
-                defaultWidth = 20.dp,
-                defaultHeight = 20.dp,
-                viewportWidth = 20f,
-                viewportHeight = 20f,
-            )
-                .apply {
+            ImageVector
+                .Builder(
+                    name = "schedule",
+                    defaultWidth = 20.dp,
+                    defaultHeight = 20.dp,
+                    viewportWidth = 20f,
+                    viewportHeight = 20f,
+                ).apply {
                     path(
                         fill = SolidColor(Color.Black),
                         fillAlpha = 1f,
@@ -74,8 +74,7 @@ public val schedule: ImageVector
                         reflectiveQuadToRelative(4.6f, 1.91f)
                         close()
                     }
-                }
-                .build()
+                }.build()
         return _schedule!!
     }
 

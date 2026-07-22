@@ -14,7 +14,7 @@ fun createDataStore(context: Context): Storage<Preferences> =
         serializer = PreferencesSerializer,
         producePath = {
             context.filesDir
-                .resolve(dataStoreFileName)
+                .resolve(DATA_STORE_FILE_NAME)
                 .toOkioPath()
-        }
+        },
     )

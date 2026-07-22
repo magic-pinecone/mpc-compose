@@ -13,6 +13,7 @@ import org.mpc.core.createDataStore
 @BindingContainer
 class StorageProvider {
     @Provides
-    fun provideDataStore(@Provides storage: Storage<Preferences>): DataStore<Preferences> =
-        createDataStore(storage)
+    fun provideDataStore(
+        @Provides storage: Storage<Preferences>,
+    ): DataStore<Preferences> = createDataStore(storage)
 }

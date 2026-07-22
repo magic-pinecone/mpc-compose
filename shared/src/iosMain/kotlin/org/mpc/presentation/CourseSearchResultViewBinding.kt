@@ -8,26 +8,25 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import org.mpc.bridge.CourseSearchBridge
-import org.mpc.domain.model.state.CoursePlanState
+import org.mpc.presentation.state.CoursePlanUiState
 import org.mpc.presentation.viewModel.CourseSearchViewModel
 import org.mpc.presentation.viewModel.CourseSelectionViewModel
 import org.mpc.presentation.views.courseSelection.CourseSearchResultView
 
 @Composable
-fun CourseSearchResultViewBinding(
-    bridge: CourseSearchBridge
-) {
+fun CourseSearchResultViewBinding(bridge: CourseSearchBridge) {
     val searchViewModel: CourseSearchViewModel = metroViewModel()
     val planViewModel: CourseSelectionViewModel = metroViewModel()
 
-    val searchState by searchViewModel.state.collectAsStateWithLifecycle()
-    val planState by planViewModel.state.collectAsStateWithLifecycle()
+    val searchUiState by searchViewModel.uiState.collectAsStateWithLifecycle()
+    val planUiState by planViewModel.uiState.collectAsStateWithLifecycle()
 
-    val selectedCourseSerialNumbers = when (val current = planState) {
-        CoursePlanState.Loading -> emptySet()
-        is CoursePlanState.Failure -> emptySet()
-        is CoursePlanState.Success -> current.snapshot.selected.keys
-    }
+    val selectedCourseSerialNumbers =
+        when (val current = planUiState) {
+            CoursePlanUiState.Loading -> emptySet()
+            is CoursePlanUiState.Failure -> emptySet()
+            is CoursePlanUiState.Success -> current.plan.selectedCourses.keys
+        }
 
     LaunchedEffect(bridge, searchViewModel) {
         bridge.sendRequests.collect { (semester, query) ->
@@ -38,7 +37,7 @@ fun CourseSearchResultViewBinding(
 
     CourseSearchResultView(
         modifier = Modifier.fillMaxSize(),
-        courseLoadState = searchState.result,
+        uiState = searchUiState.result,
         selectedCourseSerialNumbers = selectedCourseSerialNumbers,
         onToggleCourse = planViewModel::toggleCourse,
     )

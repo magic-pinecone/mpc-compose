@@ -12,25 +12,28 @@ import org.mpc.presentation.CourseSelectionTimetableViewBinding
 import platform.UIKit.UIViewController
 
 class IosSharedHost internal constructor(
-    private val appGraph: AppGraph
-){
-    fun courseSearchScreenController(bridge: CourseSearchBridge): UIViewController = ComposeUIViewController {
-        ProvideAppDependencies(appGraph) {
-            CourseSearchResultViewBinding(bridge)
+    private val appGraph: AppGraph,
+) {
+    fun courseSearchScreenController(bridge: CourseSearchBridge): UIViewController =
+        ComposeUIViewController {
+            ProvideAppDependencies(appGraph) {
+                CourseSearchResultViewBinding(bridge)
+            }
         }
-    }
 
-    fun courseSelectionTimetableScreenController(): UIViewController = ComposeUIViewController {
-        ProvideAppDependencies(appGraph) {
-            CourseSelectionTimetableViewBinding()
+    fun courseSelectionTimetableScreenController(): UIViewController =
+        ComposeUIViewController {
+            ProvideAppDependencies(appGraph) {
+                CourseSelectionTimetableViewBinding()
+            }
         }
-    }
 }
 
 fun createIosSharedHost(): IosSharedHost {
     val storage = createDataStore()
-    val database = createDatabase(
-        createDatabaseBuilder()
-    )
+    val database =
+        createDatabase(
+            createDatabaseBuilder(),
+        )
     return IosSharedHost(createAppGraph(storage, database))
 }

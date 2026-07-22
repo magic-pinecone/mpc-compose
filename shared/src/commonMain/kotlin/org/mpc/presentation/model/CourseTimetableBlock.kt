@@ -1,17 +1,17 @@
 package org.mpc.presentation.model
 
-import org.mpc.domain.model.entity.CourseDay
-import org.mpc.domain.model.entity.CourseSerialNo
-import org.mpc.domain.model.entity.CourseSummary
-import org.mpc.domain.model.entity.CourseTime
-import org.mpc.domain.model.entity.CourseType
+import org.mpc.domain.model.CourseDay
+import org.mpc.domain.model.CourseSerialNo
+import org.mpc.domain.model.CourseSummary
+import org.mpc.domain.model.CourseTime
+import org.mpc.domain.model.CourseType
 
 data class CourseTimetableBlock(
     val title: String,
     val serialNo: CourseSerialNo,
     val time: CourseTime,
     val span: Int,
-    val type: CourseType
+    val type: CourseType,
 )
 
 internal fun CourseSummary.toTimetableBlocks(): List<CourseTimetableBlock> =
@@ -21,10 +21,9 @@ internal fun CourseSummary.toTimetableBlocks(): List<CourseTimetableBlock> =
         .sortedWith(
             compareBy(
                 { it.day.order },
-                {it.period.order}
-            )
-        )
-        .distinct()
+                { it.period.order },
+            ),
+        ).distinct()
         .fold(mutableListOf()) { blocks, current ->
             val previous = blocks.lastOrNull()
 
@@ -33,21 +32,21 @@ internal fun CourseSummary.toTimetableBlocks(): List<CourseTimetableBlock> =
                 current.day != previous.time.day ||
                 // every entry is within the same course, so we don't need to worry if it extends on other courses
                 current.period.order != previous.time.period.order + previous.span
-                ) {
-                blocks += CourseTimetableBlock(
-                    title = title,
-                    serialNo = serialNo,
-                    time = current,
-                    span = 1,
-                    type = courseType
-                )
+            ) {
+                blocks +=
+                    CourseTimetableBlock(
+                        title = title,
+                        serialNo = serialNo,
+                        time = current,
+                        span = 1,
+                        type = courseType,
+                    )
             } else {
-                blocks[blocks.lastIndex] = previous.copy(
-                    span = previous.span + 1
-                )
+                blocks[blocks.lastIndex] =
+                    previous.copy(
+                        span = previous.span + 1,
+                    )
             }
 
             blocks
         }
-
-

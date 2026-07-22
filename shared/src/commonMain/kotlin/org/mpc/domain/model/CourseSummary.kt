@@ -1,8 +1,8 @@
-package org.mpc.domain.model.entity
+package org.mpc.domain.model
 
 import kotlin.jvm.JvmInline
 
-data class CourseSummary (
+data class CourseSummary(
     val serialNo: CourseSerialNo,
     val classNo: String,
     val title: String,
@@ -16,42 +16,45 @@ data class CourseSummary (
     val collegeName: String,
     val departmentName: String,
     val courseType: CourseType,
-    val detailUrl: String
+    val detailUrl: String,
 )
 
-enum class PasswordCardType(val description: String) {
+enum class PasswordCardType(
+    val description: String,
+) {
     ALL("全部"),
     OPTIONAL("部分"),
-    NONE("無")
+    NONE("無"),
 }
 
-enum class CourseType(val description: String) {
+enum class CourseType(
+    val description: String,
+) {
     REQUIRED("必修"),
     ELECTIVE("選修"),
-    UNKNOWN("未知")
+    UNKNOWN("未知"),
 }
 
 @JvmInline
 value class CourseSerialNo(
-    val value: String
+    val value: String,
 ) {
     init {
         require(
-            value.matches(Regex("""\d{5}"""))
+            value.matches(Regex("""\d{5}""")),
         )
-
     }
 }
 
 data class CourseTime(
     val day: CourseDay,
-    val period: CoursePeriod
+    val period: CoursePeriod,
 )
 
 enum class CourseDay(
     val description: String,
     val code: String,
-    val order: Int
+    val order: Int,
 ) {
     MONDAY("一", "1", 1),
     TUESDAY("二", "2", 2),
@@ -60,12 +63,12 @@ enum class CourseDay(
     FRIDAY("五", "5", 5),
     SATURDAY("六", "6", 6),
     SUNDAY("日", "7", 7),
-    UNKNOWN("無", "0", 8)
+    UNKNOWN("無", "0", 8),
 }
 
 enum class CoursePeriod(
     val description: String,
-    val order: Int
+    val order: Int,
 ) {
     ONE("1", 1),
     TWO("2", 2),
@@ -81,5 +84,4 @@ enum class CoursePeriod(
     B("B", 12),
     C("C", 13),
     D("D", 14),
-
 }

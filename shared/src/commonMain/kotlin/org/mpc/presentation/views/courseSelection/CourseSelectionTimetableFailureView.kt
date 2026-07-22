@@ -9,11 +9,11 @@ import androidx.compose.ui.Modifier
 @Composable
 fun CourseSelectionTimetableFailureView(
     modifier: Modifier,
-    cause: Throwable
+    cause: Throwable,
 ) {
     Box(
         modifier = modifier,
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Text("Failed to load: ${cause.message ?: "Unknown error"}")
     }

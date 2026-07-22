@@ -68,7 +68,6 @@ metrox-viewmodel-compose = { module = "dev.zacsweers.metro:metrox-viewmodel-comp
 kermit = { module = "co.touchlab:kermit", version.ref = "kermit"}
 androidx-datastore-core = { group = "androidx.datastore", name = "datastore-core", version.ref = "datastoreCore" }
 
-detekt-ktlint = { module = "dev.detekt:detekt-rules-ktlint-wrapper", version.ref = "detekt" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

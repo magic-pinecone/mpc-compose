@@ -21,6 +21,7 @@ import org.mpc.data.local.dao.CoursePlanDao
 @ConstructedBy(AppDatabaseConstructor::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun courseCatalogDao(): CourseCatalogDao
+
     abstract fun coursePlanDao(): CoursePlanDao
 }
 

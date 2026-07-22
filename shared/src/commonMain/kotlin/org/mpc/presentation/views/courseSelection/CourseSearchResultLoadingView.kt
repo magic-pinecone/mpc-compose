@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 fun CourseSearchResultLoadingView(modifier: Modifier) {
     Box(
         modifier = modifier,
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Text("Loading...")
     }

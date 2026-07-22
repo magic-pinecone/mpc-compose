@@ -16,19 +16,21 @@ fun createDataStore(): OkioStorage<Preferences> =
         fileSystem = FileSystem.SYSTEM,
         serializer = PreferencesSerializer,
         producePath = {
-            val applicationSupportPath = requireNotNull(
-                NSFileManager.defaultManager.URLForDirectory(
-                    directory = NSApplicationSupportDirectory,
-                    inDomain = NSUserDomainMask,
-                    appropriateForURL = null,
-                    create = true,
-                    error = null,
+            val applicationSupportPath =
+                requireNotNull(
+                    NSFileManager.defaultManager.URLForDirectory(
+                        directory = NSApplicationSupportDirectory,
+                        inDomain = NSUserDomainMask,
+                        appropriateForURL = null,
+                        create = true,
+                        error = null,
+                    ),
                 )
-            )
-            val filePath = requireNotNull(
-                applicationSupportPath.URLByAppendingPathComponent(dataStoreFileName)
-            )
+            val filePath =
+                requireNotNull(
+                    applicationSupportPath.URLByAppendingPathComponent(DATA_STORE_FILE_NAME),
+                )
 
             requireNotNull(filePath.path).toPath()
-        }
+        },
     )

@@ -5,8 +5,6 @@ import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.core.Storage
 import androidx.datastore.preferences.core.Preferences
 
+fun createDataStore(storage: Storage<Preferences>): DataStore<Preferences> = DataStoreFactory.create(storage = storage)
 
-fun createDataStore(storage: Storage<Preferences>): DataStore<Preferences> =
-    DataStoreFactory.create(storage = storage)
-
-internal const val dataStoreFileName = "mpc_config.preferences_pb"
+internal const val DATA_STORE_FILE_NAME = "mpc_config.preferences_pb"

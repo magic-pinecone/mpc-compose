@@ -1,4 +1,4 @@
-package org.mpc.domain.model.entity
+package org.mpc.domain.model
 
 import kotlin.time.Instant
 
@@ -20,5 +20,5 @@ data class CourseDetail(
 
 data class DistributionCondition(
     val priority: Int,
-    val rule: String
+    val rule: String,
 )

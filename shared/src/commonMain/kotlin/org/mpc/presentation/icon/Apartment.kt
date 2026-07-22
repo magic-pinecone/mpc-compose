@@ -16,14 +16,14 @@ public val apartment: ImageVector
             return _apartment!!
         }
         _apartment =
-            ImageVector.Builder(
-                name = "apartment",
-                defaultWidth = 20.dp,
-                defaultHeight = 20.dp,
-                viewportWidth = 20f,
-                viewportHeight = 20f,
-            )
-                .apply {
+            ImageVector
+                .Builder(
+                    name = "apartment",
+                    defaultWidth = 20.dp,
+                    defaultHeight = 20.dp,
+                    viewportWidth = 20f,
+                    viewportHeight = 20f,
+                ).apply {
                     path(
                         fill = SolidColor(Color.Black),
                         fillAlpha = 1f,
@@ -116,8 +116,7 @@ public val apartment: ImageVector
                         verticalLineToRelative(1.5f)
                         close()
                     }
-                }
-                .build()
+                }.build()
         return _apartment!!
     }
 

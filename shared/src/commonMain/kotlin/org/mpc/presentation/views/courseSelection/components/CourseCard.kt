@@ -29,13 +29,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import org.mpc.domain.model.entity.CourseDay
-import org.mpc.domain.model.entity.CoursePeriod
-import org.mpc.domain.model.entity.CourseSerialNo
-import org.mpc.domain.model.entity.CourseSummary
-import org.mpc.domain.model.entity.CourseTime
-import org.mpc.domain.model.entity.CourseType
-import org.mpc.domain.model.entity.PasswordCardType
+import org.mpc.domain.model.CourseDay
+import org.mpc.domain.model.CoursePeriod
+import org.mpc.domain.model.CourseSerialNo
+import org.mpc.domain.model.CourseSummary
+import org.mpc.domain.model.CourseTime
+import org.mpc.domain.model.CourseType
+import org.mpc.domain.model.PasswordCardType
 import org.mpc.presentation.icon.apartment
 import org.mpc.presentation.icon.groups
 import org.mpc.presentation.icon.key
@@ -80,7 +80,7 @@ fun CourseCard(
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.horizontalScroll(rememberScrollState())
+                modifier = Modifier.horizontalScroll(rememberScrollState()),
             )
 
             CourseInfoRail(courseSummary)
@@ -119,12 +119,12 @@ fun CourseCard(
 @Composable
 private fun CourseTypeBadge(courseType: CourseType) {
     Box(
-        modifier = Modifier
-            .background(
-                color = MaterialTheme.colorScheme.secondaryContainer,
-                shape = RoundedCornerShape(8.dp),
-            )
-            .padding(horizontal = 10.dp, vertical = 5.dp),
+        modifier =
+            Modifier
+                .background(
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    shape = RoundedCornerShape(8.dp),
+                ).padding(horizontal = 10.dp, vertical = 5.dp),
         contentAlignment = Alignment.Center,
     ) {
         Text(
@@ -136,12 +136,14 @@ private fun CourseTypeBadge(courseType: CourseType) {
         )
     }
 }
+
 @Composable
 private fun CourseInfoRail(courseSummary: CourseSummary) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState()),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         CourseInfoBadge(
@@ -165,12 +167,12 @@ private fun CourseInfoBadge(
     infoText: String,
 ) {
     Row(
-        modifier = Modifier
-            .background(
-                color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                shape = RoundedCornerShape(6.dp),
-            )
-            .padding(horizontal = 8.dp, vertical = 5.dp),
+        modifier =
+            Modifier
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    shape = RoundedCornerShape(6.dp),
+                ).padding(horizontal = 8.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
@@ -195,49 +197,55 @@ private fun CourseInfoBadge(
  */
 private fun CourseSummary.teacherText(): String = teachers.joinToString(separator = "、")
 
-private fun CourseSummary.informationText(): String = listOf(
-    classNo,
-    "${credit.toInt()} 學分",
-    teacherText(),
-).joinToString(separator = " · ")
+private fun CourseSummary.informationText(): String =
+    listOf(
+        classNo,
+        "${credit.toInt()} 學分",
+        teacherText(),
+    ).joinToString(separator = " · ")
 
 private fun CourseSummary.departmentText(): String = "$collegeName / $departmentName"
 
-private fun CourseSummary.enrollmentText(): String = if (waitCnt > 0) {
-    "$admitCnt / $limitCnt · 候補 $waitCnt"
-} else {
-    "$admitCnt / $limitCnt"
-}
+private fun CourseSummary.enrollmentText(): String =
+    if (waitCnt > 0) {
+        "$admitCnt / $limitCnt · 候補 $waitCnt"
+    } else {
+        "$admitCnt / $limitCnt"
+    }
 
 private fun CourseSummary.passwordText(): String = passwordCard.description
 
-private fun CourseSummary.scheduleText(): String = classTimes.joinToString(separator = "、") {
-    "${it.day.code}-${it.period.description}"
-}
+private fun CourseSummary.scheduleText(): String =
+    classTimes.joinToString(separator = "、") {
+        "${it.day.code}-${it.period.description}"
+    }
 
 @Composable
 @Preview
+@Suppress("UnusedPrivateFunction")
 private fun PreviewCourseCard(
-    courseSummary: CourseSummary = CourseSummary(
-        serialNo = CourseSerialNo("36019"),
-        classNo = "ENA103-*",
-        title = "專題討論（III）",
-        credit = 0.0,
-        passwordCard = PasswordCardType.NONE,
-        teachers = listOf("鄭明敏", "林居慶", "林進榮", "林伯勳"),
-        classTimes = listOf(
-            CourseTime(CourseDay.FRIDAY, CoursePeriod.A),
-            CourseTime(CourseDay.FRIDAY, CoursePeriod.B),
-            CourseTime(CourseDay.FRIDAY, CoursePeriod.C),
+    courseSummary: CourseSummary =
+        CourseSummary(
+            serialNo = CourseSerialNo("36019"),
+            classNo = "ENA103-*",
+            title = "專題討論（III）",
+            credit = 0.0,
+            passwordCard = PasswordCardType.NONE,
+            teachers = listOf("鄭明敏", "林居慶", "林進榮", "林伯勳"),
+            classTimes =
+                listOf(
+                    CourseTime(CourseDay.FRIDAY, CoursePeriod.A),
+                    CourseTime(CourseDay.FRIDAY, CoursePeriod.B),
+                    CourseTime(CourseDay.FRIDAY, CoursePeriod.C),
+                ),
+            limitCnt = 0,
+            admitCnt = 0,
+            waitCnt = 0,
+            collegeName = "工學院",
+            departmentName = "環境工程研究所碩士班",
+            courseType = CourseType.ELECTIVE,
+            detailUrl = "https://cis.ncu.edu.tw/Course/main/support/courseDetail.html?crs=36019",
         ),
-        limitCnt = 0,
-        admitCnt = 0,
-        waitCnt = 0,
-        collegeName = "工學院",
-        departmentName = "環境工程研究所碩士班",
-        courseType = CourseType.ELECTIVE,
-        detailUrl = "https://cis.ncu.edu.tw/Course/main/support/courseDetail.html?crs=36019",
-    ),
 ) {
     MaterialTheme {
         CourseCard(

@@ -16,14 +16,14 @@ public val key: ImageVector
             return _key!!
         }
         _key =
-            ImageVector.Builder(
-                name = "key",
-                defaultWidth = 20.dp,
-                defaultHeight = 20.dp,
-                viewportWidth = 20f,
-                viewportHeight = 20f,
-            )
-                .apply {
+            ImageVector
+                .Builder(
+                    name = "key",
+                    defaultWidth = 20.dp,
+                    defaultHeight = 20.dp,
+                    viewportWidth = 20f,
+                    viewportHeight = 20f,
+                ).apply {
                     path(
                         fill = SolidColor(Color.Black),
                         fillAlpha = 1f,
@@ -80,8 +80,7 @@ public val key: ImageVector
                         reflectiveQuadTo(6f, 13.5f)
                         close()
                     }
-                }
-                .build()
+                }.build()
         return _key!!
     }
 
