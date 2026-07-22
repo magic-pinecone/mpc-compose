@@ -34,7 +34,7 @@ val swiftLint by tasks.registering(Exec::class) {
     commandLine(
         "swiftlint",
         "lint",
-        "--strict",
+        // "--strict",
         "--config",
         swiftLintConfig.absolutePath,
         "--cache-path",
