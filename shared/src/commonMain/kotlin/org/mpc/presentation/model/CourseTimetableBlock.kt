@@ -1,6 +1,7 @@
 package org.mpc.presentation.model
 
 import org.mpc.domain.model.CourseDay
+import org.mpc.domain.model.CoursePlan
 import org.mpc.domain.model.CourseSerialNo
 import org.mpc.domain.model.CourseSummary
 import org.mpc.domain.model.CourseTime
@@ -13,6 +14,17 @@ data class CourseTimetableBlock(
     val span: Int,
     val type: CourseType,
 )
+
+internal fun CoursePlan.toTimetableBlocks(): List<CourseTimetableBlock> =
+    selectedCourses.values
+        .flatMap(CourseSummary::toTimetableBlocks)
+        .sortedWith(
+            compareBy(
+                { it.time.day.order },
+                { it.time.period.order },
+                { it.serialNo.value },
+            ),
+        )
 
 internal fun CourseSummary.toTimetableBlocks(): List<CourseTimetableBlock> =
     classTimes
