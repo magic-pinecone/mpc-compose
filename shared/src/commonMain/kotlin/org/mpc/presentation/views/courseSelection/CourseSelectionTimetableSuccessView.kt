@@ -2,6 +2,7 @@ package org.mpc.presentation.views.courseSelection
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,11 +23,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
-import co.touchlab.kermit.Logger
 import org.mpc.domain.model.CourseDay
 import org.mpc.domain.model.CoursePeriod
 import org.mpc.domain.model.CoursePlan
@@ -34,6 +37,8 @@ import org.mpc.domain.model.CourseSummary
 import org.mpc.domain.model.CourseTime
 import org.mpc.domain.model.CourseType
 import org.mpc.domain.model.PasswordCardType
+import org.mpc.presentation.model.CourseTimetableBlock
+import org.mpc.presentation.model.toTimetableBlocks
 
 @Composable
 fun CourseSelectionTimetableSuccessView(
@@ -42,15 +47,18 @@ fun CourseSelectionTimetableSuccessView(
 ) {
     val columns = 5
     val rows = CoursePeriod.entries.size
+    val timetableBlocks =
+        plan
+            .toTimetableBlocks()
+            .filter { it.time.day.order <= columns }
 
-    Logger.i(plan.toString())
-
-
-    Box(modifier = modifier
-        .padding(16.dp, 8.dp)
+    Box(
+        modifier =
+            modifier
+                .padding(horizontal = 16.dp, vertical = 8.dp),
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxSize(),
         ) {
             Row {
                 Spacer(modifier = Modifier.width(16.dp))
@@ -64,20 +72,28 @@ fun CourseSelectionTimetableSuccessView(
                         .take(columns)
                         .forEach {
                             Box(
-                                contentAlignment = Alignment.Center
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .weight(1f)
                             ) {
                                 Text(
                                     text = it.description,
+                                    style = MaterialTheme.typography.labelMedium,
                                 )
                             }
                         }
-
                 }
             }
 
             Spacer(Modifier.height(4.dp))
 
-            Row {
+            Row(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+            ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.SpaceAround,
@@ -88,33 +104,56 @@ fun CourseSelectionTimetableSuccessView(
                     CoursePeriod.entries
                         .forEach {
                             Box(
-                                contentAlignment = Alignment.Center
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f)
                             ) {
                                 Text(
                                     text = it.description,
-                                    textAlign = TextAlign.Center
+                                    style = MaterialTheme.typography.labelSmall,
+                                    textAlign = TextAlign.Center,
                                 )
                             }
                         }
                 }
-                Box(
-                    modifier = Modifier.fillMaxSize()
+                BoxWithConstraints(
+                    modifier = Modifier.fillMaxSize(),
                 ) {
-                    TimetableGrid(
+                    val columnWidth = maxWidth / columns
+                    val rowHeight = maxHeight / rows
+
+                    TimetableBackground(
                         columns = columns,
                         rows = rows,
                         modifier = Modifier.fillMaxSize(),
                     ) {
                         repeat(columns * rows) {
-                            TimetableCell(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(2.dp)
-                            )
-
+                            TimetableBackgroundCell()
                         }
                     }
 
+                    timetableBlocks.forEach { block ->
+                        TimetableForegroundCell(
+                            block = block,
+                            modifier =
+                                Modifier
+                                    .offset(
+                                        x = columnWidth * (block.time.day.order - 1),
+                                        y = rowHeight * (block.time.period.order - 1),
+                                    ).width(columnWidth)
+                                    .height(rowHeight * block.span),
+                        )
+                    }
+
+                    if (plan.selectedCourses.isEmpty()) {
+                        Text(
+                            text = "尚未加入課程",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.align(Alignment.Center),
+                        )
+                    }
                 }
             }
         }
@@ -122,7 +161,7 @@ fun CourseSelectionTimetableSuccessView(
 }
 
 @Composable
-fun TimetableGrid(
+fun TimetableBackground(
     columns: Int,
     rows: Int,
     modifier: Modifier = Modifier,
@@ -162,15 +201,61 @@ fun TimetableGrid(
 }
 
 @Composable
-fun TimetableCell(
-    modifier: Modifier,
+fun TimetableBackgroundCell(
 ) {
     Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(8.dp),
-        color = MaterialTheme.colorScheme.secondaryContainer,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(2.dp),
+        shape = RoundedCornerShape(4.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant,
     ) {
         Box(modifier = Modifier.fillMaxSize())
+    }
+}
+
+@Composable
+fun TimetableForegroundCell(
+    block: CourseTimetableBlock,
+    modifier: Modifier = Modifier,
+) {
+    val containerColor =
+        when (block.type) {
+            CourseType.REQUIRED -> MaterialTheme.colorScheme.primaryContainer
+            CourseType.ELECTIVE -> MaterialTheme.colorScheme.secondaryContainer
+            CourseType.UNKNOWN -> MaterialTheme.colorScheme.tertiaryContainer
+        }
+    val contentColor =
+        when (block.type) {
+            CourseType.REQUIRED -> MaterialTheme.colorScheme.onPrimaryContainer
+            CourseType.ELECTIVE -> MaterialTheme.colorScheme.onSecondaryContainer
+            CourseType.UNKNOWN -> MaterialTheme.colorScheme.onTertiaryContainer
+        }
+
+    Surface(
+        modifier =
+            modifier
+                .padding(2.dp),
+        shape = RoundedCornerShape(4.dp),
+        color = containerColor,
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(2.dp),
+        ) {
+            Text(
+                text = block.title,
+                color = contentColor,
+                fontWeight = FontWeight.Medium,
+                maxLines = block.span.coerceAtLeast(1),
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.labelSmall,
+                textAlign = TextAlign.Center,
+            )
+        }
     }
 }
 
