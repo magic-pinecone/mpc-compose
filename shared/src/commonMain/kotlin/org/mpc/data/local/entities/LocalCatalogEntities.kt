@@ -10,7 +10,7 @@ import org.mpc.data.mapper.entities.toEntity
 import org.mpc.domain.model.CourseResult
 import kotlin.time.Instant
 
-internal data class LocalCatalogEntities(
+data class LocalCatalogEntities(
     val catalog: CourseCatalogEntity,
     val courses: List<CourseEntity>,
     val teachers: List<CourseTeacherEntity>,
