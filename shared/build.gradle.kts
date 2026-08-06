@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.androidx.room)
     alias(libs.plugins.detekt)
+    alias(libs.plugins.testBalloon)
 }
 
 val ktorVersion: String by project
@@ -80,7 +81,12 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(libs.testBalloon.frameworkCore)
         }
+    }
+
+    compilerOptions {
+        freeCompilerArgs.add("-Xexport-kdoc")
     }
 }
 

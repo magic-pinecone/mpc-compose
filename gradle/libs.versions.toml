@@ -27,6 +27,8 @@ ksp = "2.3.10"
 
 detekt = "2.0.0-alpha.5"
 
+testBalloon = "1.0.1-K2.4.0"
+
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-testJunit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
@@ -68,6 +70,8 @@ metrox-viewmodel-compose = { module = "dev.zacsweers.metro:metrox-viewmodel-comp
 kermit = { module = "co.touchlab:kermit", version.ref = "kermit"}
 androidx-datastore-core = { group = "androidx.datastore", name = "datastore-core", version.ref = "datastoreCore" }
 
+testBalloon-frameworkCore = { module = "de.infix.testBalloon:testBalloon-framework-core", version.ref = "testBalloon" }
+
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
@@ -78,6 +82,7 @@ kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref =
 metro = { id = "dev.zacsweers.metro", version.ref = "metro"}
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 androidx-room = { id = "androidx.room", version.ref = "room" }
+testBalloon = { id = "de.infix.testBalloon", version.ref = "testBalloon" }
 
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 detekt = { id = "dev.detekt", version.ref = "detekt" }
