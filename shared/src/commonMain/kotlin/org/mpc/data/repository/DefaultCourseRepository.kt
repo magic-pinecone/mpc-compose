@@ -3,26 +3,34 @@ package org.mpc.data.repository
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import org.mpc.data.dataSource.CourseDataSource
+import org.mpc.data.local.dao.CourseCatalogDao
+import org.mpc.data.local.entities.toDomain
+import org.mpc.data.local.entities.toLocalCatalogEntities
 import org.mpc.data.mapper.dto.toDomain
 import org.mpc.domain.model.CourseDetail
 import org.mpc.domain.model.CourseResult
 import org.mpc.domain.model.CourseSerialNo
 import org.mpc.domain.repository.CourseRepository
 
-// TODO: Cache the result JSON fetch from remote
+// TODO: Add fetched-at freshness and stale-cache fallback policy.
 @ContributesBinding(AppScope::class)
 @Inject
 internal class DefaultCourseRepository(
     private val courseDataSource: CourseDataSource,
+    private val courseCatalogDao: CourseCatalogDao
 ) : CourseRepository {
-    override suspend fun fetchAllCourses(semester: String): CourseResult = courseDataSource.getAllCourses(semester).toDomain()
+    override suspend fun fetchAllCourses(semester: String): CourseResult =
+        courseCatalogDao.findCatalogEntities(semester)?.toDomain()
+            ?: refreshCatalog(semester)
 
     override suspend fun fetchCourses(
         semester: String,
         query: String,
     ): CourseResult {
-        val result = courseDataSource.getAllCourses(semester).toDomain()
+        val result = fetchAllCourses(semester)
         val normalizedQuery = query.trim()
         if (normalizedQuery.isEmpty()) {
             return result
@@ -42,7 +50,7 @@ internal class DefaultCourseRepository(
         semester: String,
         serialNos: List<CourseSerialNo>,
     ): CourseResult {
-        val result = courseDataSource.getAllCourses(semester).toDomain()
+        val result = fetchAllCourses(semester)
 
         val serialNoSet = serialNos.toSet()
 
@@ -58,4 +66,26 @@ internal class DefaultCourseRepository(
         semester: String,
         serialNo: String,
     ): CourseDetail = courseDataSource.getCourseDetails(semester, serialNo).toDomain()
+
+    override fun observeCatalog(semester: String): Flow<CourseResult?> =
+        courseCatalogDao.observeCatalogMetadata(semester).map {
+            courseCatalogDao.findCatalogEntities(semester)?.toDomain()
+        }
+
+    @Suppress("UNUSED_PARAMETER")
+    override suspend fun refreshCatalog(
+        semester: String,
+        force: Boolean,
+    ): CourseResult {
+        val remoteResult = courseDataSource.getAllCourses(semester).toDomain()
+        require(remoteResult.semester == semester) {
+            "Remote catalog semester ${remoteResult.semester} does not match requested semester $semester"
+        }
+
+        courseCatalogDao.saveCatalog(remoteResult.toLocalCatalogEntities())
+
+        return requireNotNull(courseCatalogDao.findCatalogEntities(semester)?.toDomain()) {
+            "Catalog $semester was not available after saving"
+        }
+    }
 }

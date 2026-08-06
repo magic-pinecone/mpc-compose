@@ -29,7 +29,6 @@ dependencies {
     debugImplementation(libs.compose.uiTooling)
 
     implementation(libs.metrox.viewmodel.compose)
-
 }
 
 android {

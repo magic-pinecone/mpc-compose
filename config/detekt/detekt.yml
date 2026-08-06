@@ -223,7 +223,7 @@ complexity:
     ignorePrivate: false
     ignoreInternal: false
     ignoreOverridden: false
-    ignoreAnnotatedFunctions: ["Preview"]
+    ignoreAnnotatedFunctions: ["Preview", "Query", "Upsert"]
 
 coroutines:
   active: true
