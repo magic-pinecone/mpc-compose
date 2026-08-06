@@ -35,11 +35,11 @@ interface CourseCatalogDao {
     suspend fun deleteCatalog(semester: String)
 
     @Query("""
-        DELETE FROM course 
-        WHERE semester = :semester 
+        DELETE FROM course
+        WHERE semester = :semester
           AND serialNo IN (:serialNos)
     """)
-    suspend fun deleteCourse(semester: String, serialNos: List<String>)
+    suspend fun deleteCourses(semester: String, serialNos: List<String>)
 
     @Query("SELECT * FROM course WHERE semester = :semester ORDER BY serialNo")
     suspend fun findCourses(semester: String): List<CourseEntity>
@@ -58,16 +58,16 @@ interface CourseCatalogDao {
 
     @Transaction
     suspend fun saveCatalog(entities: LocalCatalogEntities) {
-        val incomingCoursesSerialNos = entities.courses
+        val incomingCourseSerialNos = entities.courses
             .mapTo(mutableSetOf()) { it.serialNo }
-        val removedCoursesSerialNos = findCourses(entities.catalog.semester)
-            .map{ it.serialNo }
-            .filterNot { it in incomingCoursesSerialNos }
+        val removedCourseSerialNos = findCourses(entities.catalog.semester)
+            .map { it.serialNo }
+            .filterNot { it in incomingCourseSerialNos }
 
-        if (removedCoursesSerialNos.isNotEmpty()) {
-            deleteCourse(
+        if (removedCourseSerialNos.isNotEmpty()) {
+            deleteCourses(
                 semester = entities.catalog.semester,
-                serialNos = removedCoursesSerialNos
+                serialNos = removedCourseSerialNos
             )
         }
 
