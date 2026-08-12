@@ -73,7 +73,12 @@ class CourseSelectionViewModel(
             for (plan in saveRequests) {
                 runCatching {
                     withContext(NonCancellable) {
-                        coursePlanRepository.savePlan(plan)
+                        var pendingPlan: CoursePlan? = plan
+
+                        while (pendingPlan != null) {
+                            coursePlanRepository.savePlan(pendingPlan)
+                            pendingPlan = saveRequests.tryReceive().getOrNull()
+                        }
                     }
                 }.onFailure { cause ->
                     cause.rethrowIfCancellationOrFatal()
