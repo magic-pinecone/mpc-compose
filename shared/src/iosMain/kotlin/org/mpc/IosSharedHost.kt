@@ -1,6 +1,7 @@
 package org.mpc
 
 import androidx.compose.ui.window.ComposeUIViewController
+import org.mpc.bridge.CoursePlanBridge
 import org.mpc.bridge.CourseSearchBridge
 import org.mpc.core.createDataStore
 import org.mpc.core.createDatabase
@@ -14,17 +15,20 @@ import platform.UIKit.UIViewController
 class IosSharedHost internal constructor(
     private val appGraph: AppGraph,
 ) {
-    fun courseSearchScreenController(bridge: CourseSearchBridge): UIViewController =
+    fun courseSearchScreenController(
+        bridge: CourseSearchBridge,
+        planBridge: CoursePlanBridge,
+    ): UIViewController =
         ComposeUIViewController {
             ProvideAppDependencies(appGraph) {
-                CourseSearchResultViewBinding(bridge)
+                CourseSearchResultViewBinding(bridge, planBridge)
             }
         }
 
-    fun courseSelectionTimetableScreenController(): UIViewController =
+    fun courseSelectionTimetableScreenController(planBridge: CoursePlanBridge): UIViewController =
         ComposeUIViewController {
             ProvideAppDependencies(appGraph) {
-                CourseSelectionTimetableViewBinding()
+                CourseSelectionTimetableViewBinding(planBridge)
             }
         }
 }

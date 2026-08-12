@@ -72,11 +72,7 @@ internal class DefaultCourseRepository(
             courseCatalogDao.findCatalogEntities(semester)?.toDomain()
         }
 
-    @Suppress("UNUSED_PARAMETER")
-    override suspend fun refreshCatalog(
-        semester: String,
-        force: Boolean,
-    ): CourseResult {
+    override suspend fun refreshCatalog(semester: String): CourseResult {
         val remoteResult = courseDataSource.getAllCourses(semester).toDomain()
         require(remoteResult.semester == semester) {
             "Remote catalog semester ${remoteResult.semester} does not match requested semester $semester"

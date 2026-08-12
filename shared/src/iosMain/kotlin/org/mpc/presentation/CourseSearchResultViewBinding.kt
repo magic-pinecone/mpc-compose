@@ -7,6 +7,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.zacsweers.metrox.viewmodel.metroViewModel
+import org.mpc.bridge.CoursePlanBridge
 import org.mpc.bridge.CourseSearchBridge
 import org.mpc.presentation.state.CoursePlanUiState
 import org.mpc.presentation.viewModel.CourseSearchViewModel
@@ -14,7 +15,10 @@ import org.mpc.presentation.viewModel.CourseSelectionViewModel
 import org.mpc.presentation.views.courseSelection.CourseSearchResultView
 
 @Composable
-fun CourseSearchResultViewBinding(bridge: CourseSearchBridge) {
+fun CourseSearchResultViewBinding(
+    bridge: CourseSearchBridge,
+    planBridge: CoursePlanBridge,
+) {
     val searchViewModel: CourseSearchViewModel = metroViewModel()
     val planViewModel: CourseSelectionViewModel = metroViewModel()
 
@@ -32,6 +36,12 @@ fun CourseSearchResultViewBinding(bridge: CourseSearchBridge) {
         bridge.sendRequests.collect { (semester, query) ->
             searchViewModel.updateQuery(semester, query)
             searchViewModel.onSearch()
+        }
+    }
+
+    LaunchedEffect(planBridge, planViewModel) {
+        planBridge.saveRequests.collect {
+            planViewModel.savePlan()
         }
     }
 

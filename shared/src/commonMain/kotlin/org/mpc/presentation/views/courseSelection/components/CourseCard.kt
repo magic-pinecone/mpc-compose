@@ -222,8 +222,7 @@ private fun CourseSummary.scheduleText(): String =
 
 @Composable
 @Preview
-@Suppress("UnusedPrivateFunction")
-private fun PreviewCourseCard(
+internal fun PreviewCourseCard(
     courseSummary: CourseSummary =
         CourseSummary(
             serialNo = CourseSerialNo("36019"),

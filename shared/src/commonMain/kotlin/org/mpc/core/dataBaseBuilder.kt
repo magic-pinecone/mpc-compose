@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import org.mpc.data.local.database.AppDatabase
 
+// This is the database composition root, before the Metro graph exists.
 @Suppress("InjectDispatcher")
 fun createDatabase(builder: RoomDatabase.Builder<AppDatabase>): AppDatabase =
     builder
