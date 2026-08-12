@@ -8,8 +8,9 @@ import dev.zacsweers.metro.ContributesIntoMap
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.binding
 import dev.zacsweers.metrox.viewmodel.ViewModelKey
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
+import org.mpc.domain.model.CoursePlan
 import org.mpc.domain.model.CourseSummary
 import org.mpc.domain.repository.CoursePlanRepository
 import org.mpc.presentation.state.CoursePlanDraftStore
@@ -31,10 +32,11 @@ class CourseSelectionViewModel(
 
     val uiState = draftStore.uiState
 
-    private var saveJob: Job? = null
+    private val saveRequests = Channel<CoursePlan>(capacity = Channel.CONFLATED)
 
     init {
         loadPlan()
+        collectSaveRequests()
     }
 
     private fun loadPlan() {
@@ -61,12 +63,12 @@ class CourseSelectionViewModel(
         val plan = (uiState.value as? CoursePlanUiState.Success)?.plan
             ?: return
 
-        if (saveJob?.isActive == true) {
-            return
-        }
+        saveRequests.trySend(plan)
+    }
 
-        saveJob =
-            viewModelScope.launch {
+    private fun collectSaveRequests() {
+        viewModelScope.launch {
+            for (plan in saveRequests) {
                 runCatching {
                     coursePlanRepository.savePlan(plan)
                 }.onFailure { cause ->
@@ -74,5 +76,6 @@ class CourseSelectionViewModel(
                     Logger.e(cause.toString())
                 }
             }
+        }
     }
 }
