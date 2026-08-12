@@ -3,6 +3,7 @@ import Shared
 
 struct CourseSelectionSearchView: View {
     let sharedHost: IosSharedHost
+    let planBridge: CoursePlanBridge
 
     // TODO: make semester configurable
     let semester = "115-1"
@@ -12,7 +13,8 @@ struct CourseSelectionSearchView: View {
     var body: some View {
         CourseSelectionSearchComposeView(
             sharedHost: sharedHost,
-            bridge: bridge
+            bridge: bridge,
+            planBridge: planBridge
         )
         .searchable(
             text: $query,

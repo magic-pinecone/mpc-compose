@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.mpc.domain.model.CourseResult
 import org.mpc.domain.repository.CourseRepository
 import org.mpc.presentation.state.CourseSearchError
 import org.mpc.presentation.state.CourseSearchResultUiState
@@ -38,7 +39,6 @@ class CourseSearchViewModel(
         loadAllCourses()
     }
 
-    @Suppress("TooGenericExceptionCaught")
     fun loadAllCourses() {
         _uiState.update {
             it.copy(result = CourseSearchResultUiState.Loading)
@@ -46,23 +46,11 @@ class CourseSearchViewModel(
 
         viewModelScope.launch {
             val semester = uiState.value.semester
-            try {
-                _uiState.update {
-                    it.copy(
-                        result =
-                            CourseSearchResultUiState.Success(
-                                result = courseRepository.fetchAllCourses(semester),
-                            ),
-                    )
-                }
-            } catch (exception: Exception) {
-                Logger.i(exception.toString())
-                _uiState.update {
-                    it.copy(
-                        result = CourseSearchResultUiState.Failure(error = CourseSearchError.UNKNOWN),
-                    )
-                }
-            }
+            runCatching {
+                courseRepository.fetchAllCourses(semester)
+            }.onSuccess { result ->
+                acceptSearchResult(result)
+            }.onFailure(::acceptSearchFailure)
         }
     }
 
@@ -75,7 +63,6 @@ class CourseSearchViewModel(
         }
     }
 
-    @Suppress("TooGenericExceptionCaught")
     fun onSearch() {
         val semester = uiState.value.semester
         val query = uiState.value.query
@@ -92,37 +79,31 @@ class CourseSearchViewModel(
         }
 
         viewModelScope.launch {
-            try {
+            runCatching {
                 if (query.isBlank()) {
-                    _uiState.update {
-                        it.copy(
-                            result =
-                                CourseSearchResultUiState.Success(
-                                    result = courseRepository.fetchAllCourses(semester),
-                                ),
-                        )
-                    }
+                    courseRepository.fetchAllCourses(semester)
                 } else {
-                    _uiState.update {
-                        it.copy(
-                            result =
-                                CourseSearchResultUiState.Success(
-                                    result = courseRepository.fetchCourses(semester, query),
-                                ),
-                        )
-                    }
+                    courseRepository.fetchCourses(semester, query)
                 }
-            } catch (exception: Exception) {
-                Logger.i(exception.toString())
-                _uiState.update {
-                    it.copy(
-                        result =
-                            CourseSearchResultUiState.Failure(
-                                error = CourseSearchError.UNKNOWN,
-                            ),
-                    )
-                }
-            }
+            }.onSuccess { result ->
+                acceptSearchResult(result)
+            }.onFailure(::acceptSearchFailure)
+        }
+    }
+
+    private fun acceptSearchResult(result: CourseResult) {
+        _uiState.update {
+            it.copy(result = CourseSearchResultUiState.Success(result))
+        }
+    }
+
+    private fun acceptSearchFailure(cause: Throwable) {
+        cause.rethrowIfCancellationOrFatal()
+        Logger.i(cause.toString())
+        _uiState.update {
+            it.copy(
+                result = CourseSearchResultUiState.Failure(CourseSearchError.UNKNOWN),
+            )
         }
     }
 }
