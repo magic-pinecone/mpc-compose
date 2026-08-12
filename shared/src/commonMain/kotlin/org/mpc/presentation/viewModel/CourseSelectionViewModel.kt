@@ -8,8 +8,10 @@ import dev.zacsweers.metro.ContributesIntoMap
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.binding
 import dev.zacsweers.metrox.viewmodel.ViewModelKey
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.mpc.domain.model.CoursePlan
 import org.mpc.domain.model.CourseSummary
 import org.mpc.domain.repository.CoursePlanRepository
@@ -70,7 +72,9 @@ class CourseSelectionViewModel(
         viewModelScope.launch {
             for (plan in saveRequests) {
                 runCatching {
-                    coursePlanRepository.savePlan(plan)
+                    withContext(NonCancellable) {
+                        coursePlanRepository.savePlan(plan)
+                    }
                 }.onFailure { cause ->
                     cause.rethrowIfCancellationOrFatal()
                     Logger.e(cause.toString())
