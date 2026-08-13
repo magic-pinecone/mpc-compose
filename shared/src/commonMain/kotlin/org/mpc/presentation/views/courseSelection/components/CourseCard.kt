@@ -120,11 +120,11 @@ fun CourseCard(
 private fun CourseTypeBadge(courseType: CourseType) {
     Box(
         modifier =
-            Modifier
-                .background(
-                    color = MaterialTheme.colorScheme.secondaryContainer,
-                    shape = RoundedCornerShape(8.dp),
-                ).padding(horizontal = 10.dp, vertical = 5.dp),
+        Modifier
+            .background(
+                color = MaterialTheme.colorScheme.secondaryContainer,
+                shape = RoundedCornerShape(8.dp),
+            ).padding(horizontal = 10.dp, vertical = 5.dp),
         contentAlignment = Alignment.Center,
     ) {
         Text(
@@ -141,9 +141,9 @@ private fun CourseTypeBadge(courseType: CourseType) {
 private fun CourseInfoRail(courseSummary: CourseSummary) {
     Row(
         modifier =
-            Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
+        Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         CourseInfoBadge(
@@ -168,11 +168,11 @@ private fun CourseInfoBadge(
 ) {
     Row(
         modifier =
-            Modifier
-                .background(
-                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                    shape = RoundedCornerShape(6.dp),
-                ).padding(horizontal = 8.dp, vertical = 5.dp),
+        Modifier
+            .background(
+                color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                shape = RoundedCornerShape(6.dp),
+            ).padding(horizontal = 8.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
@@ -197,28 +197,25 @@ private fun CourseInfoBadge(
  */
 private fun CourseSummary.teacherText(): String = teachers.joinToString(separator = "、")
 
-private fun CourseSummary.informationText(): String =
-    listOf(
-        classNo,
-        "${credit.toInt()} 學分",
-        teacherText(),
-    ).joinToString(separator = " · ")
+private fun CourseSummary.informationText(): String = listOf(
+    classNo,
+    "${credit.toInt()} 學分",
+    teacherText(),
+).joinToString(separator = " · ")
 
 private fun CourseSummary.departmentText(): String = "$collegeName / $departmentName"
 
-private fun CourseSummary.enrollmentText(): String =
-    if (waitCnt > 0) {
-        "$admitCnt / $limitCnt · 候補 $waitCnt"
-    } else {
-        "$admitCnt / $limitCnt"
-    }
+private fun CourseSummary.enrollmentText(): String = if (waitCnt > 0) {
+    "$admitCnt / $limitCnt · 候補 $waitCnt"
+} else {
+    "$admitCnt / $limitCnt"
+}
 
 private fun CourseSummary.passwordText(): String = passwordCard.description
 
-private fun CourseSummary.scheduleText(): String =
-    classTimes.joinToString(separator = "、") {
-        "${it.day.code}-${it.period.description}"
-    }
+private fun CourseSummary.scheduleText(): String = classTimes.joinToString(separator = "、") {
+    "${it.day.code}-${it.period.description}"
+}
 
 @Composable
 @Preview
@@ -232,11 +229,11 @@ internal fun PreviewCourseCard(
             passwordCard = PasswordCardType.NONE,
             teachers = listOf("鄭明敏", "林居慶", "林進榮", "林伯勳"),
             classTimes =
-                listOf(
-                    CourseTime(CourseDay.FRIDAY, CoursePeriod.A),
-                    CourseTime(CourseDay.FRIDAY, CoursePeriod.B),
-                    CourseTime(CourseDay.FRIDAY, CoursePeriod.C),
-                ),
+            listOf(
+                CourseTime(CourseDay.FRIDAY, CoursePeriod.A),
+                CourseTime(CourseDay.FRIDAY, CoursePeriod.B),
+                CourseTime(CourseDay.FRIDAY, CoursePeriod.C),
+            ),
             limitCnt = 0,
             admitCnt = 0,
             waitCnt = 0,

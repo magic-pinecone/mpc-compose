@@ -5,12 +5,10 @@ data class CoursePlan(
     val selectedCourses: Map<CourseSerialNo, CourseSummary>,
 )
 
-fun CoursePlan.addCourse(course: CourseSummary): CoursePlan =
-    copy(
-        selectedCourses = selectedCourses + (course.serialNo to course),
-    )
+fun CoursePlan.addCourse(course: CourseSummary): CoursePlan = copy(
+    selectedCourses = selectedCourses + (course.serialNo to course),
+)
 
-fun CoursePlan.removeCourse(course: CourseSummary): CoursePlan =
-    copy(
-        selectedCourses = selectedCourses - course.serialNo,
-    )
+fun CoursePlan.removeCourse(course: CourseSummary): CoursePlan = copy(
+    selectedCourses = selectedCourses - course.serialNo,
+)

@@ -44,10 +44,10 @@ internal fun CourseResult.toLocalCatalogEntities(): LocalCatalogEntities {
 
     return LocalCatalogEntities(
         catalog =
-            CourseCatalogEntity(
-                semester = semester,
-                lastUpdatedEpochMillis = lastUpdated.toEpochMilliseconds(),
-            ),
+        CourseCatalogEntity(
+            semester = semester,
+            lastUpdatedEpochMillis = lastUpdated.toEpochMilliseconds(),
+        ),
         courses = courseEntities,
         teachers = teacherEntities,
         courseTimes = timeEntities,
@@ -82,26 +82,26 @@ internal fun LocalCatalogEntities.toDomain(): CourseResult {
         lastUpdated = Instant.fromEpochMilliseconds(catalog.lastUpdatedEpochMillis),
         semester = catalog.semester,
         courses =
-            courses.map { course ->
-                val key =
-                    CourseKey(
-                        semester = course.semester,
-                        serialNo = course.serialNo,
-                    )
-
-                course.toDomain(
-                    teachers = teachersByCourse[key].orEmpty().map { it.teacherName },
-                    classTimes =
-                        timesByCourse[key]
-                            .orEmpty()
-                            .mapNotNull { it.toDomainOrNull() }
-                            .sortedWith(
-                                compareBy(
-                                    { it.day.order },
-                                    { it.period.order },
-                                ),
-                            ),
+        courses.map { course ->
+            val key =
+                CourseKey(
+                    semester = course.semester,
+                    serialNo = course.serialNo,
                 )
-            },
+
+            course.toDomain(
+                teachers = teachersByCourse[key].orEmpty().map { it.teacherName },
+                classTimes =
+                timesByCourse[key]
+                    .orEmpty()
+                    .mapNotNull { it.toDomainOrNull() }
+                    .sortedWith(
+                        compareBy(
+                            { it.day.order },
+                            { it.period.order },
+                        ),
+                    ),
+            )
+        },
     )
 }

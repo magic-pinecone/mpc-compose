@@ -25,9 +25,7 @@ interface CourseRepository {
 
     fun observeCatalog(semester: String): Flow<CourseResult?>
 
-
     // the only function that should interact with the data source
     // everything else should interact with room
     suspend fun refreshCatalog(semester: String): CourseResult
-
 }

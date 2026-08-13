@@ -8,13 +8,12 @@ import androidx.datastore.preferences.core.PreferencesSerializer
 import okio.FileSystem
 import okio.Path.Companion.toOkioPath
 
-fun createDataStore(context: Context): Storage<Preferences> =
-    OkioStorage(
-        fileSystem = FileSystem.SYSTEM,
-        serializer = PreferencesSerializer,
-        producePath = {
-            context.filesDir
-                .resolve(DATA_STORE_FILE_NAME)
-                .toOkioPath()
-        },
-    )
+fun createDataStore(context: Context): Storage<Preferences> = OkioStorage(
+    fileSystem = FileSystem.SYSTEM,
+    serializer = PreferencesSerializer,
+    producePath = {
+        context.filesDir
+            .resolve(DATA_STORE_FILE_NAME)
+            .toOkioPath()
+    },
+)

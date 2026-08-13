@@ -20,11 +20,10 @@ import org.mpc.domain.repository.CourseRepository
 @Inject
 internal class DefaultCourseRepository(
     private val courseDataSource: CourseDataSource,
-    private val courseCatalogDao: CourseCatalogDao
+    private val courseCatalogDao: CourseCatalogDao,
 ) : CourseRepository {
-    override suspend fun fetchAllCourses(semester: String): CourseResult =
-        courseCatalogDao.findCatalogEntities(semester)?.toDomain()
-            ?: refreshCatalog(semester)
+    override suspend fun fetchAllCourses(semester: String): CourseResult = courseCatalogDao.findCatalogEntities(semester)?.toDomain()
+        ?: refreshCatalog(semester)
 
     override suspend fun fetchCourses(
         semester: String,
@@ -67,10 +66,9 @@ internal class DefaultCourseRepository(
         serialNo: String,
     ): CourseDetail = courseDataSource.getCourseDetails(semester, serialNo).toDomain()
 
-    override fun observeCatalog(semester: String): Flow<CourseResult?> =
-        courseCatalogDao.observeCatalogMetadata(semester).map {
-            courseCatalogDao.findCatalogEntities(semester)?.toDomain()
-        }
+    override fun observeCatalog(semester: String): Flow<CourseResult?> = courseCatalogDao.observeCatalogMetadata(semester).map {
+        courseCatalogDao.findCatalogEntities(semester)?.toDomain()
+    }
 
     override suspend fun refreshCatalog(semester: String): CourseResult {
         val remoteResult = courseDataSource.getAllCourses(semester).toDomain()
