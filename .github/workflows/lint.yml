@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       # required for gradle 9.5.0 and android gradle plugin 9.3.0
       - name: Set up Java
@@ -53,6 +55,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Install SwiftLint
         run: brew install swiftlint
