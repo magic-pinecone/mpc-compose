@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.androidx.room)
     alias(libs.plugins.detekt)
+    alias(libs.plugins.ktlint)
     alias(libs.plugins.testBalloon)
 }
 
@@ -105,4 +106,13 @@ detekt {
     toolVersion = "2.0.0-alpha.5"
     config.setFrom(rootProject.file("config/detekt/detekt.yml"))
     buildUponDefaultConfig = true
+}
+
+ktlint {
+    version.set(libs.versions.ktlint)
+    filter {
+        exclude {
+            "/build/generated/" in it.file.invariantSeparatorsPath
+        }
+    }
 }
