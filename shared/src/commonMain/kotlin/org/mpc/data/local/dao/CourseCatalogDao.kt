@@ -34,11 +34,13 @@ interface CourseCatalogDao {
     @Query("DELETE FROM course_catalog WHERE semester = :semester")
     suspend fun deleteCatalog(semester: String)
 
-    @Query("""
+    @Query(
+        """
         DELETE FROM course
         WHERE semester = :semester
           AND serialNo IN (:serialNos)
-    """)
+    """,
+    )
     suspend fun deleteCourses(semester: String, serialNos: List<String>)
 
     @Query("SELECT * FROM course WHERE semester = :semester ORDER BY serialNo")
@@ -67,7 +69,7 @@ interface CourseCatalogDao {
         if (removedCourseSerialNos.isNotEmpty()) {
             deleteCourses(
                 semester = entities.catalog.semester,
-                serialNos = removedCourseSerialNos
+                serialNos = removedCourseSerialNos,
             )
         }
 

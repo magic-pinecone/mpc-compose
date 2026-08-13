@@ -64,21 +64,21 @@ fun CourseSelectionSearchScreen(
     ) {
         SearchBar(
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        horizontal = 16.dp,
-                        vertical = 8.dp,
-                    ),
+            Modifier
+                .fillMaxWidth()
+                .padding(
+                    horizontal = 16.dp,
+                    vertical = 8.dp,
+                ),
             state = searchBarState,
             inputField = inputField,
         )
 
         CourseSearchResultView(
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
+            Modifier
+                .fillMaxWidth()
+                .weight(1f),
             uiState = searchUiState.result,
             selectedCourseSerialNumbers = selectedCourseSerialNumbers,
             onToggleCourse = planViewModel::toggleCourse,
@@ -91,9 +91,9 @@ fun CourseSelectionSearchScreen(
     ) {
         CourseSearchResultView(
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
+            Modifier
+                .fillMaxWidth()
+                .weight(1f),
             uiState = searchUiState.result,
             selectedCourseSerialNumbers = selectedCourseSerialNumbers,
             onToggleCourse = planViewModel::toggleCourse,

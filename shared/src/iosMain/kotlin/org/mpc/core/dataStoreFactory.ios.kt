@@ -11,26 +11,25 @@ import platform.Foundation.NSFileManager
 import platform.Foundation.NSUserDomainMask
 
 @OptIn(ExperimentalForeignApi::class)
-fun createDataStore(): OkioStorage<Preferences> =
-    OkioStorage(
-        fileSystem = FileSystem.SYSTEM,
-        serializer = PreferencesSerializer,
-        producePath = {
-            val applicationSupportPath =
-                requireNotNull(
-                    NSFileManager.defaultManager.URLForDirectory(
-                        directory = NSApplicationSupportDirectory,
-                        inDomain = NSUserDomainMask,
-                        appropriateForURL = null,
-                        create = true,
-                        error = null,
-                    ),
-                )
-            val filePath =
-                requireNotNull(
-                    applicationSupportPath.URLByAppendingPathComponent(DATA_STORE_FILE_NAME),
-                )
+fun createDataStore(): OkioStorage<Preferences> = OkioStorage(
+    fileSystem = FileSystem.SYSTEM,
+    serializer = PreferencesSerializer,
+    producePath = {
+        val applicationSupportPath =
+            requireNotNull(
+                NSFileManager.defaultManager.URLForDirectory(
+                    directory = NSApplicationSupportDirectory,
+                    inDomain = NSUserDomainMask,
+                    appropriateForURL = null,
+                    create = true,
+                    error = null,
+                ),
+            )
+        val filePath =
+            requireNotNull(
+                applicationSupportPath.URLByAppendingPathComponent(DATA_STORE_FILE_NAME),
+            )
 
-            requireNotNull(filePath.path).toPath()
-        },
-    )
+        requireNotNull(filePath.path).toPath()
+    },
+)

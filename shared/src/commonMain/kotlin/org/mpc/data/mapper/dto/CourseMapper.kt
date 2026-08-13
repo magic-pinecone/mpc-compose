@@ -18,37 +18,35 @@ import org.mpc.domain.model.CourseType
 import org.mpc.domain.model.DistributionCondition
 import org.mpc.domain.model.PasswordCardType
 
-internal fun CourseResultDto.toDomain(): CourseResult =
-    CourseResult(
-        lastUpdated = lastUpdated,
-        semester = "$academicYear-$semester",
-        courses = courses.map { it.toDomain() },
-    )
+internal fun CourseResultDto.toDomain(): CourseResult = CourseResult(
+    lastUpdated = lastUpdated,
+    semester = "$academicYear-$semester",
+    courses = courses.map { it.toDomain() },
+)
 
-internal fun CourseDto.toDomain(): CourseSummary =
-    CourseSummary(
-        serialNo = CourseSerialNo(serialNo),
-        classNo = classNo,
-        title = title,
-        credit = credit,
-        passwordCard = passwordCard.toDomain(),
-        teachers = teachers,
-        classTimes =
-            classTimes.mapNotNull { rawTime ->
-                rawTime.toCourseTimeOrNull().also { parsed ->
-                    if (parsed == null) {
-                        Logger.w { "Ignoring invalid course time $parsed" }
-                    }
-                }
-            },
-        limitCnt = limitCnt,
-        admitCnt = admitCnt,
-        waitCnt = waitCnt,
-        collegeName = collegeName,
-        departmentName = departmentName,
-        courseType = courseType.toDomain(),
-        detailUrl = detailUrl,
-    )
+internal fun CourseDto.toDomain(): CourseSummary = CourseSummary(
+    serialNo = CourseSerialNo(serialNo),
+    classNo = classNo,
+    title = title,
+    credit = credit,
+    passwordCard = passwordCard.toDomain(),
+    teachers = teachers,
+    classTimes =
+    classTimes.mapNotNull { rawTime ->
+        rawTime.toCourseTimeOrNull().also { parsed ->
+            if (parsed == null) {
+                Logger.w { "Ignoring invalid course time $parsed" }
+            }
+        }
+    },
+    limitCnt = limitCnt,
+    admitCnt = admitCnt,
+    waitCnt = waitCnt,
+    collegeName = collegeName,
+    departmentName = departmentName,
+    courseType = courseType.toDomain(),
+    detailUrl = detailUrl,
+)
 
 private fun String.toCourseTimeOrNull(): CourseTime? {
     val parts = split("-", limit = 2)
@@ -66,33 +64,29 @@ private fun String.toCourseTimeOrNull(): CourseTime? {
     }
 }
 
-internal fun PasswordCardTypeDto.toDomain(): PasswordCardType =
-    when (this) {
-        PasswordCardTypeDto.ALL -> PasswordCardType.ALL
-        PasswordCardTypeDto.OPTIONAL -> PasswordCardType.OPTIONAL
-        PasswordCardTypeDto.NONE -> PasswordCardType.NONE
-    }
+internal fun PasswordCardTypeDto.toDomain(): PasswordCardType = when (this) {
+    PasswordCardTypeDto.ALL -> PasswordCardType.ALL
+    PasswordCardTypeDto.OPTIONAL -> PasswordCardType.OPTIONAL
+    PasswordCardTypeDto.NONE -> PasswordCardType.NONE
+}
 
-internal fun CourseTypeDto.toDomain(): CourseType =
-    when (this) {
-        CourseTypeDto.REQUIRED -> CourseType.REQUIRED
-        CourseTypeDto.ELECTIVE -> CourseType.ELECTIVE
-        CourseTypeDto.UNKNOWN -> CourseType.UNKNOWN
-    }
+internal fun CourseTypeDto.toDomain(): CourseType = when (this) {
+    CourseTypeDto.REQUIRED -> CourseType.REQUIRED
+    CourseTypeDto.ELECTIVE -> CourseType.ELECTIVE
+    CourseTypeDto.UNKNOWN -> CourseType.UNKNOWN
+}
 
-internal fun CourseDetailDto.toDomain(): CourseDetail =
-    CourseDetail(
-        serialNo = serialNo,
-        objectives = objectives,
-        content = content,
-        books = books,
-        teachingMethod = teachingMethod,
-        gradingPolicy = gradingPolicy,
-        distributionConditions = distributionConditions.map { it.toDomain() },
-    )
+internal fun CourseDetailDto.toDomain(): CourseDetail = CourseDetail(
+    serialNo = serialNo,
+    objectives = objectives,
+    content = content,
+    books = books,
+    teachingMethod = teachingMethod,
+    gradingPolicy = gradingPolicy,
+    distributionConditions = distributionConditions.map { it.toDomain() },
+)
 
-internal fun DistributionConditionDto.toDomain(): DistributionCondition =
-    DistributionCondition(
-        priority = priority,
-        rule = rule,
-    )
+internal fun DistributionConditionDto.toDomain(): DistributionCondition = DistributionCondition(
+    priority = priority,
+    rule = rule,
+)

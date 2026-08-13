@@ -18,19 +18,17 @@ class IosSharedHost internal constructor(
     fun courseSearchScreenController(
         bridge: CourseSearchBridge,
         planBridge: CoursePlanBridge,
-    ): UIViewController =
-        ComposeUIViewController {
-            ProvideAppDependencies(appGraph) {
-                CourseSearchResultViewBinding(bridge, planBridge)
-            }
+    ): UIViewController = ComposeUIViewController {
+        ProvideAppDependencies(appGraph) {
+            CourseSearchResultViewBinding(bridge, planBridge)
         }
+    }
 
-    fun courseSelectionTimetableScreenController(planBridge: CoursePlanBridge): UIViewController =
-        ComposeUIViewController {
-            ProvideAppDependencies(appGraph) {
-                CourseSelectionTimetableViewBinding(planBridge)
-            }
+    fun courseSelectionTimetableScreenController(planBridge: CoursePlanBridge): UIViewController = ComposeUIViewController {
+        ProvideAppDependencies(appGraph) {
+            CourseSelectionTimetableViewBinding(planBridge)
         }
+    }
 }
 
 fun createIosSharedHost(): IosSharedHost {

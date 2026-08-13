@@ -27,9 +27,9 @@ fun AndroidAppShell(appGraph: AppGraph) {
             ) { paddingValues ->
                 Box(
                     modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues),
+                    Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
                 ) {
                     CourseSelectionSearchScreen(modifier = Modifier.fillMaxSize())
                 }

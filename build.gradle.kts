@@ -14,7 +14,18 @@ plugins {
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.androidx.room) apply false
     alias(libs.plugins.detekt) apply false
+    alias(libs.plugins.ktlint) apply false
     alias(libs.plugins.testBalloon) apply false
+}
+
+val ktlintCheck by tasks.registering {
+    group = "verification"
+    description = "Runs ktlint checks for all Kotlin modules."
+
+    dependsOn(
+        ":shared:ktlintCheck",
+        ":androidApp:ktlintCheck",
+    )
 }
 
 val swiftLint by tasks.registering(Exec::class) {
@@ -55,6 +66,7 @@ tasks.register("check") {
         ":androidApp:check",
         ":androidApp:detektDebug",
         ":androidApp:lintDebug",
+        ktlintCheck,
         swiftLint,
     )
 }

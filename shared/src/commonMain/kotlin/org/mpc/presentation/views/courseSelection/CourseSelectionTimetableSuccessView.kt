@@ -54,8 +54,8 @@ fun CourseSelectionTimetableSuccessView(
 
     Box(
         modifier =
-            modifier
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+        modifier
+            .padding(horizontal = 16.dp, vertical = 8.dp),
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -66,7 +66,7 @@ fun CourseSelectionTimetableSuccessView(
                     horizontalArrangement = Arrangement.SpaceAround,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(20.dp)
+                        .height(20.dp),
                 ) {
                     CourseDay.entries
                         .take(columns)
@@ -75,7 +75,7 @@ fun CourseSelectionTimetableSuccessView(
                                 contentAlignment = Alignment.Center,
                                 modifier = Modifier
                                     .fillMaxHeight()
-                                    .weight(1f)
+                                    .weight(1f),
                             ) {
                                 Text(
                                     text = it.description,
@@ -90,16 +90,16 @@ fun CourseSelectionTimetableSuccessView(
 
             Row(
                 modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
+                Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.SpaceAround,
                     modifier = Modifier
                         .width(16.dp)
-                        .fillMaxHeight()
+                        .fillMaxHeight(),
                 ) {
                     CoursePeriod.entries
                         .forEach {
@@ -107,7 +107,7 @@ fun CourseSelectionTimetableSuccessView(
                                 contentAlignment = Alignment.Center,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .weight(1f)
+                                    .weight(1f),
                             ) {
                                 Text(
                                     text = it.description,
@@ -137,12 +137,12 @@ fun CourseSelectionTimetableSuccessView(
                         TimetableForegroundCell(
                             block = block,
                             modifier =
-                                Modifier
-                                    .offset(
-                                        x = columnWidth * (block.time.day.order - 1),
-                                        y = rowHeight * (block.time.period.order - 1),
-                                    ).width(columnWidth)
-                                    .height(rowHeight * block.span),
+                            Modifier
+                                .offset(
+                                    x = columnWidth * (block.time.day.order - 1),
+                                    y = rowHeight * (block.time.period.order - 1),
+                                ).width(columnWidth)
+                                .height(rowHeight * block.span),
                         )
                     }
 
@@ -201,8 +201,7 @@ fun TimetableBackground(
 }
 
 @Composable
-fun TimetableBackgroundCell(
-) {
+fun TimetableBackgroundCell() {
     Surface(
         modifier = Modifier
             .fillMaxSize()
@@ -234,17 +233,17 @@ fun TimetableForegroundCell(
 
     Surface(
         modifier =
-            modifier
-                .padding(2.dp),
+        modifier
+            .padding(2.dp),
         shape = RoundedCornerShape(4.dp),
         color = containerColor,
     ) {
         Box(
             contentAlignment = Alignment.Center,
             modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(2.dp),
+            Modifier
+                .fillMaxSize()
+                .padding(2.dp),
         ) {
             Text(
                 text = block.title,
@@ -266,31 +265,31 @@ internal fun PreviewCourseSelectionTimetableSuccessView(
         CoursePlan(
             semester = "115-1",
             selectedCourses =
-                mapOf(
-                    CourseSerialNo("36019")
-                        to
-                        CourseSummary(
-                            serialNo = CourseSerialNo("36019"),
-                            classNo = "ENA103-*",
-                            title = "專題討論（III）",
-                            credit = 0.0,
-                            passwordCard = PasswordCardType.NONE,
-                            teachers = listOf("鄭明敏", "林居慶", "林進榮", "林伯勳"),
-                            classTimes =
-                                listOf(
-                                    CourseTime(CourseDay.FRIDAY, CoursePeriod.A),
-                                    CourseTime(CourseDay.FRIDAY, CoursePeriod.B),
-                                    CourseTime(CourseDay.FRIDAY, CoursePeriod.C),
-                                ),
-                            limitCnt = 0,
-                            admitCnt = 0,
-                            waitCnt = 0,
-                            collegeName = "工學院",
-                            departmentName = "環境工程研究所碩士班",
-                            courseType = CourseType.ELECTIVE,
-                            detailUrl = "https://cis.ncu.edu.tw/Course/main/support/courseDetail.html?crs=36019",
+            mapOf(
+                CourseSerialNo("36019")
+                    to
+                    CourseSummary(
+                        serialNo = CourseSerialNo("36019"),
+                        classNo = "ENA103-*",
+                        title = "專題討論（III）",
+                        credit = 0.0,
+                        passwordCard = PasswordCardType.NONE,
+                        teachers = listOf("鄭明敏", "林居慶", "林進榮", "林伯勳"),
+                        classTimes =
+                        listOf(
+                            CourseTime(CourseDay.FRIDAY, CoursePeriod.A),
+                            CourseTime(CourseDay.FRIDAY, CoursePeriod.B),
+                            CourseTime(CourseDay.FRIDAY, CoursePeriod.C),
                         ),
-                ),
+                        limitCnt = 0,
+                        admitCnt = 0,
+                        waitCnt = 0,
+                        collegeName = "工學院",
+                        departmentName = "環境工程研究所碩士班",
+                        courseType = CourseType.ELECTIVE,
+                        detailUrl = "https://cis.ncu.edu.tw/Course/main/support/courseDetail.html?crs=36019",
+                    ),
+            ),
         ),
 ) {
     MaterialTheme {
@@ -299,7 +298,7 @@ internal fun PreviewCourseSelectionTimetableSuccessView(
                 CenterAlignedTopAppBar(
                     title = {
                         Text("我的課表")
-                    }
+                    },
                 )
             },
             modifier = Modifier.fillMaxSize(),
@@ -307,9 +306,9 @@ internal fun PreviewCourseSelectionTimetableSuccessView(
             CourseSelectionTimetableSuccessView(
                 plan = plan,
                 modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding),
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
             )
         }
     }
