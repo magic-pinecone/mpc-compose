@@ -1,32 +1,75 @@
-This is a Kotlin Multiplatform project targeting Android, iOS.
+# Magic Pinecone
 
-* [/iosApp](./iosApp/iosApp) contains an iOS application. Even if you’re sharing your UI with Compose Multiplatform,
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+<p align="center">
+  English | <a href="README.zh-TW.md">正體中文</a>
+</p>
 
-* [/shared](./shared/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-    - [commonMain](./shared/src/commonMain/kotlin) is for code that’s common for all targets.
-    - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-      For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-      the [iosMain](./shared/src/iosMain/kotlin) folder would be the right place for such calls.
-      Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./shared/src/jvmMain/kotlin)
-      folder is the appropriate location.
+<p align="center">
+  <img src="docs/assets/app_icon.png" alt="Magic Pinecone app icon" width="256" />
+</p>
 
-### Running the apps
+Magic Pinecone（神奇松果）is an all-in-one campus app for National Central University students.
 
-Use the run configurations provided by the run widget in your IDE's toolbar. You can also use these commands and
-options:
+This repository is the Kotlin Multiplatform rewrite of the original Flutter app. It is under active development.
 
-- Android app: `./gradlew :androidApp:assembleDebug`
-- iOS app: open the [/iosApp](./iosApp) directory in Xcode and run it from there.
+> Want to try Magic Pinecone in a browser? Check out the [Lite version](https://magic-pinecone.github.io/magic-pinecone-lite/).
 
-### Running tests
+## Features
 
-Use the run button in your IDE's editor gutter, or run tests using Gradle tasks:
+- **Course search**: Browse and search the NCU course catalog.
+- **Timetable planning**: Select courses, preview them on a timetable, and explicitly save a plan.
+- **Offline persistence**: Store course data and saved plans in a local SQLite database with Room.
+- **Native platform shells**: Use Jetpack Compose on Android and SwiftUI on iOS while reusing core logic, data, and Compose UI through KMP.
 
-- Android tests: `./gradlew :shared:testAndroidHostTest`
-- iOS tests: `./gradlew :shared:iosSimulatorArm64Test`
+Portal integration and session management from the Flutter app have not been migrated yet.
 
----
+## Getting started
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+### Prerequisites
+
+- JDK 17
+- Android Studio with an Android SDK for API 37
+- Xcode for the iOS app
+
+### Clone the repository
+
+```bash
+git clone https://github.com/magic-pinecone/mpc-compose.git
+cd mpc-compose
+```
+
+### Run Android
+
+Open the project in Android Studio and run the `androidApp` configuration, or build a debug APK from the command line:
+
+```bash
+./gradlew :androidApp:assembleDebug
+```
+
+### Run iOS
+
+1. Set your Apple development team in [`iosApp/Configuration/Config.xcconfig`](iosApp/Configuration/Config.xcconfig).
+2. Open [`iosApp/iosApp.xcodeproj`](iosApp/iosApp.xcodeproj) in Xcode.
+3. Select a target device and run the app.
+
+## Tests and checks
+
+Run the shared Android-hosted and iOS simulator tests:
+
+```bash
+./gradlew :shared:testAndroidHostTest
+./gradlew :shared:iosSimulatorArm64Test
+```
+
+Run all configured project checks:
+
+```bash
+./gradlew check
+```
+
+The full check also requires [SwiftLint](https://github.com/realm/SwiftLint) to be installed.
+
+## Acknowledgements
+
+- **App icon**: Designed by **Jui-Ting Wu**.
+- **Course data**: [NCU-Course-Finder-DataFetcher-v2](https://github.com/zetaraku/NCU-Course-Finder-DataFetcher-v2).
