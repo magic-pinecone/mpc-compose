@@ -1,3 +1,4 @@
+import org.gradle.api.tasks.testing.Test
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -39,6 +40,7 @@ dependencies {
     implementation(libs.metrox.viewmodel.compose)
     implementation(libs.kotlinx.serialization.core)
 
+    testImplementation(libs.kotlin.test)
     testImplementation(libs.junit)
     testImplementation(libs.testBalloon.frameworkCore)
 }
@@ -90,5 +92,11 @@ ktlint {
         exclude {
             "/build/generated/" in it.file.invariantSeparatorsPath
         }
+    }
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnit {
+        includeCategories("de.infix.testBalloon.framework.core.internal.integration.TestBalloonJUnit4Runner")
     }
 }
