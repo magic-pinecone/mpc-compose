@@ -47,7 +47,7 @@ import org.mpc.navigation.PortalRoot
 import org.mpc.navigation.SettingsRoute
 import org.mpc.navigation.TopLevelRoute
 import org.mpc.navigation.rememberAndroidNavigationState
-import org.mpc.presentation.CourseSelectionSearchScreen
+import org.mpc.presentation.CoursePlanningScreen
 
 @Composable
 fun AndroidAppShell(appGraph: AppGraph) {
@@ -126,7 +126,7 @@ private fun AndroidPrimaryNavigation(onOpenSettings: () -> Unit) {
                 TopLevelPlaceholder(title = "Portal")
             }
             entry<CoursePlanningRoot> {
-                CourseSelectionSearchScreen(modifier = Modifier.fillMaxSize())
+                CoursePlanningScreen(modifier = Modifier.fillMaxSize())
             }
         }
 
