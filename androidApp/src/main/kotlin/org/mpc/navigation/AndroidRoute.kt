@@ -6,6 +6,12 @@ import kotlinx.serialization.Serializable
 interface AndroidRoute : NavKey
 
 @Serializable
+data object AppRoot : AndroidRoute
+
+@Serializable
+data object SettingsRoute : AndroidRoute
+
+@Serializable
 sealed interface TopLevelRoute : AndroidRoute
 
 @Serializable
