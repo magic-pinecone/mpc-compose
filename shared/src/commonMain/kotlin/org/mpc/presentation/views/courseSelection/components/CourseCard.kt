@@ -46,9 +46,11 @@ fun CourseCard(
     modifier: Modifier = Modifier,
     courseSummary: CourseSummary,
     isSelected: Boolean,
+    onCardClick: () -> Unit = {},
     onButtonClick: () -> Unit = {},
 ) {
     Surface(
+        onClick = onCardClick,
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.surface,

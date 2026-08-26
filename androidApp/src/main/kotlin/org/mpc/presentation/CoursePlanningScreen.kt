@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_MEDIUM_LOWER_BOUND
 import dev.zacsweers.metrox.viewmodel.metroViewModel
+import org.mpc.domain.model.CourseSummary
 import org.mpc.presentation.state.CoursePlanUiState
 import org.mpc.presentation.viewModel.CourseSelectionViewModel
 import org.mpc.presentation.views.courseSelection.CourseSelectionTimetableView
@@ -31,6 +32,7 @@ import org.mpc.presentation.views.courseSelection.CourseSelectionTimetableView
 @Composable
 fun CoursePlanningScreen(
     modifier: Modifier = Modifier,
+    onCourseClick: (semester: String, course: CourseSummary) -> Unit = { _, _ -> },
     planViewModel: CourseSelectionViewModel = metroViewModel(),
 ) {
     val planUiState by planViewModel.uiState.collectAsStateWithLifecycle()
@@ -49,6 +51,7 @@ fun CoursePlanningScreen(
                         .weight(CATALOG_WEIGHT)
                         .fillMaxHeight(),
                     planViewModel = planViewModel,
+                    onCourseClick = onCourseClick,
                 )
             }
             VerticalDivider()
@@ -68,6 +71,7 @@ fun CoursePlanningScreen(
             stateHolder = stateHolder,
             planViewModel = planViewModel,
             planUiState = planUiState,
+            onCourseClick = onCourseClick,
         )
     }
 }
@@ -78,6 +82,7 @@ private fun CompactCoursePlanningScreen(
     stateHolder: SaveableStateHolder,
     planViewModel: CourseSelectionViewModel,
     planUiState: CoursePlanUiState,
+    onCourseClick: (semester: String, course: CourseSummary) -> Unit,
 ) {
     var selectedView by rememberSaveable { mutableStateOf(CoursePlanningView.CATALOG) }
 
@@ -108,6 +113,7 @@ private fun CompactCoursePlanningScreen(
                     CoursePlanningView.CATALOG -> {
                         CourseSelectionSearchScreen(
                             modifier = Modifier.fillMaxSize(),
+                            onCourseClick = onCourseClick,
                             planViewModel = planViewModel,
                         )
                     }

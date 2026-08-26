@@ -18,6 +18,7 @@ fun CourseSearchResultSuccessView(
     modifier: Modifier,
     courseResult: CourseResult,
     selectedCourseSerialNumbers: Set<CourseSerialNo>,
+    onCourseClick: (CourseSummary) -> Unit,
     onCourseToggle: (CourseSummary) -> Unit,
 ) {
     LazyColumn(
@@ -33,6 +34,7 @@ fun CourseSearchResultSuccessView(
                 modifier = Modifier.fillMaxWidth(),
                 courseSummary = course,
                 isSelected = course.serialNo in selectedCourseSerialNumbers,
+                onCardClick = { onCourseClick(course) },
                 onButtonClick = { onCourseToggle(course) },
             )
         }
