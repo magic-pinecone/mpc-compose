@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.detekt)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.testBalloon)
@@ -18,6 +19,9 @@ dependencies {
     implementation(projects.shared)
 
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.navigation3)
+    implementation(libs.androidx.navigation3.runtime)
+    implementation(libs.androidx.navigation3.ui)
 
     implementation(libs.androidx.datastore)
     implementation(libs.androidx.datastorePreferences)
@@ -31,6 +35,7 @@ dependencies {
     debugImplementation(libs.compose.uiTooling)
 
     implementation(libs.metrox.viewmodel.compose)
+    implementation(libs.kotlinx.serialization.core)
 }
 
 android {
