@@ -36,6 +36,9 @@ dependencies {
 
     implementation(libs.metrox.viewmodel.compose)
     implementation(libs.kotlinx.serialization.core)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.testBalloon.frameworkCore)
 }
 
 android {
