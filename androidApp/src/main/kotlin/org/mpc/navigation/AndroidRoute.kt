@@ -7,4 +7,4 @@ import kotlinx.serialization.Serializable
 sealed interface AndroidRoute : NavKey
 
 @Serializable
-data object CourseSelectionRoot : AndroidRoute
+data object CoursePlanningRoot : AndroidRoute

@@ -15,12 +15,12 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import org.mpc.di.AppGraph
-import org.mpc.navigation.CourseSelectionRoot
+import org.mpc.navigation.CoursePlanningRoot
 import org.mpc.presentation.CourseSelectionSearchScreen
 
 @Composable
 fun AndroidAppShell(appGraph: AppGraph) {
-    val backStack = rememberNavBackStack(CourseSelectionRoot)
+    val backStack = rememberNavBackStack(CoursePlanningRoot)
 
     ProvideAppDependencies(appGraph) {
         MaterialTheme {
@@ -49,7 +49,7 @@ fun AndroidAppShell(appGraph: AppGraph) {
                         ),
                         entryProvider =
                         entryProvider {
-                            entry<CourseSelectionRoot> {
+                            entry<CoursePlanningRoot> {
                                 CourseSelectionSearchScreen(modifier = Modifier.fillMaxSize())
                             }
                         },
