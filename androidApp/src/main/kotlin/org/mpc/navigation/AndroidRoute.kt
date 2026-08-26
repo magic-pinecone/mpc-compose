@@ -26,6 +26,12 @@ data object PortalRoot : TopLevelRoute
 @Serializable
 data object CoursePlanningRoot : TopLevelRoute
 
+@Serializable
+data class CourseDetailsRoute(
+    val semester: String,
+    val serialNumber: String,
+) : AndroidRoute
+
 val topLevelRoutes: Set<TopLevelRoute> =
     linkedSetOf(
         HomeRoot,

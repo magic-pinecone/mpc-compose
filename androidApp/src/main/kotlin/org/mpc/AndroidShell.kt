@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -38,8 +39,10 @@ import androidx.navigation3.scene.DialogSceneStrategy
 import androidx.navigation3.ui.NavDisplay
 import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_MEDIUM_LOWER_BOUND
 import org.mpc.di.AppGraph
+import org.mpc.domain.repository.CourseRepository
 import org.mpc.navigation.AndroidNavigator
 import org.mpc.navigation.AppRoot
+import org.mpc.navigation.CourseDetailsRoute
 import org.mpc.navigation.CoursePlanningRoot
 import org.mpc.navigation.HomeRoot
 import org.mpc.navigation.NewsRoot
@@ -47,6 +50,8 @@ import org.mpc.navigation.PortalRoot
 import org.mpc.navigation.SettingsRoute
 import org.mpc.navigation.TopLevelRoute
 import org.mpc.navigation.rememberAndroidNavigationState
+import org.mpc.navigation.scene.BottomSheetSceneStrategy
+import org.mpc.presentation.CourseDetailsScreen
 import org.mpc.presentation.CoursePlanningScreen
 
 @Composable
@@ -61,6 +66,7 @@ fun AndroidAppShell(appGraph: AppGraph) {
         entryProvider<NavKey> {
             entry<AppRoot> {
                 AndroidPrimaryNavigation(
+                    courseRepository = appGraph.courseRepository,
                     onOpenSettings = {
                         if (SettingsRoute !in appBackStack) {
                             appBackStack.add(SettingsRoute)
@@ -111,9 +117,19 @@ fun AndroidAppShell(appGraph: AppGraph) {
 }
 
 @Composable
-private fun AndroidPrimaryNavigation(onOpenSettings: () -> Unit) {
+@OptIn(ExperimentalMaterial3Api::class)
+private fun AndroidPrimaryNavigation(
+    courseRepository: CourseRepository,
+    onOpenSettings: () -> Unit,
+) {
     val navigationState = rememberAndroidNavigationState()
     val navigator = remember(navigationState) { AndroidNavigator(navigationState) }
+    val isExpanded =
+        currentWindowAdaptiveInfo()
+            .windowSizeClass
+            .isWidthAtLeastBreakpoint(WIDTH_DP_MEDIUM_LOWER_BOUND)
+    val bottomSheetSceneStrategy = remember { BottomSheetSceneStrategy<NavKey>() }
+    val dialogSceneStrategy = remember { DialogSceneStrategy<NavKey>() }
     val entryProvider =
         entryProvider<NavKey> {
             entry<HomeRoot> {
@@ -126,7 +142,44 @@ private fun AndroidPrimaryNavigation(onOpenSettings: () -> Unit) {
                 TopLevelPlaceholder(title = "Portal")
             }
             entry<CoursePlanningRoot> {
-                CoursePlanningScreen(modifier = Modifier.fillMaxSize())
+                CoursePlanningScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    onCourseClick = { semester, course ->
+                        navigationState.currentBackStack.removeAll { route ->
+                            route is CourseDetailsRoute
+                        }
+                        navigator.navigate(
+                            CourseDetailsRoute(
+                                semester = semester,
+                                serialNumber = course.serialNo.value,
+                            ),
+                        )
+                    },
+                )
+            }
+            if (isExpanded) {
+                entry<CourseDetailsRoute>(
+                    metadata =
+                    DialogSceneStrategy.dialog(
+                        DialogProperties(windowTitle = "課程詳細資訊"),
+                    ),
+                ) { route ->
+                    CourseDetailsScreen(
+                        route = route,
+                        courseRepository = courseRepository,
+                        onClose = { navigator.goBack() },
+                    )
+                }
+            } else {
+                entry<CourseDetailsRoute>(
+                    metadata = BottomSheetSceneStrategy.bottomSheet(),
+                ) { route ->
+                    CourseDetailsScreen(
+                        route = route,
+                        courseRepository = courseRepository,
+                        onClose = { navigator.goBack() },
+                    )
+                }
             }
         }
 
@@ -167,6 +220,11 @@ private fun AndroidPrimaryNavigation(onOpenSettings: () -> Unit) {
             NavDisplay(
                 entries = navigationState.toDecoratedEntries(entryProvider),
                 onBack = { navigator.goBack() },
+                sceneStrategies =
+                listOf(
+                    bottomSheetSceneStrategy,
+                    dialogSceneStrategy,
+                ),
                 modifier =
                 Modifier
                     .fillMaxSize()
