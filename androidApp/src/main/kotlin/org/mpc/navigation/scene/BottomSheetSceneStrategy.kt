@@ -16,6 +16,15 @@ import androidx.navigation3.scene.Scene
 import androidx.navigation3.scene.SceneStrategy
 import androidx.navigation3.scene.SceneStrategyScope
 
+/**
+ * Adapted from the official Android Navigation 3 Bottom Sheet recipe:
+ * https://developer.android.com/guide/navigation/navigation-3/recipes/bottomsheet
+ *
+ * The upstream recipe currently includes `private val onBack: () -> Unit,` in this data class,
+ * while the general Scenes guidance says: "Generally, avoid including callbacks (like onBack) in
+ * the implementation of these methods." Keep this callback for dismissal behavior, but exclude it
+ * from scene identity if equality is hardened.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 internal data class BottomSheetScene<T : Any>(
     override val key: T,
