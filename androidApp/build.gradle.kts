@@ -1,9 +1,11 @@
+import org.gradle.api.tasks.testing.Test
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.detekt)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.testBalloon)
@@ -18,6 +20,9 @@ dependencies {
     implementation(projects.shared)
 
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.navigation3)
+    implementation(libs.androidx.navigation3.runtime)
+    implementation(libs.androidx.navigation3.ui)
 
     implementation(libs.androidx.datastore)
     implementation(libs.androidx.datastorePreferences)
@@ -25,12 +30,19 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.sqlite.bundled)
 
+    implementation(libs.compose.materialIconsCore)
     implementation(libs.compose.material3)
+    implementation(libs.compose.material3AdaptiveNavigationSuite)
 
     implementation(libs.compose.uiToolingPreview)
     debugImplementation(libs.compose.uiTooling)
 
     implementation(libs.metrox.viewmodel.compose)
+    implementation(libs.kotlinx.serialization.core)
+
+    testImplementation(libs.kotlin.test)
+    testImplementation(libs.junit)
+    testImplementation(libs.testBalloon.frameworkCore)
 }
 
 android {
@@ -80,5 +92,11 @@ ktlint {
         exclude {
             "/build/generated/" in it.file.invariantSeparatorsPath
         }
+    }
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnit {
+        includeCategories("de.infix.testBalloon.framework.core.internal.integration.TestBalloonJUnit4Runner")
     }
 }

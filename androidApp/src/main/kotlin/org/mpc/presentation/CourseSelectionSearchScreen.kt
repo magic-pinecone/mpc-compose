@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.zacsweers.metrox.viewmodel.metroViewModel
+import org.mpc.domain.model.CourseSummary
 import org.mpc.presentation.state.CoursePlanUiState
 import org.mpc.presentation.viewModel.CourseSearchViewModel
 import org.mpc.presentation.viewModel.CourseSelectionViewModel
@@ -26,6 +27,7 @@ import kotlin.collections.emptySet
 @Composable
 fun CourseSelectionSearchScreen(
     modifier: Modifier,
+    onCourseClick: (semester: String, course: CourseSummary) -> Unit = { _, _ -> },
     searchViewModel: CourseSearchViewModel = metroViewModel(),
     planViewModel: CourseSelectionViewModel = metroViewModel(),
 ) {
@@ -81,6 +83,7 @@ fun CourseSelectionSearchScreen(
                 .weight(1f),
             uiState = searchUiState.result,
             selectedCourseSerialNumbers = selectedCourseSerialNumbers,
+            onCourseClick = { course -> onCourseClick(searchUiState.semester, course) },
             onToggleCourse = planViewModel::toggleCourse,
         )
     }
@@ -96,6 +99,7 @@ fun CourseSelectionSearchScreen(
                 .weight(1f),
             uiState = searchUiState.result,
             selectedCourseSerialNumbers = selectedCourseSerialNumbers,
+            onCourseClick = { course -> onCourseClick(searchUiState.semester, course) },
             onToggleCourse = planViewModel::toggleCourse,
         )
     }

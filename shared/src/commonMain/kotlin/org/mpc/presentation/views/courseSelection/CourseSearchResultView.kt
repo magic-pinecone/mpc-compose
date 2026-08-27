@@ -11,6 +11,7 @@ fun CourseSearchResultView(
     modifier: Modifier = Modifier,
     uiState: CourseSearchResultUiState,
     selectedCourseSerialNumbers: Set<CourseSerialNo>,
+    onCourseClick: (CourseSummary) -> Unit = {},
     onToggleCourse: (CourseSummary) -> Unit,
 ) {
     when (uiState) {
@@ -19,6 +20,7 @@ fun CourseSearchResultView(
                 modifier = modifier,
                 courseResult = uiState.result,
                 selectedCourseSerialNumbers = selectedCourseSerialNumbers,
+                onCourseClick = onCourseClick,
                 onCourseToggle = onToggleCourse,
             )
         }
