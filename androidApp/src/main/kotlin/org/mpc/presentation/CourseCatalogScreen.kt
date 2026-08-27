@@ -18,8 +18,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import org.mpc.domain.model.CourseSummary
 import org.mpc.presentation.state.CoursePlanUiState
-import org.mpc.presentation.viewModel.CourseSearchViewModel
 import org.mpc.presentation.viewModel.CoursePlanViewModel
+import org.mpc.presentation.viewModel.CourseSearchViewModel
 import org.mpc.presentation.views.coursePlanning.CourseSearchResultView
 import kotlin.collections.emptySet
 

@@ -10,8 +10,8 @@ import dev.zacsweers.metrox.viewmodel.metroViewModel
 import org.mpc.bridge.CoursePlanBridge
 import org.mpc.bridge.CourseSearchBridge
 import org.mpc.presentation.state.CoursePlanUiState
-import org.mpc.presentation.viewModel.CourseSearchViewModel
 import org.mpc.presentation.viewModel.CoursePlanViewModel
+import org.mpc.presentation.viewModel.CourseSearchViewModel
 import org.mpc.presentation.views.coursePlanning.CourseSearchResultView
 
 @Composable
