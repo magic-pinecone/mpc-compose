@@ -21,7 +21,7 @@ import org.mpc.domain.model.CourseSummary
 import org.mpc.domain.repository.CourseRepository
 import org.mpc.navigation.CourseDetailsRoute
 import org.mpc.presentation.state.CoursePlanUiState
-import org.mpc.presentation.viewModel.CourseSelectionViewModel
+import org.mpc.presentation.viewModel.CoursePlanViewModel
 import org.mpc.presentation.views.courseDetails.CourseDetailsActions
 import org.mpc.presentation.views.courseDetails.CourseDetailsUiState
 import org.mpc.presentation.views.courseDetails.CourseDetailsView
@@ -32,7 +32,7 @@ fun CourseDetailsScreen(
     courseRepository: CourseRepository,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
-    planViewModel: CourseSelectionViewModel = metroViewModel(),
+    planViewModel: CoursePlanViewModel = metroViewModel(),
 ) {
     var loadState by remember(route) { mutableStateOf<CourseDetailsLoadState>(CourseDetailsLoadState.Loading) }
     var retryRequest by remember(route) { mutableIntStateOf(0) }

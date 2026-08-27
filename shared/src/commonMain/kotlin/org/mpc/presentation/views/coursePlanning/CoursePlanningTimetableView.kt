@@ -1,25 +1,25 @@
-package org.mpc.presentation.views.courseSelection
+package org.mpc.presentation.views.coursePlanning
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import org.mpc.presentation.state.CoursePlanUiState
 
 @Composable
-fun CourseSelectionTimetableView(
+fun CoursePlanningTimetableView(
     uiState: CoursePlanUiState,
     modifier: Modifier,
 ) {
     when (uiState) {
         is CoursePlanUiState.Failure -> {
-            CourseSelectionTimetableFailureView(modifier, uiState.cause)
+            CoursePlanningTimetableFailureView(modifier, uiState.cause)
         }
 
         CoursePlanUiState.Loading -> {
-            CourseSelectionTimetableLoadingView(modifier)
+            CoursePlanningTimetableLoadingView(modifier)
         }
 
         is CoursePlanUiState.Success -> {
-            CourseSelectionTimetableSuccessView(
+            CoursePlanningTimetableSuccessView(
                 plan = uiState.plan,
                 modifier = modifier,
             )

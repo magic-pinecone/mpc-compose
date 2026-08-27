@@ -10,17 +10,17 @@ import dev.zacsweers.metrox.viewmodel.metroViewModel
 import org.mpc.bridge.CoursePlanBridge
 import org.mpc.bridge.CourseSearchBridge
 import org.mpc.presentation.state.CoursePlanUiState
+import org.mpc.presentation.viewModel.CoursePlanViewModel
 import org.mpc.presentation.viewModel.CourseSearchViewModel
-import org.mpc.presentation.viewModel.CourseSelectionViewModel
-import org.mpc.presentation.views.courseSelection.CourseSearchResultView
+import org.mpc.presentation.views.coursePlanning.CourseSearchResultView
 
 @Composable
-fun CourseSearchResultViewBinding(
+fun CourseCatalogViewBinding(
     bridge: CourseSearchBridge,
     planBridge: CoursePlanBridge,
 ) {
     val searchViewModel: CourseSearchViewModel = metroViewModel()
-    val planViewModel: CourseSelectionViewModel = metroViewModel()
+    val planViewModel: CoursePlanViewModel = metroViewModel()
 
     val searchUiState by searchViewModel.uiState.collectAsStateWithLifecycle()
     val planUiState by planViewModel.uiState.collectAsStateWithLifecycle()

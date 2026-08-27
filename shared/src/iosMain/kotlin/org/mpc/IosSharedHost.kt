@@ -8,25 +8,25 @@ import org.mpc.core.createDatabase
 import org.mpc.core.createDatabaseBuilder
 import org.mpc.di.AppGraph
 import org.mpc.di.createAppGraph
-import org.mpc.presentation.CourseSearchResultViewBinding
-import org.mpc.presentation.CourseSelectionTimetableViewBinding
+import org.mpc.presentation.CourseCatalogViewBinding
+import org.mpc.presentation.CoursePlanningTimetableViewBinding
 import platform.UIKit.UIViewController
 
 class IosSharedHost internal constructor(
     private val appGraph: AppGraph,
 ) {
-    fun courseSearchScreenController(
+    fun courseCatalogScreenController(
         bridge: CourseSearchBridge,
         planBridge: CoursePlanBridge,
     ): UIViewController = ComposeUIViewController {
         ProvideAppDependencies(appGraph) {
-            CourseSearchResultViewBinding(bridge, planBridge)
+            CourseCatalogViewBinding(bridge, planBridge)
         }
     }
 
-    fun courseSelectionTimetableScreenController(planBridge: CoursePlanBridge): UIViewController = ComposeUIViewController {
+    fun coursePlanningTimetableScreenController(planBridge: CoursePlanBridge): UIViewController = ComposeUIViewController {
         ProvideAppDependencies(appGraph) {
-            CourseSelectionTimetableViewBinding(planBridge)
+            CoursePlanningTimetableViewBinding(planBridge)
         }
     }
 }
