@@ -41,10 +41,10 @@ import androidx.navigation3.scene.SceneStrategyScope
  * The upstream recipe currently includes `private val onBack: () -> Unit,` in this data class,
  * while the general Scenes guidance says: "Generally, avoid including callbacks (like onBack) in
  * the implementation of these methods." Keep this callback for dismissal behavior, but exclude it
- * from scene identity if equality is hardened.
+ * from scene identity, matching the built-in DialogScene implementation.
  */
 @OptIn(ExperimentalMaterial3Api::class)
-internal data class BottomSheetScene<T : Any>(
+internal class BottomSheetScene<T : Any>(
     override val key: T,
     override val previousEntries: List<NavEntry<T>>,
     override val overlaidEntries: List<NavEntry<T>>,
@@ -65,6 +65,25 @@ internal data class BottomSheetScene<T : Any>(
             }
         }
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as BottomSheetScene<*>
+
+        return key == other.key &&
+            previousEntries == other.previousEntries &&
+            overlaidEntries == other.overlaidEntries &&
+            entry == other.entry &&
+            modalBottomSheetProperties == other.modalBottomSheetProperties
+    }
+
+    override fun hashCode(): Int = key.hashCode() * 31 +
+        previousEntries.hashCode() * 31 +
+        overlaidEntries.hashCode() * 31 +
+        entry.hashCode() * 31 +
+        modalBottomSheetProperties.hashCode() * 31
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
