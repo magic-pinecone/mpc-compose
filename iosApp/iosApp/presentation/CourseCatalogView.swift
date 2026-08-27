@@ -1,7 +1,7 @@
 import SwiftUI
 import Shared
 
-struct CourseSelectionSearchView: View {
+struct CourseCatalogView: View {
     let sharedHost: IosSharedHost
     let planBridge: CoursePlanBridge
 
@@ -11,7 +11,7 @@ struct CourseSelectionSearchView: View {
     @State private var bridge = CourseSearchBridge()
 
     var body: some View {
-        CourseSelectionSearchComposeView(
+        CourseCatalogComposeView(
             sharedHost: sharedHost,
             bridge: bridge,
             planBridge: planBridge

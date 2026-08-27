@@ -1,4 +1,4 @@
-package org.mpc.presentation.views.courseSelection
+package org.mpc.presentation.views.coursePlanning
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 import org.mpc.domain.model.CourseResult
 import org.mpc.domain.model.CourseSerialNo
 import org.mpc.domain.model.CourseSummary
-import org.mpc.presentation.views.courseSelection.components.CourseCard
+import org.mpc.presentation.views.coursePlanning.components.CourseCard
 
 @Composable
 fun CourseSearchResultSuccessView(

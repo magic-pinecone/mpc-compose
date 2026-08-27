@@ -1,4 +1,4 @@
-package org.mpc.presentation.views.courseSelection
+package org.mpc.presentation.views.coursePlanning
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier

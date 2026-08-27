@@ -1,12 +1,12 @@
 import Shared
 import SwiftUI
 
-struct CourseSelectionTimetableView: View {
+struct CoursePlanningTimetableView: View {
     let sharedHost: IosSharedHost
     let planBridge: CoursePlanBridge
 
     var body: some View {
-        CourseSelectionTimetableComposeView(
+        CoursePlanningTimetableComposeView(
             sharedHost: sharedHost,
             planBridge: planBridge
         )

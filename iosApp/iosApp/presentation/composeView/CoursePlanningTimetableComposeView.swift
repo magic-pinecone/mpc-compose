@@ -1,14 +1,12 @@
-import SwiftUI
 import Shared
+import SwiftUI
 
-struct CourseSelectionSearchComposeView: UIViewControllerRepresentable {
+struct CoursePlanningTimetableComposeView: UIViewControllerRepresentable {
     let sharedHost: IosSharedHost
-    let bridge: CourseSearchBridge
     let planBridge: CoursePlanBridge
 
     func makeUIViewController(context: Context) -> some UIViewController {
-        sharedHost.courseSearchScreenController(
-            bridge: bridge,
+        sharedHost.coursePlanningTimetableScreenController(
             planBridge: planBridge
         )
     }

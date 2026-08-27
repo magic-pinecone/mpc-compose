@@ -24,7 +24,7 @@ import org.mpc.presentation.state.CoursePlanUiState
     scope = AppScope::class,
     binding = binding<ViewModel>(),
 )
-class CourseSelectionViewModel(
+class CoursePlanViewModel(
     private val coursePlanRepository: CoursePlanRepository,
     private val draftStore: CoursePlanDraftStore,
 ) : ViewModel() {

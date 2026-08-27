@@ -8,12 +8,12 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import org.mpc.bridge.CoursePlanBridge
-import org.mpc.presentation.viewModel.CourseSelectionViewModel
-import org.mpc.presentation.views.courseSelection.CourseSelectionTimetableView
+import org.mpc.presentation.viewModel.CoursePlanViewModel
+import org.mpc.presentation.views.coursePlanning.CoursePlanningTimetableView
 
 @Composable
-fun CourseSelectionTimetableViewBinding(planBridge: CoursePlanBridge) {
-    val planViewModel: CourseSelectionViewModel = metroViewModel()
+fun CoursePlanningTimetableViewBinding(planBridge: CoursePlanBridge) {
+    val planViewModel: CoursePlanViewModel = metroViewModel()
 
     val planUiState by planViewModel.uiState.collectAsStateWithLifecycle()
 
@@ -23,7 +23,7 @@ fun CourseSelectionTimetableViewBinding(planBridge: CoursePlanBridge) {
         }
     }
 
-    CourseSelectionTimetableView(
+    CoursePlanningTimetableView(
         uiState = planUiState,
         modifier = Modifier.fillMaxSize(),
     )

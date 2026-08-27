@@ -8,12 +8,12 @@ struct ContentView: View {
         TabView {
             Tab("選課", systemImage: "calendar") {
                 NavigationStack {
-                    CourseSelectionView(sharedHost: sharedHost)
+                    CoursePlanningView(sharedHost: sharedHost)
                 }
             }
             Tab("設定", systemImage: "gear") {
                 NavigationStack {
-                    CourseSelectionView(sharedHost: sharedHost)
+                    CoursePlanningView(sharedHost: sharedHost)
                 }
             }
         }

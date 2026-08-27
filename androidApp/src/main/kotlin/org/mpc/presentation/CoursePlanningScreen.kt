@@ -26,14 +26,14 @@ import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_MEDIUM_LOW
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import org.mpc.domain.model.CourseSummary
 import org.mpc.presentation.state.CoursePlanUiState
-import org.mpc.presentation.viewModel.CourseSelectionViewModel
-import org.mpc.presentation.views.courseSelection.CourseSelectionTimetableView
+import org.mpc.presentation.viewModel.CoursePlanViewModel
+import org.mpc.presentation.views.coursePlanning.CoursePlanningTimetableView
 
 @Composable
 fun CoursePlanningScreen(
     modifier: Modifier = Modifier,
     onCourseClick: (semester: String, course: CourseSummary) -> Unit = { _, _ -> },
-    planViewModel: CourseSelectionViewModel = metroViewModel(),
+    planViewModel: CoursePlanViewModel = metroViewModel(),
 ) {
     val planUiState by planViewModel.uiState.collectAsStateWithLifecycle()
     val stateHolder = rememberSaveableStateHolder()
@@ -45,7 +45,7 @@ fun CoursePlanningScreen(
     if (isExpanded) {
         Row(modifier = modifier) {
             stateHolder.SaveableStateProvider(CoursePlanningView.CATALOG) {
-                CourseSelectionSearchScreen(
+                CourseCatalogScreen(
                     modifier =
                     Modifier
                         .weight(CATALOG_WEIGHT)
@@ -56,7 +56,7 @@ fun CoursePlanningScreen(
             }
             VerticalDivider()
             stateHolder.SaveableStateProvider(CoursePlanningView.TIMETABLE) {
-                CourseSelectionTimetableView(
+                CoursePlanningTimetableView(
                     uiState = planUiState,
                     modifier =
                     Modifier
@@ -80,7 +80,7 @@ fun CoursePlanningScreen(
 private fun CompactCoursePlanningScreen(
     modifier: Modifier,
     stateHolder: SaveableStateHolder,
-    planViewModel: CourseSelectionViewModel,
+    planViewModel: CoursePlanViewModel,
     planUiState: CoursePlanUiState,
     onCourseClick: (semester: String, course: CourseSummary) -> Unit,
 ) {
@@ -111,7 +111,7 @@ private fun CompactCoursePlanningScreen(
             stateHolder.SaveableStateProvider(selectedView) {
                 when (selectedView) {
                     CoursePlanningView.CATALOG -> {
-                        CourseSelectionSearchScreen(
+                        CourseCatalogScreen(
                             modifier = Modifier.fillMaxSize(),
                             onCourseClick = onCourseClick,
                             planViewModel = planViewModel,
@@ -119,7 +119,7 @@ private fun CompactCoursePlanningScreen(
                     }
 
                     CoursePlanningView.TIMETABLE -> {
-                        CourseSelectionTimetableView(
+                        CoursePlanningTimetableView(
                             uiState = planUiState,
                             modifier = Modifier.fillMaxSize(),
                         )

@@ -1,4 +1,4 @@
-package org.mpc.presentation.views.courseSelection
+package org.mpc.presentation.views.coursePlanning
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -41,7 +41,7 @@ import org.mpc.presentation.model.CourseTimetableBlock
 import org.mpc.presentation.model.toTimetableBlocks
 
 @Composable
-fun CourseSelectionTimetableSuccessView(
+fun CoursePlanningTimetableSuccessView(
     plan: CoursePlan,
     modifier: Modifier,
 ) {
@@ -260,7 +260,7 @@ fun TimetableForegroundCell(
 
 @Preview
 @Composable
-internal fun PreviewCourseSelectionTimetableSuccessView(
+internal fun PreviewCoursePlanningTimetableSuccessView(
     plan: CoursePlan =
         CoursePlan(
             semester = "115-1",
@@ -303,7 +303,7 @@ internal fun PreviewCourseSelectionTimetableSuccessView(
             },
             modifier = Modifier.fillMaxSize(),
         ) { innerPadding ->
-            CourseSelectionTimetableSuccessView(
+            CoursePlanningTimetableSuccessView(
                 plan = plan,
                 modifier =
                 Modifier

@@ -19,17 +19,17 @@ import dev.zacsweers.metrox.viewmodel.metroViewModel
 import org.mpc.domain.model.CourseSummary
 import org.mpc.presentation.state.CoursePlanUiState
 import org.mpc.presentation.viewModel.CourseSearchViewModel
-import org.mpc.presentation.viewModel.CourseSelectionViewModel
-import org.mpc.presentation.views.courseSelection.CourseSearchResultView
+import org.mpc.presentation.viewModel.CoursePlanViewModel
+import org.mpc.presentation.views.coursePlanning.CourseSearchResultView
 import kotlin.collections.emptySet
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CourseSelectionSearchScreen(
+fun CourseCatalogScreen(
     modifier: Modifier,
     onCourseClick: (semester: String, course: CourseSummary) -> Unit = { _, _ -> },
     searchViewModel: CourseSearchViewModel = metroViewModel(),
-    planViewModel: CourseSelectionViewModel = metroViewModel(),
+    planViewModel: CoursePlanViewModel = metroViewModel(),
 ) {
     val searchUiState by searchViewModel.uiState.collectAsStateWithLifecycle()
     val planUiState by planViewModel.uiState.collectAsStateWithLifecycle()

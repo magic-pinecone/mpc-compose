@@ -1,4 +1,4 @@
-package org.mpc.presentation.model.courseSelection
+package org.mpc.presentation.model.coursePlanning
 
 import de.infix.testBalloon.framework.core.testSuite
 import org.mpc.domain.model.CourseDay

@@ -1,33 +1,33 @@
 import Shared
 import SwiftUI
 
-struct CourseSelectionView: View {
+struct CoursePlanningView: View {
     let sharedHost: IosSharedHost
 
     enum Section {
-        case search
+        case catalog
         case timetable
     }
 
-    @State var selection: Section = .search
+    @State private var activeSection: Section = .catalog
     @State private var planBridge = CoursePlanBridge()
 
     var body: some View {
         Group {
-            switch selection {
-            case .search:
-                CourseSelectionSearchView(
+            switch activeSection {
+            case .catalog:
+                CourseCatalogView(
                     sharedHost: sharedHost,
                     planBridge: planBridge
                 )
             case .timetable:
-                CourseSelectionTimetableView(
+                CoursePlanningTimetableView(
                     sharedHost: sharedHost,
                     planBridge: planBridge
                 )
             }
         }
-        .navigationTitle(selection == .search ? "課程搜尋": "我的課表")
+        .navigationTitle(activeSection == .catalog ? "課程搜尋": "我的課表")
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button("儲存") {
@@ -37,12 +37,12 @@ struct CourseSelectionView: View {
 
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    selection = selection == .search
+                    activeSection = activeSection == .catalog
                     ? .timetable
-                        : .search
+                        : .catalog
                 } label: {
                     Image(
-                        systemName: selection == .search
+                        systemName: activeSection == .catalog
                             ? "calendar"
                             : "magnifyingglass"
                     )
