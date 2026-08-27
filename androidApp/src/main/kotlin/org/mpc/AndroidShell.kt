@@ -63,6 +63,9 @@ fun AndroidAppShell(appGraph: AppGraph) {
             .windowSizeClass
             .isWidthAtLeastBreakpoint(WIDTH_DP_MEDIUM_LOWER_BOUND)
     val dialogSceneStrategy = remember { DialogSceneStrategy<NavKey>() }
+
+    // Keep entry metadata independent of the window size. Navigation 3 caches metadata by the
+    // back-stack key, while the scene-strategy list is re-evaluated when the window changes.
     val entryProvider =
         entryProvider<NavKey> {
             entry<AppRoot> {
@@ -75,28 +78,16 @@ fun AndroidAppShell(appGraph: AppGraph) {
                     },
                 )
             }
-            if (isExpanded) {
-                entry<SettingsRoute>(
-                    metadata =
-                    DialogSceneStrategy.dialog(
-                        DialogProperties(windowTitle = "設定"),
-                    ),
-                ) {
-                    SettingsScreen(
-                        modifier =
-                        Modifier
-                            .widthIn(max = 560.dp)
-                            .clip(MaterialTheme.shapes.extraLarge),
-                        onClose = { appBackStack.removeLastOrNull() },
-                    )
-                }
-            } else {
-                entry<SettingsRoute> {
-                    SettingsScreen(
-                        modifier = Modifier.fillMaxSize(),
-                        onClose = { appBackStack.removeLastOrNull() },
-                    )
-                }
+            entry<SettingsRoute>(
+                metadata =
+                DialogSceneStrategy.dialog(
+                    DialogProperties(windowTitle = "設定"),
+                ),
+            ) {
+                SettingsScreen(
+                    modifier = Modifier,
+                    onClose = { appBackStack.removeLastOrNull() },
+                )
             }
         }
 
@@ -110,7 +101,12 @@ fun AndroidAppShell(appGraph: AppGraph) {
                     rememberSaveableStateHolderNavEntryDecorator(),
                     rememberViewModelStoreNavEntryDecorator(),
                 ),
-                sceneStrategies = listOf(dialogSceneStrategy),
+                sceneStrategies =
+                if (isExpanded) {
+                    listOf(dialogSceneStrategy)
+                } else {
+                    emptyList()
+                },
                 entryProvider = entryProvider,
             )
         }
@@ -159,13 +155,10 @@ private fun AndroidPrimaryNavigation(
                 )
             }
             entry<CourseDetailsRoute>(
-                metadata = if (isExpanded) {
-                    DialogSceneStrategy.dialog(
-                        DialogProperties(windowTitle = "課程詳細資訊"),
-                    )
-                } else {
-                    BottomSheetSceneStrategy.bottomSheet()
-                },
+                metadata =
+                DialogSceneStrategy.dialog(
+                    DialogProperties(windowTitle = "課程詳細資訊"),
+                ) + BottomSheetSceneStrategy.bottomSheet(),
             ) { route ->
                 CourseDetailsScreen(
                     route = route,
@@ -213,10 +206,11 @@ private fun AndroidPrimaryNavigation(
                 entries = navigationState.toDecoratedEntries(entryProvider),
                 onBack = { navigator.goBack() },
                 sceneStrategies =
-                listOf(
-                    bottomSheetSceneStrategy,
-                    dialogSceneStrategy,
-                ),
+                if (isExpanded) {
+                    listOf(dialogSceneStrategy)
+                } else {
+                    listOf(bottomSheetSceneStrategy)
+                },
                 modifier =
                 Modifier
                     .fillMaxSize()
@@ -231,7 +225,20 @@ private fun SettingsScreen(
     modifier: Modifier,
     onClose: () -> Unit,
 ) {
-    Surface(modifier = modifier) {
+    val isExpanded =
+        currentWindowAdaptiveInfo()
+            .windowSizeClass
+            .isWidthAtLeastBreakpoint(WIDTH_DP_MEDIUM_LOWER_BOUND)
+    val surfaceModifier =
+        if (isExpanded) {
+            modifier
+                .widthIn(max = 560.dp)
+                .clip(MaterialTheme.shapes.extraLarge)
+        } else {
+            modifier.fillMaxSize()
+        }
+
+    Surface(modifier = surfaceModifier) {
         Column(modifier = Modifier.fillMaxSize()) {
             TopAppBar(
                 title = { Text("設定") },
