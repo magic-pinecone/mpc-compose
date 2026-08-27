@@ -21,6 +21,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteItem
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -157,36 +158,27 @@ private fun AndroidPrimaryNavigation(
                     },
                 )
             }
-            if (isExpanded) {
-                entry<CourseDetailsRoute>(
-                    metadata =
+            entry<CourseDetailsRoute>(
+                metadata = if (isExpanded) {
                     DialogSceneStrategy.dialog(
                         DialogProperties(windowTitle = "課程詳細資訊"),
-                    ),
-                ) { route ->
-                    CourseDetailsScreen(
-                        route = route,
-                        courseRepository = courseRepository,
-                        onClose = { navigator.goBack() },
                     )
-                }
-            } else {
-                entry<CourseDetailsRoute>(
-                    metadata = BottomSheetSceneStrategy.bottomSheet(),
-                ) { route ->
-                    CourseDetailsScreen(
-                        route = route,
-                        courseRepository = courseRepository,
-                        onClose = { navigator.goBack() },
-                    )
-                }
+                } else {
+                    BottomSheetSceneStrategy.bottomSheet()
+                },
+            ) { route ->
+                CourseDetailsScreen(
+                    route = route,
+                    courseRepository = courseRepository,
+                    onClose = { navigator.goBack() },
+                )
             }
         }
 
     NavigationSuiteScaffold(
-        navigationSuiteItems = {
+        navigationItems = {
             topLevelNavigationItems.forEach { item ->
-                item(
+                NavigationSuiteItem(
                     selected = navigationState.selectedTopLevelRoute == item.route,
                     onClick = { navigator.navigate(item.route) },
                     icon = {
