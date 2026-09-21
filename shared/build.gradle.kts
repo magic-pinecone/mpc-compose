@@ -24,6 +24,7 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "Shared"
             isStatic = true
+            export("com.mohamedrejeb.calf:calf-ui:${libs.versions.calf.get()}")
         }
     }
 
@@ -59,6 +60,7 @@ kotlin {
             implementation(libs.ktor.client.darwin)
         }
         commonMain.dependencies {
+            api(libs.calf.ui)
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
