@@ -7,18 +7,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.mohamedrejeb.calf.ui.button.AdaptiveButton
+import com.mohamedrejeb.calf.ui.progress.AdaptiveCircularProgressIndicator
 import org.mpc.domain.model.CourseDetail
 import org.mpc.domain.model.CourseSummary
 
@@ -62,19 +62,33 @@ fun CourseDetailsView(
                         )
                     }
                 }
-                TextButton(onClick = actions.onClose) {
+                AdaptiveButton(
+                    onClick = actions.onClose,
+                    colors =
+                    ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    ),
+                    contentPadding = ButtonDefaults.TextButtonContentPadding,
+                ) {
                     Text("關閉")
                 }
             }
 
             state.summary?.let {
-                Button(onClick = actions.onToggleCourse) {
+                AdaptiveButton(
+                    onClick = actions.onToggleCourse,
+                    colors =
+                    ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                    ),
+                ) {
                     Text(if (state.isSelected) "從課表移除" else "加入課表")
                 }
             }
 
             if (state.isLoading) {
-                CircularProgressIndicator()
+                AdaptiveCircularProgressIndicator()
             }
 
             state.errorMessage?.let { message ->
@@ -83,7 +97,14 @@ fun CourseDetailsView(
                         text = message,
                         color = MaterialTheme.colorScheme.error,
                     )
-                    TextButton(onClick = actions.onRetry) {
+                    AdaptiveButton(
+                        onClick = actions.onRetry,
+                        colors =
+                        ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        ),
+                        contentPadding = ButtonDefaults.TextButtonContentPadding,
+                    ) {
                         Text("重試")
                     }
                 }

@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -25,10 +24,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.mohamedrejeb.calf.ui.button.AdaptiveButton
+import com.mohamedrejeb.calf.ui.gesture.adaptiveClickable
 import org.mpc.domain.model.CourseDay
 import org.mpc.domain.model.CoursePeriod
 import org.mpc.domain.model.CourseSerialNo
@@ -40,6 +42,7 @@ import org.mpc.presentation.icon.apartment
 import org.mpc.presentation.icon.groups
 import org.mpc.presentation.icon.key
 import org.mpc.presentation.icon.schedule
+import org.mpc.presentation.theme.MpcTheme
 
 @Composable
 fun CourseCard(
@@ -49,10 +52,16 @@ fun CourseCard(
     onCardClick: () -> Unit = {},
     onButtonClick: () -> Unit = {},
 ) {
+    val cardShape = RoundedCornerShape(12.dp)
+
     Surface(
-        onClick = onCardClick,
-        modifier = modifier,
-        shape = RoundedCornerShape(12.dp),
+        modifier =
+        modifier.adaptiveClickable(
+            shape = cardShape,
+            role = Role.Button,
+            onClick = onCardClick,
+        ),
+        shape = cardShape,
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
@@ -106,9 +115,14 @@ fun CourseCard(
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Spacer(Modifier.width(8.dp))
-                Button(
+                AdaptiveButton(
                     onClick = onButtonClick,
                     modifier = Modifier.heightIn(min = 40.dp),
+                    colors =
+                    ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                    ),
                     contentPadding = ButtonDefaults.ContentPadding,
                 ) {
                     Text(if (isSelected) "移除" else "加入")
@@ -245,7 +259,7 @@ internal fun PreviewCourseCard(
             detailUrl = "https://cis.ncu.edu.tw/Course/main/support/courseDetail.html?crs=36019",
         ),
 ) {
-    MaterialTheme {
+    MpcTheme {
         CourseCard(
             modifier = Modifier.width(360.dp),
             courseSummary = courseSummary,
