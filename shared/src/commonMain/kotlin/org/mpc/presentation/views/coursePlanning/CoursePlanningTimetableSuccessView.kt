@@ -39,6 +39,7 @@ import org.mpc.domain.model.CourseType
 import org.mpc.domain.model.PasswordCardType
 import org.mpc.presentation.model.CourseTimetableBlock
 import org.mpc.presentation.model.toTimetableBlocks
+import org.mpc.presentation.theme.MpcTheme
 
 @Composable
 fun CoursePlanningTimetableSuccessView(
@@ -292,7 +293,7 @@ internal fun PreviewCoursePlanningTimetableSuccessView(
             ),
         ),
 ) {
-    MaterialTheme {
+    MpcTheme {
         Scaffold(
             topBar = {
                 CenterAlignedTopAppBar(

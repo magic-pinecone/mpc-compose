@@ -10,6 +10,7 @@ import org.mpc.di.AppGraph
 import org.mpc.di.createAppGraph
 import org.mpc.presentation.CourseCatalogViewBinding
 import org.mpc.presentation.CoursePlanningTimetableViewBinding
+import org.mpc.presentation.theme.MpcTheme
 import platform.UIKit.UIViewController
 
 class IosSharedHost internal constructor(
@@ -20,13 +21,17 @@ class IosSharedHost internal constructor(
         planBridge: CoursePlanBridge,
     ): UIViewController = ComposeUIViewController {
         ProvideAppDependencies(appGraph) {
-            CourseCatalogViewBinding(bridge, planBridge)
+            MpcTheme {
+                CourseCatalogViewBinding(bridge, planBridge)
+            }
         }
     }
 
     fun coursePlanningTimetableScreenController(planBridge: CoursePlanBridge): UIViewController = ComposeUIViewController {
         ProvideAppDependencies(appGraph) {
-            CoursePlanningTimetableViewBinding(planBridge)
+            MpcTheme {
+                CoursePlanningTimetableViewBinding(planBridge)
+            }
         }
     }
 }

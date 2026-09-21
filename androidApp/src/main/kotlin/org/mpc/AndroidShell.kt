@@ -54,6 +54,7 @@ import org.mpc.navigation.rememberAndroidNavigationState
 import org.mpc.navigation.scene.BottomSheetSceneStrategy
 import org.mpc.presentation.CourseDetailsScreen
 import org.mpc.presentation.CoursePlanningScreen
+import org.mpc.presentation.theme.MpcTheme
 
 @Composable
 fun AndroidAppShell(appGraph: AppGraph) {
@@ -92,7 +93,7 @@ fun AndroidAppShell(appGraph: AppGraph) {
         }
 
     ProvideAppDependencies(appGraph) {
-        MaterialTheme {
+        MpcTheme {
             NavDisplay(
                 backStack = appBackStack,
                 onBack = { appBackStack.removeLastOrNull() },

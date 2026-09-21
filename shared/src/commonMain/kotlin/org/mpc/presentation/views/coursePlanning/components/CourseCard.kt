@@ -42,6 +42,7 @@ import org.mpc.presentation.icon.apartment
 import org.mpc.presentation.icon.groups
 import org.mpc.presentation.icon.key
 import org.mpc.presentation.icon.schedule
+import org.mpc.presentation.theme.MpcTheme
 
 @Composable
 fun CourseCard(
@@ -258,7 +259,7 @@ internal fun PreviewCourseCard(
             detailUrl = "https://cis.ncu.edu.tw/Course/main/support/courseDetail.html?crs=36019",
         ),
 ) {
-    MaterialTheme {
+    MpcTheme {
         CourseCard(
             modifier = Modifier.width(360.dp),
             courseSummary = courseSummary,
