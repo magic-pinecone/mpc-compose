@@ -64,7 +64,10 @@ fun CourseDetailsView(
                 }
                 AdaptiveButton(
                     onClick = actions.onClose,
-                    colors = ButtonDefaults.textButtonColors(),
+                    colors =
+                    ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    ),
                     contentPadding = ButtonDefaults.TextButtonContentPadding,
                 ) {
                     Text("關閉")
@@ -72,7 +75,14 @@ fun CourseDetailsView(
             }
 
             state.summary?.let {
-                AdaptiveButton(onClick = actions.onToggleCourse) {
+                AdaptiveButton(
+                    onClick = actions.onToggleCourse,
+                    colors =
+                    ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                    ),
+                ) {
                     Text(if (state.isSelected) "從課表移除" else "加入課表")
                 }
             }
@@ -89,7 +99,10 @@ fun CourseDetailsView(
                     )
                     AdaptiveButton(
                         onClick = actions.onRetry,
-                        colors = ButtonDefaults.textButtonColors(),
+                        colors =
+                        ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        ),
                         contentPadding = ButtonDefaults.TextButtonContentPadding,
                     ) {
                         Text("重試")

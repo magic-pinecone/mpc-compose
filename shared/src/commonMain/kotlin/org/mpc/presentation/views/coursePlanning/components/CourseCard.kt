@@ -117,6 +117,11 @@ fun CourseCard(
                 AdaptiveButton(
                     onClick = onButtonClick,
                     modifier = Modifier.heightIn(min = 40.dp),
+                    colors =
+                    ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                    ),
                     contentPadding = ButtonDefaults.ContentPadding,
                 ) {
                     Text(if (isSelected) "移除" else "加入")
