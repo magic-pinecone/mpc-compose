@@ -1,5 +1,4 @@
 package org.mpc.presentation
-
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -7,7 +6,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -78,15 +76,6 @@ fun PortalScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "校務系統",
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Text(
-                        text = "從這裡開啟 Portal 服務；需要登入的服務會在校務系統中要求驗證。",
-                    )
-                }
                 TextButton(onClick = { onOpenDestination(portalLoginDestination()) }) {
                     Text("Portal 登入")
                 }
