@@ -29,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -40,6 +41,7 @@ import androidx.navigation3.scene.DialogSceneStrategy
 import androidx.navigation3.ui.NavDisplay
 import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_MEDIUM_LOWER_BOUND
 import org.mpc.di.AppGraph
+import org.mpc.domain.model.PortalLaunchMode
 import org.mpc.domain.repository.CourseRepository
 import org.mpc.navigation.AndroidNavigator
 import org.mpc.navigation.AppRoot
@@ -48,12 +50,15 @@ import org.mpc.navigation.CoursePlanningRoot
 import org.mpc.navigation.HomeRoot
 import org.mpc.navigation.NewsRoot
 import org.mpc.navigation.PortalRoot
+import org.mpc.navigation.PortalWebRoute
 import org.mpc.navigation.SettingsRoute
 import org.mpc.navigation.TopLevelRoute
 import org.mpc.navigation.rememberAndroidNavigationState
 import org.mpc.navigation.scene.BottomSheetSceneStrategy
 import org.mpc.presentation.CourseDetailsScreen
 import org.mpc.presentation.CoursePlanningScreen
+import org.mpc.presentation.PortalScreen
+import org.mpc.presentation.PortalWebScreen
 import org.mpc.presentation.theme.MpcTheme
 
 @Composable
@@ -122,6 +127,7 @@ private fun AndroidPrimaryNavigation(
 ) {
     val navigationState = rememberAndroidNavigationState()
     val navigator = remember(navigationState) { AndroidNavigator(navigationState) }
+    val uriHandler = LocalUriHandler.current
     val isExpanded =
         currentWindowAdaptiveInfo()
             .windowSizeClass
@@ -137,7 +143,32 @@ private fun AndroidPrimaryNavigation(
                 TopLevelPlaceholder(title = "新聞")
             }
             entry<PortalRoot> {
-                TopLevelPlaceholder(title = "Portal")
+                PortalScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    onOpenDestination = { destination ->
+                        when (destination.launchMode) {
+                            PortalLaunchMode.IN_APP -> {
+                                navigator.navigate(
+                                    PortalWebRoute(
+                                        title = destination.title,
+                                        url = destination.url,
+                                    ),
+                                )
+                            }
+
+                            PortalLaunchMode.EXTERNAL -> {
+                                uriHandler.openUri(destination.url)
+                            }
+                        }
+                    },
+                )
+            }
+            entry<PortalWebRoute> { route ->
+                PortalWebScreen(
+                    title = route.title,
+                    url = route.url,
+                    onClose = { navigator.goBack() },
+                )
             }
             entry<CoursePlanningRoot> {
                 CoursePlanningScreen(
