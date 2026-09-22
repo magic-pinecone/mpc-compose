@@ -45,9 +45,6 @@ import androidx.navigation3.ui.NavDisplay
 import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_MEDIUM_LOWER_BOUND
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import org.mpc.di.AppGraph
-import org.mpc.domain.model.AppSettings
-import org.mpc.domain.model.AppThemeMode
-import org.mpc.domain.model.PortalAuthenticationMode
 import org.mpc.domain.model.PortalLaunchMode
 import org.mpc.domain.repository.CourseRepository
 import org.mpc.navigation.AndroidNavigator
@@ -109,10 +106,7 @@ private fun AndroidAppContent(appGraph: AppGraph) {
                 ),
             ) {
                 SettingsDialog(
-                    settings = settings,
-                    modifier = Modifier,
-                    onThemeModeSelected = settingsViewModel::setThemeMode,
-                    onPortalAuthenticationModeSelected = settingsViewModel::setPortalAuthenticationMode,
+                    settingsViewModel = settingsViewModel,
                     onClose = { appBackStack.removeLastOrNull() },
                 )
             }
@@ -283,23 +277,22 @@ private fun AndroidPrimaryNavigation(
 
 @Composable
 private fun SettingsDialog(
-    settings: AppSettings,
-    modifier: Modifier,
-    onThemeModeSelected: (AppThemeMode) -> Unit,
-    onPortalAuthenticationModeSelected: (PortalAuthenticationMode) -> Unit,
+    settingsViewModel: AppSettingsViewModel,
     onClose: () -> Unit,
 ) {
+    val settings by settingsViewModel.settings.collectAsStateWithLifecycle()
+    val settingsWriteFailed by settingsViewModel.settingsWriteFailed.collectAsStateWithLifecycle()
     val isExpanded =
         currentWindowAdaptiveInfo()
             .windowSizeClass
             .isWidthAtLeastBreakpoint(WIDTH_DP_MEDIUM_LOWER_BOUND)
     val surfaceModifier =
         if (isExpanded) {
-            modifier
+            Modifier
                 .widthIn(max = 560.dp)
                 .clip(MaterialTheme.shapes.extraLarge)
         } else {
-            modifier.fillMaxSize()
+            Modifier.fillMaxSize()
         }
 
     Surface(modifier = surfaceModifier) {
@@ -317,9 +310,10 @@ private fun SettingsDialog(
             )
             SettingsScreen(
                 settings = settings,
+                settingsWriteFailed = settingsWriteFailed,
                 modifier = Modifier.fillMaxSize(),
-                onThemeModeSelected = onThemeModeSelected,
-                onPortalAuthenticationModeSelected = onPortalAuthenticationModeSelected,
+                onThemeModeSelected = settingsViewModel::setThemeMode,
+                onPortalAuthenticationModeSelected = settingsViewModel::setPortalAuthenticationMode,
             )
         }
     }

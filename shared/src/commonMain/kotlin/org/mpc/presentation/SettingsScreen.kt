@@ -26,6 +26,7 @@ import org.mpc.domain.model.PortalAuthenticationMode
 @Composable
 fun SettingsScreen(
     settings: AppSettings,
+    settingsWriteFailed: Boolean = false,
     modifier: Modifier = Modifier,
     onThemeModeSelected: (AppThemeMode) -> Unit,
     onPortalAuthenticationModeSelected: (PortalAuthenticationMode) -> Unit,
@@ -36,6 +37,14 @@ fun SettingsScreen(
             .padding(horizontal = 20.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
+        if (settingsWriteFailed) {
+            Text(
+                text = "設定無法儲存，請稍後再試。",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+
         SettingsSectionTitle(
             title = "外觀",
             description = "選擇 App 使用系統、淺色或深色配色。",

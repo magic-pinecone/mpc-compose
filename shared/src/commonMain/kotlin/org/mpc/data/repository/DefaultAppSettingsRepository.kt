@@ -1,13 +1,16 @@
 package org.mpc.data.repository
 
 import androidx.datastore.core.DataStore
+import androidx.datastore.core.IOException
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import org.mpc.domain.model.AppSettings
@@ -21,6 +24,13 @@ internal class DefaultAppSettingsRepository(
     private val dataStore: DataStore<Preferences>,
 ) : AppSettingsRepository {
     override val settings: Flow<AppSettings> = dataStore.data
+        .catch { cause ->
+            if (cause is IOException) {
+                emit(emptyPreferences())
+            } else {
+                throw cause
+            }
+        }
         .map { preferences -> preferences.toAppSettings() }
         .distinctUntilChanged()
 
@@ -42,8 +52,8 @@ private val portalAuthenticationModeKey = stringPreferencesKey("portal.authentic
 
 private fun Preferences.toAppSettings(): AppSettings = AppSettings(
     themeMode = this[themeModeKey].toEnumOrDefault(AppThemeMode.SYSTEM),
-    portalAuthenticationMode = this[portalAuthenticationModeKey]
-        .toEnumOrDefault(PortalAuthenticationMode.MANUAL_PORTAL),
+    // Fall back to manual sign-in until platform credential adapters are available.
+    portalAuthenticationMode = PortalAuthenticationMode.MANUAL_PORTAL,
 )
 
 private inline fun <reified T : Enum<T>> String?.toEnumOrDefault(default: T): T = this?.let { value ->

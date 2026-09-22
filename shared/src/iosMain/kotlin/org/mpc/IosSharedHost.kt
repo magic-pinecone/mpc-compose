@@ -2,6 +2,7 @@ package org.mpc
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.uikit.OnFocusBehavior
@@ -15,6 +16,7 @@ import org.mpc.core.createDatabase
 import org.mpc.core.createDatabaseBuilder
 import org.mpc.di.AppGraph
 import org.mpc.di.createAppGraph
+import org.mpc.domain.model.AppThemeMode
 import org.mpc.domain.model.PortalShortcutDestination
 import org.mpc.presentation.CourseCatalogViewBinding
 import org.mpc.presentation.CoursePlanningTimetableViewBinding
@@ -28,6 +30,14 @@ import platform.UIKit.UIViewController
 class IosSharedHost internal constructor(
     private val appGraph: AppGraph,
 ) {
+    private var latestThemeMode = AppThemeMode.SYSTEM
+    private var themeModeObserver: ((AppThemeMode) -> Unit)? = null
+
+    fun observeThemeMode(observer: ((AppThemeMode) -> Unit)?) {
+        themeModeObserver = observer
+        observer?.invoke(latestThemeMode)
+    }
+
     fun courseCatalogScreenController(
         bridge: CourseSearchBridge,
         planBridge: CoursePlanBridge,
@@ -75,12 +85,14 @@ class IosSharedHost internal constructor(
 
     fun settingsScreenController(): UIViewController = ComposeUIViewController {
         ProvideAppDependencies(appGraph) {
-            val settingsViewModel: AppSettingsViewModel = metroViewModel()
-            val settings by settingsViewModel.settings.collectAsStateWithLifecycle()
+            ThemedContent {
+                val settingsViewModel: AppSettingsViewModel = metroViewModel()
+                val settings by settingsViewModel.settings.collectAsStateWithLifecycle()
+                val settingsWriteFailed by settingsViewModel.settingsWriteFailed.collectAsStateWithLifecycle()
 
-            MpcTheme(themeMode = settings.themeMode) {
                 SettingsScreen(
                     settings = settings,
+                    settingsWriteFailed = settingsWriteFailed,
                     onThemeModeSelected = settingsViewModel::setThemeMode,
                     onPortalAuthenticationModeSelected = settingsViewModel::setPortalAuthenticationMode,
                 )
@@ -92,6 +104,10 @@ class IosSharedHost internal constructor(
     private fun ThemedContent(content: @Composable () -> Unit) {
         val settingsViewModel: AppSettingsViewModel = metroViewModel()
         val settings by settingsViewModel.settings.collectAsStateWithLifecycle()
+        SideEffect {
+            latestThemeMode = settings.themeMode
+            themeModeObserver?.invoke(latestThemeMode)
+        }
 
         MpcTheme(themeMode = settings.themeMode, content = content)
     }

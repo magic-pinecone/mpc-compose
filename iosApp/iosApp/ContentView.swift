@@ -3,6 +3,7 @@ import SwiftUI
 
 struct ContentView: View {
     let sharedHost: IosSharedHost
+    @State private var themeMode = AppThemeMode.system
 
     var body: some View {
         TabView {
@@ -22,5 +23,24 @@ struct ContentView: View {
                 }
             }
         }
+        .preferredColorScheme(preferredColorScheme)
+        .onAppear {
+            sharedHost.observeThemeMode(observer: { selectedMode in
+                themeMode = selectedMode
+            })
+        }
+        .onDisappear {
+            sharedHost.observeThemeMode(observer: nil)
+        }
+    }
+
+    private var preferredColorScheme: ColorScheme? {
+        if themeMode == .light {
+            return .light
+        }
+        if themeMode == .dark {
+            return .dark
+        }
+        return nil
     }
 }
