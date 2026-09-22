@@ -29,6 +29,7 @@ private class FakeAppSettingsRepository(
 private class RecordingAuthenticator(
     private val mode: PortalAuthenticationMode,
     private val restoredSession: PortalSession? = null,
+    private val authenticationFailure: Exception? = null,
 ) : PortalSessionAuthenticator {
     var restoreCalls = 0
         private set
@@ -44,6 +45,7 @@ private class RecordingAuthenticator(
 
     override suspend fun authenticate(): PortalSession {
         authenticateCalls++
+        authenticationFailure?.let { throw it }
         return PortalSession(mode)
     }
 
@@ -95,6 +97,42 @@ val portalSessionManagerTests by testSuite {
                 PortalSessionState.Authenticated(
                     PortalSession(PortalAuthenticationMode.SECURE_CREDENTIALS),
                 ),
+                manager.state.value,
+            )
+        }
+    }
+
+    test("sign out uses the active session adapter after the setting changes") {
+        runTest {
+            val settings = FakeAppSettingsRepository(AppSettings())
+            val secure = RecordingAuthenticator(PortalAuthenticationMode.SECURE_CREDENTIALS)
+            val manual = RecordingAuthenticator(PortalAuthenticationMode.MANUAL_PORTAL)
+            val manager = DefaultPortalSessionManager(settings, secure, manual)
+
+            manager.authenticate()
+            settings.setPortalAuthenticationMode(PortalAuthenticationMode.SECURE_CREDENTIALS)
+            manager.signOut()
+
+            assertEquals(1, manual.signOutCalls)
+            assertEquals(0, secure.signOutCalls)
+            assertEquals(PortalSessionState.SignedOut, manager.state.value)
+        }
+    }
+
+    test("adapter failures become failed state") {
+        runTest {
+            val settings = FakeAppSettingsRepository(AppSettings())
+            val failure = IllegalStateException("adapter unavailable")
+            val manager = DefaultPortalSessionManager(
+                settings,
+                RecordingAuthenticator(PortalAuthenticationMode.SECURE_CREDENTIALS),
+                RecordingAuthenticator(PortalAuthenticationMode.MANUAL_PORTAL, authenticationFailure = failure),
+            )
+
+            manager.authenticate()
+
+            assertEquals(
+                PortalSessionState.Failed(PortalAuthenticationMode.MANUAL_PORTAL, failure),
                 manager.state.value,
             )
         }

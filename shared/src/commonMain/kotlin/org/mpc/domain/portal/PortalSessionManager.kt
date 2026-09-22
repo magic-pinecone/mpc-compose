@@ -63,6 +63,8 @@ sealed interface PortalSessionState {
  * while the manual adapter can keep the authenticated Calf WebView session in its own cookie
  * store. No shared Ktor/WebView cookie state is assumed here.
  */
+// Platform adapters can fail with different exception types; preserve them in Failed state.
+@Suppress("TooGenericExceptionCaught")
 class DefaultPortalSessionManager(
     private val settingsRepository: AppSettingsRepository,
     private val secureCredentialsAuthenticator: PortalSessionAuthenticator,
@@ -70,6 +72,7 @@ class DefaultPortalSessionManager(
 ) : PortalSessionManager {
     private val mutex = Mutex()
     private val _state = MutableStateFlow<PortalSessionState>(PortalSessionState.SignedOut)
+    private var activeSessionMode: PortalAuthenticationMode? = null
 
     override val state: StateFlow<PortalSessionState> = _state
 
@@ -79,11 +82,12 @@ class DefaultPortalSessionManager(
             _state.value = PortalSessionState.Restoring
             try {
                 val session = authenticator(mode).restore()
+                activeSessionMode = session?.authenticationMode
                 _state.value = session?.let(PortalSessionState::Authenticated)
                     ?: PortalSessionState.RequiresAuthentication(mode)
             } catch (cancellation: CancellationException) {
                 throw cancellation
-            } catch (cause: PortalSessionException) {
+            } catch (cause: Exception) {
                 _state.value = PortalSessionState.Failed(mode, cause)
             }
         }
@@ -94,10 +98,12 @@ class DefaultPortalSessionManager(
             val mode = selectedMode()
             _state.value = PortalSessionState.Authenticating(mode)
             try {
-                _state.value = PortalSessionState.Authenticated(authenticator(mode).authenticate())
+                val session = authenticator(mode).authenticate()
+                activeSessionMode = session.authenticationMode
+                _state.value = PortalSessionState.Authenticated(session)
             } catch (cancellation: CancellationException) {
                 throw cancellation
-            } catch (cause: PortalSessionException) {
+            } catch (cause: Exception) {
                 _state.value = PortalSessionState.Failed(mode, cause)
             }
         }
@@ -105,13 +111,14 @@ class DefaultPortalSessionManager(
 
     override suspend fun signOut() {
         mutex.withLock {
-            val mode = selectedMode()
+            val mode = activeSessionMode ?: selectedMode()
             try {
                 authenticator(mode).signOut()
+                activeSessionMode = null
                 _state.value = PortalSessionState.SignedOut
             } catch (cancellation: CancellationException) {
                 throw cancellation
-            } catch (cause: PortalSessionException) {
+            } catch (cause: Exception) {
                 _state.value = PortalSessionState.Failed(mode, cause)
             }
         }
