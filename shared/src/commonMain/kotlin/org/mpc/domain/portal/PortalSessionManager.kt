@@ -79,6 +79,7 @@ class DefaultPortalSessionManager(
     override suspend fun restore() {
         mutex.withLock {
             val mode = selectedMode()
+            val previousState = _state.value
             _state.value = PortalSessionState.Restoring
             try {
                 val session = authenticator(mode).restore()
@@ -86,6 +87,7 @@ class DefaultPortalSessionManager(
                 _state.value = session?.let(PortalSessionState::Authenticated)
                     ?: PortalSessionState.RequiresAuthentication(mode)
             } catch (cancellation: CancellationException) {
+                _state.value = previousState
                 throw cancellation
             } catch (cause: Exception) {
                 _state.value = PortalSessionState.Failed(mode, cause)
@@ -96,12 +98,14 @@ class DefaultPortalSessionManager(
     override suspend fun authenticate() {
         mutex.withLock {
             val mode = selectedMode()
+            val previousState = _state.value
             _state.value = PortalSessionState.Authenticating(mode)
             try {
                 val session = authenticator(mode).authenticate()
                 activeSessionMode = session.authenticationMode
                 _state.value = PortalSessionState.Authenticated(session)
             } catch (cancellation: CancellationException) {
+                _state.value = previousState
                 throw cancellation
             } catch (cause: Exception) {
                 _state.value = PortalSessionState.Failed(mode, cause)
@@ -111,17 +115,37 @@ class DefaultPortalSessionManager(
 
     override suspend fun signOut() {
         mutex.withLock {
-            val mode = activeSessionMode ?: selectedMode()
+            val mode = activeSessionMode
+            val failureMode = mode ?: PortalAuthenticationMode.MANUAL_PORTAL
             try {
-                authenticator(mode).signOut()
+                if (mode == null) {
+                    signOutAllAuthenticators()
+                } else {
+                    authenticator(mode).signOut()
+                }
                 activeSessionMode = null
                 _state.value = PortalSessionState.SignedOut
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (cause: Exception) {
-                _state.value = PortalSessionState.Failed(mode, cause)
+                _state.value = PortalSessionState.Failed(failureMode, cause)
             }
         }
+    }
+
+    private suspend fun signOutAllAuthenticators() {
+        val secureFailure = signOutOrReturnFailure(secureCredentialsAuthenticator)
+        val manualFailure = signOutOrReturnFailure(manualPortalAuthenticator)
+        (secureFailure ?: manualFailure)?.let { throw it }
+    }
+
+    private suspend fun signOutOrReturnFailure(authenticator: PortalSessionAuthenticator): Exception? = try {
+        authenticator.signOut()
+        null
+    } catch (cancellation: CancellationException) {
+        throw cancellation
+    } catch (cause: Exception) {
+        cause
     }
 
     private suspend fun selectedMode(): PortalAuthenticationMode = settingsRepository.settings.first().portalAuthenticationMode

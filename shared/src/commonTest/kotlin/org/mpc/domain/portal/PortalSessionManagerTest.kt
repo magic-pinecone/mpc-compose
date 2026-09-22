@@ -1,8 +1,12 @@
 package org.mpc.domain.portal
 
 import de.infix.testBalloon.framework.core.testSuite
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.yield
 import org.mpc.domain.model.AppSettings
 import org.mpc.domain.model.AppThemeMode
 import org.mpc.domain.model.PortalAuthenticationMode
@@ -30,6 +34,8 @@ private class RecordingAuthenticator(
     private val mode: PortalAuthenticationMode,
     private val restoredSession: PortalSession? = null,
     private val authenticationFailure: Exception? = null,
+    private val restoreGate: CompletableDeferred<Unit>? = null,
+    private val authenticationGate: CompletableDeferred<Unit>? = null,
 ) : PortalSessionAuthenticator {
     var restoreCalls = 0
         private set
@@ -40,11 +46,13 @@ private class RecordingAuthenticator(
 
     override suspend fun restore(): PortalSession? {
         restoreCalls++
+        restoreGate?.await()
         return restoredSession
     }
 
     override suspend fun authenticate(): PortalSession {
         authenticateCalls++
+        authenticationGate?.await()
         authenticationFailure?.let { throw it }
         return PortalSession(mode)
     }
@@ -135,6 +143,71 @@ val portalSessionManagerTests by testSuite {
                 PortalSessionState.Failed(PortalAuthenticationMode.MANUAL_PORTAL, failure),
                 manager.state.value,
             )
+        }
+    }
+
+    test("cancelled restore returns to its previous state") {
+        runTest {
+            val settings = FakeAppSettingsRepository(AppSettings())
+            val manager = DefaultPortalSessionManager(
+                settings,
+                RecordingAuthenticator(PortalAuthenticationMode.SECURE_CREDENTIALS),
+                RecordingAuthenticator(
+                    PortalAuthenticationMode.MANUAL_PORTAL,
+                    restoreGate = CompletableDeferred(),
+                ),
+            )
+
+            val job = launch { manager.restore() }
+            yield()
+            assertEquals(PortalSessionState.Restoring, manager.state.value)
+
+            job.cancelAndJoin()
+
+            assertEquals(PortalSessionState.SignedOut, manager.state.value)
+        }
+    }
+
+    test("cancelled authentication returns to its previous state") {
+        runTest {
+            val settings = FakeAppSettingsRepository(AppSettings())
+            val manager = DefaultPortalSessionManager(
+                settings,
+                RecordingAuthenticator(PortalAuthenticationMode.SECURE_CREDENTIALS),
+                RecordingAuthenticator(
+                    PortalAuthenticationMode.MANUAL_PORTAL,
+                    authenticationGate = CompletableDeferred(),
+                ),
+            )
+
+            val job = launch { manager.authenticate() }
+            yield()
+            assertEquals(
+                PortalSessionState.Authenticating(PortalAuthenticationMode.MANUAL_PORTAL),
+                manager.state.value,
+            )
+
+            job.cancelAndJoin()
+
+            assertEquals(PortalSessionState.SignedOut, manager.state.value)
+        }
+    }
+
+    test("sign out clears both adapters when session ownership is unknown") {
+        runTest {
+            val secure = RecordingAuthenticator(PortalAuthenticationMode.SECURE_CREDENTIALS)
+            val manual = RecordingAuthenticator(PortalAuthenticationMode.MANUAL_PORTAL)
+            val manager = DefaultPortalSessionManager(
+                FakeAppSettingsRepository(AppSettings()),
+                secure,
+                manual,
+            )
+
+            manager.signOut()
+
+            assertEquals(1, secure.signOutCalls)
+            assertEquals(1, manual.signOutCalls)
+            assertEquals(PortalSessionState.SignedOut, manager.state.value)
         }
     }
 }
