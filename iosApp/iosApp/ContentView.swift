@@ -11,6 +11,11 @@ struct ContentView: View {
                     CoursePlanningView(sharedHost: sharedHost)
                 }
             }
+            Tab("Portal", systemImage: "building.columns") {
+                NavigationStack {
+                    PortalView(sharedHost: sharedHost)
+                }
+            }
             Tab("設定", systemImage: "gear") {
                 NavigationStack {
                     SettingsView(sharedHost: sharedHost)
