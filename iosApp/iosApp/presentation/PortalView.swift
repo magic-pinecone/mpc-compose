@@ -3,18 +3,11 @@ import SwiftUI
 
 struct PortalView: View {
     let sharedHost: IosSharedHost
-    @Environment(\.openURL) private var openURL
     @State private var webDestination: PortalDestination?
 
     var body: some View {
         PortalComposeView(sharedHost: sharedHost) { destination in
-            guard let url = URL(string: destination.url) else { return }
-
-            if destination.launchMode == PortalLaunchMode.inApp {
-                webDestination = PortalDestination(title: destination.title, url: destination.url)
-            } else {
-                openURL(url)
-            }
+            webDestination = PortalDestination(title: destination.title, url: destination.url)
         }
             .navigationTitle("Portal")
             .navigationDestination(item: $webDestination) { destination in
