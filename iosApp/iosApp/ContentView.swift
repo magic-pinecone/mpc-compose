@@ -13,7 +13,7 @@ struct ContentView: View {
             }
             Tab("設定", systemImage: "gear") {
                 NavigationStack {
-                    CoursePlanningView(sharedHost: sharedHost)
+                    SettingsView(sharedHost: sharedHost)
                 }
             }
         }

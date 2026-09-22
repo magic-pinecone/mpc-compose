@@ -1,6 +1,10 @@
 package org.mpc
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.window.ComposeUIViewController
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import org.mpc.bridge.CoursePlanBridge
 import org.mpc.bridge.CourseSearchBridge
 import org.mpc.core.createDataStore
@@ -10,7 +14,9 @@ import org.mpc.di.AppGraph
 import org.mpc.di.createAppGraph
 import org.mpc.presentation.CourseCatalogViewBinding
 import org.mpc.presentation.CoursePlanningTimetableViewBinding
+import org.mpc.presentation.SettingsScreen
 import org.mpc.presentation.theme.MpcTheme
+import org.mpc.presentation.viewModel.AppSettingsViewModel
 import platform.UIKit.UIViewController
 
 class IosSharedHost internal constructor(
@@ -21,7 +27,7 @@ class IosSharedHost internal constructor(
         planBridge: CoursePlanBridge,
     ): UIViewController = ComposeUIViewController {
         ProvideAppDependencies(appGraph) {
-            MpcTheme {
+            ThemedContent {
                 CourseCatalogViewBinding(bridge, planBridge)
             }
         }
@@ -29,10 +35,33 @@ class IosSharedHost internal constructor(
 
     fun coursePlanningTimetableScreenController(planBridge: CoursePlanBridge): UIViewController = ComposeUIViewController {
         ProvideAppDependencies(appGraph) {
-            MpcTheme {
+            ThemedContent {
                 CoursePlanningTimetableViewBinding(planBridge)
             }
         }
+    }
+
+    fun settingsScreenController(): UIViewController = ComposeUIViewController {
+        ProvideAppDependencies(appGraph) {
+            val settingsViewModel: AppSettingsViewModel = metroViewModel()
+            val settings by settingsViewModel.settings.collectAsStateWithLifecycle()
+
+            MpcTheme(themeMode = settings.themeMode) {
+                SettingsScreen(
+                    settings = settings,
+                    onThemeModeSelected = settingsViewModel::setThemeMode,
+                    onPortalAuthenticationModeSelected = settingsViewModel::setPortalAuthenticationMode,
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun ThemedContent(content: @Composable () -> Unit) {
+        val settingsViewModel: AppSettingsViewModel = metroViewModel()
+        val settings by settingsViewModel.settings.collectAsStateWithLifecycle()
+
+        MpcTheme(themeMode = settings.themeMode, content = content)
     }
 }
 

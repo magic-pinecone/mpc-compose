@@ -24,6 +24,7 @@ import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteItem
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,6 +33,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
@@ -40,7 +42,11 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.scene.DialogSceneStrategy
 import androidx.navigation3.ui.NavDisplay
 import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_MEDIUM_LOWER_BOUND
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import org.mpc.di.AppGraph
+import org.mpc.domain.model.AppSettings
+import org.mpc.domain.model.AppThemeMode
+import org.mpc.domain.model.PortalAuthenticationMode
 import org.mpc.domain.model.PortalLaunchMode
 import org.mpc.domain.repository.CourseRepository
 import org.mpc.navigation.AndroidNavigator
@@ -59,10 +65,21 @@ import org.mpc.presentation.CourseDetailsScreen
 import org.mpc.presentation.CoursePlanningScreen
 import org.mpc.presentation.PortalScreen
 import org.mpc.presentation.PortalWebScreen
+import org.mpc.presentation.SettingsScreen
 import org.mpc.presentation.theme.MpcTheme
+import org.mpc.presentation.viewModel.AppSettingsViewModel
 
 @Composable
 fun AndroidAppShell(appGraph: AppGraph) {
+    ProvideAppDependencies(appGraph) {
+        AndroidAppContent(appGraph)
+    }
+}
+
+@Composable
+private fun AndroidAppContent(appGraph: AppGraph) {
+    val settingsViewModel: AppSettingsViewModel = metroViewModel()
+    val settings by settingsViewModel.settings.collectAsStateWithLifecycle()
     val appBackStack = rememberNavBackStack(AppRoot)
     val isExpanded =
         currentWindowAdaptiveInfo()
@@ -90,32 +107,33 @@ fun AndroidAppShell(appGraph: AppGraph) {
                     DialogProperties(windowTitle = "設定"),
                 ),
             ) {
-                SettingsScreen(
+                SettingsDialog(
+                    settings = settings,
                     modifier = Modifier,
+                    onThemeModeSelected = settingsViewModel::setThemeMode,
+                    onPortalAuthenticationModeSelected = settingsViewModel::setPortalAuthenticationMode,
                     onClose = { appBackStack.removeLastOrNull() },
                 )
             }
         }
 
-    ProvideAppDependencies(appGraph) {
-        MpcTheme {
-            NavDisplay(
-                backStack = appBackStack,
-                onBack = { appBackStack.removeLastOrNull() },
-                entryDecorators =
-                listOf(
-                    rememberSaveableStateHolderNavEntryDecorator(),
-                    rememberViewModelStoreNavEntryDecorator(),
-                ),
-                sceneStrategies =
-                if (isExpanded) {
-                    listOf(dialogSceneStrategy)
-                } else {
-                    emptyList()
-                },
-                entryProvider = entryProvider,
-            )
-        }
+    MpcTheme(themeMode = settings.themeMode) {
+        NavDisplay(
+            backStack = appBackStack,
+            onBack = { appBackStack.removeLastOrNull() },
+            entryDecorators =
+            listOf(
+                rememberSaveableStateHolderNavEntryDecorator(),
+                rememberViewModelStoreNavEntryDecorator(),
+            ),
+            sceneStrategies =
+            if (isExpanded) {
+                listOf(dialogSceneStrategy)
+            } else {
+                emptyList()
+            },
+            entryProvider = entryProvider,
+        )
     }
 }
 
@@ -253,8 +271,11 @@ private fun AndroidPrimaryNavigation(
 }
 
 @Composable
-private fun SettingsScreen(
+private fun SettingsDialog(
+    settings: AppSettings,
     modifier: Modifier,
+    onThemeModeSelected: (AppThemeMode) -> Unit,
+    onPortalAuthenticationModeSelected: (PortalAuthenticationMode) -> Unit,
     onClose: () -> Unit,
 ) {
     val isExpanded =
@@ -283,12 +304,12 @@ private fun SettingsScreen(
                     }
                 },
             )
-            Box(
+            SettingsScreen(
+                settings = settings,
                 modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text("設定")
-            }
+                onThemeModeSelected = onThemeModeSelected,
+                onPortalAuthenticationModeSelected = onPortalAuthenticationModeSelected,
+            )
         }
     }
 }
