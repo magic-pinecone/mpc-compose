@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.uikit.OnFocusBehavior
 import androidx.compose.ui.window.ComposeUIViewController
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.zacsweers.metrox.viewmodel.metroViewModel
@@ -59,7 +60,12 @@ class IosSharedHost internal constructor(
         }
     }
 
-    fun portalWebScreenController(url: String): UIViewController = ComposeUIViewController {
+    fun portalWebScreenController(url: String): UIViewController = ComposeUIViewController(
+        configure = {
+            // WKWebView already scrolls focused HTML fields above the keyboard.
+            onFocusBehavior = OnFocusBehavior.DoNothing
+        },
+    ) {
         ProvideAppDependencies(appGraph) {
             ThemedContent {
                 PortalWebScreen(url = url)
