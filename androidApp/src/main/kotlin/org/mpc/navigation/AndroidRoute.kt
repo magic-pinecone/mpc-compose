@@ -24,6 +24,12 @@ data object NewsRoot : TopLevelRoute
 data object PortalRoot : TopLevelRoute
 
 @Serializable
+data class PortalWebRoute(
+    val title: String,
+    val url: String,
+) : AndroidRoute
+
+@Serializable
 data object CoursePlanningRoot : TopLevelRoute
 
 @Serializable
