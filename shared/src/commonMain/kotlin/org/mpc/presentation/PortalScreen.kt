@@ -161,27 +161,31 @@ private fun PortalShortcutButton(
     item: PortalShortcutItem,
     onClick: () -> Unit,
 ) {
-    FilledTonalButton(
-        modifier = modifier.height(92.dp),
-        onClick = onClick,
-        contentPadding = PaddingValues(6.dp),
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+        FilledTonalButton(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(64.dp),
+            onClick = onClick,
+            contentPadding = PaddingValues(6.dp),
         ) {
             Icon(
                 imageVector = item.icon.toImageVector(),
-                contentDescription = null,
+                contentDescription = item.label,
                 modifier = Modifier.size(24.dp),
             )
-            Text(
-                text = item.label,
-                textAlign = TextAlign.Center,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
         }
+        Text(
+            text = item.label,
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 
