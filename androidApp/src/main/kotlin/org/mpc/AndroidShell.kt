@@ -31,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -47,6 +48,7 @@ import org.mpc.di.AppGraph
 import org.mpc.domain.model.AppSettings
 import org.mpc.domain.model.AppThemeMode
 import org.mpc.domain.model.PortalAuthenticationMode
+import org.mpc.domain.model.PortalLaunchMode
 import org.mpc.domain.repository.CourseRepository
 import org.mpc.navigation.AndroidNavigator
 import org.mpc.navigation.AppRoot
@@ -144,6 +146,7 @@ private fun AndroidPrimaryNavigation(
 ) {
     val navigationState = rememberAndroidNavigationState()
     val navigator = remember(navigationState) { AndroidNavigator(navigationState) }
+    val uriHandler = LocalUriHandler.current
     val isExpanded =
         currentWindowAdaptiveInfo()
             .windowSizeClass
@@ -162,12 +165,18 @@ private fun AndroidPrimaryNavigation(
                 PortalScreen(
                     modifier = Modifier.fillMaxSize(),
                     onOpenDestination = { destination ->
-                        navigator.navigate(
-                            PortalWebRoute(
-                                title = destination.title,
-                                url = destination.url,
-                            ),
-                        )
+                        when (destination.launchMode) {
+                            PortalLaunchMode.IN_APP -> {
+                                navigator.navigate(
+                                    PortalWebRoute(
+                                        title = destination.title,
+                                        url = destination.url,
+                                    ),
+                                )
+                            }
+
+                            PortalLaunchMode.EXTERNAL -> uriHandler.openUri(destination.url)
+                        }
                     },
                 )
             }
