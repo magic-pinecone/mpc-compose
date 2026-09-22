@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
@@ -183,9 +184,7 @@ private fun AndroidPrimaryNavigation(
             }
             entry<PortalWebRoute> { route ->
                 PortalWebScreen(
-                    title = route.title,
                     url = route.url,
-                    onClose = { navigator.goBack() },
                 )
             }
             entry<CoursePlanningRoot> {
@@ -235,18 +234,32 @@ private fun AndroidPrimaryNavigation(
             }
         },
     ) {
+        val currentPortalWebRoute = navigationState.currentBackStack.lastOrNull() as? PortalWebRoute
+
         Scaffold(
             topBar = {
                 TopAppBar(
                     title = {
-                        Text("Magic Pinecone")
+                        Text(currentPortalWebRoute?.title ?: "Magic Pinecone")
+                    },
+                    navigationIcon = {
+                        if (currentPortalWebRoute != null) {
+                            IconButton(onClick = { navigator.goBack() }) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "返回",
+                                )
+                            }
+                        }
                     },
                     actions = {
-                        IconButton(onClick = onOpenSettings) {
-                            Icon(
-                                imageVector = Icons.Default.Settings,
-                                contentDescription = "設定",
-                            )
+                        if (currentPortalWebRoute == null) {
+                            IconButton(onClick = onOpenSettings) {
+                                Icon(
+                                    imageVector = Icons.Default.Settings,
+                                    contentDescription = "設定",
+                                )
+                            }
                         }
                     },
                 )
