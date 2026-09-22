@@ -63,12 +63,13 @@ fun SettingsScreen(
 
         SettingsSectionTitle(
             title = "Portal 登入方式",
-            description = "選擇 Portal session 由哪一種 adapter 管理。",
+            description = "目前可在 App 內手動登入 Portal。安全儲存登入資訊尚未開放。",
         )
         SettingsChoiceRow(
-            title = "安全儲存登入資訊",
-            description = "iOS 使用 Keychain；Android 使用 Keystore-backed storage",
+            title = "安全儲存登入資訊（尚未開放）",
+            description = "需要先完成平台憑證儲存與登入整合",
             selected = settings.portalAuthenticationMode == PortalAuthenticationMode.SECURE_CREDENTIALS,
+            enabled = false,
             onClick = {
                 onPortalAuthenticationModeSelected(PortalAuthenticationMode.SECURE_CREDENTIALS)
             },
@@ -107,12 +108,14 @@ private fun SettingsChoiceRow(
     title: String,
     description: String,
     selected: Boolean,
+    enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(
+                enabled = enabled,
                 role = Role.RadioButton,
                 onClick = onClick,
             )
@@ -121,7 +124,8 @@ private fun SettingsChoiceRow(
     ) {
         RadioButton(
             selected = selected,
-            onClick = onClick,
+            onClick = if (enabled) onClick else null,
+            enabled = enabled,
         )
         Spacer(Modifier.width(6.dp))
         Column(modifier = Modifier.weight(1f)) {
