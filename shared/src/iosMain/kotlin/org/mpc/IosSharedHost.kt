@@ -67,9 +67,10 @@ class IosSharedHost internal constructor(
 
 fun createIosSharedHost(): IosSharedHost {
     val storage = createDataStore()
+    val dataStore = createDataStore(storage)
     val database =
         createDatabase(
             createDatabaseBuilder(),
         )
-    return IosSharedHost(createAppGraph(storage, database))
+    return IosSharedHost(createAppGraph(dataStore, database))
 }

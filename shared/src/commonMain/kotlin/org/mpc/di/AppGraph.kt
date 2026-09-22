@@ -1,6 +1,6 @@
 package org.mpc.di
 
-import androidx.datastore.core.Storage
+import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.DependencyGraph
@@ -17,13 +17,13 @@ interface AppGraph : ViewModelGraph {
     @DependencyGraph.Factory
     fun interface Factory {
         fun create(
-            @Provides storage: Storage<Preferences>,
+            @Provides dataStore: DataStore<Preferences>,
             @Provides database: AppDatabase,
         ): AppGraph
     }
 }
 
 fun createAppGraph(
-    storage: Storage<Preferences>,
+    dataStore: DataStore<Preferences>,
     database: AppDatabase,
-): AppGraph = createGraphFactory<AppGraph.Factory>().create(storage, database)
+): AppGraph = createGraphFactory<AppGraph.Factory>().create(dataStore, database)
