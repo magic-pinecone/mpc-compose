@@ -20,8 +20,9 @@
 - **課表規劃**：選取課程、在課表中預覽，並明確儲存選課計畫。
 - **離線儲存**：使用 Room 將課程資料及已儲存的課表保存在本機的 SQLite 資料庫。
 - **原生平台外殼**：Android 使用 Jetpack Compose，iOS 使用 SwiftUI，並透過 KMP 重複使用核心邏輯、資料以及 Compose UI。
+- **Portal 服務捷徑**：搜尋校園服務，並在 App 內開啟 Portal 頁面，或使用瀏覽器開啟其他服務。
 
-Flutter App 原有的 Portal 整合與 session 管理功能尚未遷移。
+目前可在 App 內的網頁檢視器手動登入 Portal。自動登入、安全儲存憑證及 session 還原尚未接入 App。
 
 ## 開始使用
 

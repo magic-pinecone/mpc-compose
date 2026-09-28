@@ -20,8 +20,9 @@ This repository is the Kotlin Multiplatform rewrite of the original Flutter app.
 - **Timetable planning**: Select courses, preview them on a timetable, and explicitly save a plan.
 - **Offline persistence**: Store course data and saved plans in a local SQLite database with Room.
 - **Native platform shells**: Use Jetpack Compose on Android and SwiftUI on iOS while reusing core logic, data, and Compose UI through KMP.
+- **Portal shortcuts**: Search campus services and open Portal pages in the app or direct services in the browser.
 
-Portal integration and session management from the Flutter app have not been migrated yet.
+Portal pages support manual sign-in in the embedded web view. Automatic sign-in, secure credential storage, and session restoration are not connected to the app yet.
 
 ## Getting started
 

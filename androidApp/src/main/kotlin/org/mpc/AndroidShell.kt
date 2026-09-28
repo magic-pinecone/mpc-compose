@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
@@ -24,13 +25,16 @@ import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteItem
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
@@ -39,7 +43,9 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.scene.DialogSceneStrategy
 import androidx.navigation3.ui.NavDisplay
 import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_MEDIUM_LOWER_BOUND
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import org.mpc.di.AppGraph
+import org.mpc.domain.model.PortalLaunchMode
 import org.mpc.domain.repository.CourseRepository
 import org.mpc.navigation.AndroidNavigator
 import org.mpc.navigation.AppRoot
@@ -48,16 +54,30 @@ import org.mpc.navigation.CoursePlanningRoot
 import org.mpc.navigation.HomeRoot
 import org.mpc.navigation.NewsRoot
 import org.mpc.navigation.PortalRoot
+import org.mpc.navigation.PortalWebRoute
 import org.mpc.navigation.SettingsRoute
 import org.mpc.navigation.TopLevelRoute
 import org.mpc.navigation.rememberAndroidNavigationState
 import org.mpc.navigation.scene.BottomSheetSceneStrategy
 import org.mpc.presentation.CourseDetailsScreen
 import org.mpc.presentation.CoursePlanningScreen
+import org.mpc.presentation.PortalScreen
+import org.mpc.presentation.PortalWebScreen
+import org.mpc.presentation.SettingsScreen
 import org.mpc.presentation.theme.MpcTheme
+import org.mpc.presentation.viewModel.AppSettingsViewModel
 
 @Composable
 fun AndroidAppShell(appGraph: AppGraph) {
+    ProvideAppDependencies(appGraph) {
+        AndroidAppContent(appGraph)
+    }
+}
+
+@Composable
+private fun AndroidAppContent(appGraph: AppGraph) {
+    val settingsViewModel: AppSettingsViewModel = metroViewModel()
+    val settings by settingsViewModel.settings.collectAsStateWithLifecycle()
     val appBackStack = rememberNavBackStack(AppRoot)
     val isExpanded =
         currentWindowAdaptiveInfo()
@@ -85,32 +105,30 @@ fun AndroidAppShell(appGraph: AppGraph) {
                     DialogProperties(windowTitle = "設定"),
                 ),
             ) {
-                SettingsScreen(
-                    modifier = Modifier,
+                SettingsDialog(
+                    settingsViewModel = settingsViewModel,
                     onClose = { appBackStack.removeLastOrNull() },
                 )
             }
         }
 
-    ProvideAppDependencies(appGraph) {
-        MpcTheme {
-            NavDisplay(
-                backStack = appBackStack,
-                onBack = { appBackStack.removeLastOrNull() },
-                entryDecorators =
-                listOf(
-                    rememberSaveableStateHolderNavEntryDecorator(),
-                    rememberViewModelStoreNavEntryDecorator(),
-                ),
-                sceneStrategies =
-                if (isExpanded) {
-                    listOf(dialogSceneStrategy)
-                } else {
-                    emptyList()
-                },
-                entryProvider = entryProvider,
-            )
-        }
+    MpcTheme(themeMode = settings.themeMode) {
+        NavDisplay(
+            backStack = appBackStack,
+            onBack = { appBackStack.removeLastOrNull() },
+            entryDecorators =
+            listOf(
+                rememberSaveableStateHolderNavEntryDecorator(),
+                rememberViewModelStoreNavEntryDecorator(),
+            ),
+            sceneStrategies =
+            if (isExpanded) {
+                listOf(dialogSceneStrategy)
+            } else {
+                emptyList()
+            },
+            entryProvider = entryProvider,
+        )
     }
 }
 
@@ -122,6 +140,7 @@ private fun AndroidPrimaryNavigation(
 ) {
     val navigationState = rememberAndroidNavigationState()
     val navigator = remember(navigationState) { AndroidNavigator(navigationState) }
+    val uriHandler = LocalUriHandler.current
     val isExpanded =
         currentWindowAdaptiveInfo()
             .windowSizeClass
@@ -137,7 +156,28 @@ private fun AndroidPrimaryNavigation(
                 TopLevelPlaceholder(title = "新聞")
             }
             entry<PortalRoot> {
-                TopLevelPlaceholder(title = "Portal")
+                PortalScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    onOpenDestination = { destination ->
+                        when (destination.launchMode) {
+                            PortalLaunchMode.IN_APP -> {
+                                navigator.navigate(
+                                    PortalWebRoute(
+                                        title = destination.title,
+                                        url = destination.url,
+                                    ),
+                                )
+                            }
+
+                            PortalLaunchMode.EXTERNAL -> uriHandler.openUri(destination.url)
+                        }
+                    },
+                )
+            }
+            entry<PortalWebRoute> { route ->
+                PortalWebScreen(
+                    url = route.url,
+                )
             }
             entry<CoursePlanningRoot> {
                 CoursePlanningScreen(
@@ -186,18 +226,32 @@ private fun AndroidPrimaryNavigation(
             }
         },
     ) {
+        val currentPortalWebRoute = navigationState.currentBackStack.lastOrNull() as? PortalWebRoute
+
         Scaffold(
             topBar = {
                 TopAppBar(
                     title = {
-                        Text("Magic Pinecone")
+                        Text(currentPortalWebRoute?.title ?: "Magic Pinecone")
+                    },
+                    navigationIcon = {
+                        if (currentPortalWebRoute != null) {
+                            IconButton(onClick = { navigator.goBack() }) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "返回",
+                                )
+                            }
+                        }
                     },
                     actions = {
-                        IconButton(onClick = onOpenSettings) {
-                            Icon(
-                                imageVector = Icons.Default.Settings,
-                                contentDescription = "設定",
-                            )
+                        if (currentPortalWebRoute == null) {
+                            IconButton(onClick = onOpenSettings) {
+                                Icon(
+                                    imageVector = Icons.Default.Settings,
+                                    contentDescription = "設定",
+                                )
+                            }
                         }
                     },
                 )
@@ -222,21 +276,23 @@ private fun AndroidPrimaryNavigation(
 }
 
 @Composable
-private fun SettingsScreen(
-    modifier: Modifier,
+private fun SettingsDialog(
+    settingsViewModel: AppSettingsViewModel,
     onClose: () -> Unit,
 ) {
+    val settings by settingsViewModel.settings.collectAsStateWithLifecycle()
+    val settingsWriteFailed by settingsViewModel.settingsWriteFailed.collectAsStateWithLifecycle()
     val isExpanded =
         currentWindowAdaptiveInfo()
             .windowSizeClass
             .isWidthAtLeastBreakpoint(WIDTH_DP_MEDIUM_LOWER_BOUND)
     val surfaceModifier =
         if (isExpanded) {
-            modifier
+            Modifier
                 .widthIn(max = 560.dp)
                 .clip(MaterialTheme.shapes.extraLarge)
         } else {
-            modifier.fillMaxSize()
+            Modifier.fillMaxSize()
         }
 
     Surface(modifier = surfaceModifier) {
@@ -252,12 +308,13 @@ private fun SettingsScreen(
                     }
                 },
             )
-            Box(
+            SettingsScreen(
+                settings = settings,
+                settingsWriteFailed = settingsWriteFailed,
                 modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text("設定")
-            }
+                onThemeModeSelected = settingsViewModel::setThemeMode,
+                onPortalAuthenticationModeSelected = settingsViewModel::setPortalAuthenticationMode,
+            )
         }
     }
 }

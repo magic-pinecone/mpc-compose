@@ -15,11 +15,12 @@ class MpcApplication : Application() {
         super.onCreate()
 
         val storage = createDataStore(this)
+        val dataStore = createDataStore(storage)
         val database =
             createDatabase(
                 createDatabaseBuilder(this),
             )
 
-        appGraph = createAppGraph(storage, database)
+        appGraph = createAppGraph(dataStore, database)
     }
 }
