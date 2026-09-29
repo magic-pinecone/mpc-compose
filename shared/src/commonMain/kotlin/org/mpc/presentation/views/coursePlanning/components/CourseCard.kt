@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -52,7 +51,7 @@ fun CourseCard(
     onCardClick: () -> Unit = {},
     onButtonClick: () -> Unit = {},
 ) {
-    val cardShape = RoundedCornerShape(12.dp)
+    val cardShape = MaterialTheme.shapes.large
 
     Surface(
         modifier =
@@ -62,7 +61,7 @@ fun CourseCard(
             onClick = onCardClick,
         ),
         shape = cardShape,
-        color = MaterialTheme.colorScheme.surface,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
         Column(
@@ -119,10 +118,11 @@ fun CourseCard(
                     onClick = onButtonClick,
                     modifier = Modifier.heightIn(min = 40.dp),
                     colors =
-                    ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                        contentColor = MaterialTheme.colorScheme.onSurface,
-                    ),
+                    if (isSelected) {
+                        ButtonDefaults.buttonColors()
+                    } else {
+                        ButtonDefaults.filledTonalButtonColors()
+                    },
                     contentPadding = ButtonDefaults.ContentPadding,
                 ) {
                     Text(if (isSelected) "移除" else "加入")
@@ -139,7 +139,7 @@ private fun CourseTypeBadge(courseType: CourseType) {
         Modifier
             .background(
                 color = MaterialTheme.colorScheme.secondaryContainer,
-                shape = RoundedCornerShape(8.dp),
+                shape = MaterialTheme.shapes.small,
             ).padding(horizontal = 10.dp, vertical = 5.dp),
         contentAlignment = Alignment.Center,
     ) {
@@ -187,7 +187,7 @@ private fun CourseInfoBadge(
         Modifier
             .background(
                 color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                shape = RoundedCornerShape(6.dp),
+                shape = MaterialTheme.shapes.extraSmall,
             ).padding(horizontal = 8.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

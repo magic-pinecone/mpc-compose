@@ -1,6 +1,5 @@
 package org.mpc.presentation
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,18 +7,21 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.ButtonGroup
+import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.SaveableStateHolder
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_MEDIUM_LOWER_BOUND
@@ -32,11 +34,22 @@ import org.mpc.presentation.views.coursePlanning.CoursePlanningTimetableView
 @Composable
 fun CoursePlanningScreen(
     modifier: Modifier = Modifier,
+    selectedView: CoursePlanningView,
+    onSelectedViewChange: (CoursePlanningView) -> Unit,
+    onSelectedCourseCountChange: (Int) -> Unit = {},
     onCourseClick: (semester: String, course: CourseSummary) -> Unit = { _, _ -> },
     planViewModel: CoursePlanViewModel = metroViewModel(),
 ) {
     val planUiState by planViewModel.uiState.collectAsStateWithLifecycle()
     val stateHolder = rememberSaveableStateHolder()
+    SideEffect {
+        val selectedCourseCount =
+            (planUiState as? CoursePlanUiState.Success)
+                ?.plan
+                ?.selectedCourses
+                ?.size ?: 0
+        onSelectedCourseCountChange(selectedCourseCount)
+    }
     val isExpanded =
         currentWindowAdaptiveInfo()
             .windowSizeClass
@@ -69,36 +82,54 @@ fun CoursePlanningScreen(
         CompactCoursePlanningScreen(
             modifier = modifier,
             stateHolder = stateHolder,
-            planViewModel = planViewModel,
-            planUiState = planUiState,
-            onCourseClick = onCourseClick,
+            state =
+            CompactCoursePlanningState(
+                selectedView = selectedView,
+                onSelectedViewChange = onSelectedViewChange,
+                planViewModel = planViewModel,
+                planUiState = planUiState,
+                onCourseClick = onCourseClick,
+            ),
         )
     }
 }
+
+private data class CompactCoursePlanningState(
+    val selectedView: CoursePlanningView,
+    val onSelectedViewChange: (CoursePlanningView) -> Unit,
+    val planViewModel: CoursePlanViewModel,
+    val planUiState: CoursePlanUiState,
+    val onCourseClick: (semester: String, course: CourseSummary) -> Unit,
+)
 
 @Composable
 private fun CompactCoursePlanningScreen(
     modifier: Modifier,
     stateHolder: SaveableStateHolder,
-    planViewModel: CoursePlanViewModel,
-    planUiState: CoursePlanUiState,
-    onCourseClick: (semester: String, course: CourseSummary) -> Unit,
+    state: CompactCoursePlanningState,
 ) {
-    var selectedView by rememberSaveable { mutableStateOf(CoursePlanningView.CATALOG) }
-
     Column(modifier = modifier) {
-        Row(
+        ButtonGroup(
+            overflowIndicator = { menuState -> ButtonGroupDefaults.OverflowIndicator(menuState) },
             modifier =
             Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                .padding(horizontal = 16.dp, vertical = 12.dp),
         ) {
             CoursePlanningView.entries.forEach { view ->
-                FilterChip(
-                    selected = selectedView == view,
-                    onClick = { selectedView = view },
-                    label = { Text(view.label) },
+                toggleableItem(
+                    checked = state.selectedView == view,
+                    onCheckedChange = { isChecked ->
+                        if (isChecked) state.onSelectedViewChange(view)
+                    },
+                    label = view.label,
+                    icon = {
+                        Icon(
+                            imageVector = view.icon,
+                            contentDescription = null,
+                        )
+                    },
+                    weight = 1f,
                 )
             }
         }
@@ -108,19 +139,19 @@ private fun CompactCoursePlanningScreen(
                 .fillMaxWidth()
                 .weight(1f),
         ) {
-            stateHolder.SaveableStateProvider(selectedView) {
-                when (selectedView) {
+            stateHolder.SaveableStateProvider(state.selectedView) {
+                when (state.selectedView) {
                     CoursePlanningView.CATALOG -> {
                         CourseCatalogScreen(
                             modifier = Modifier.fillMaxSize(),
-                            onCourseClick = onCourseClick,
-                            planViewModel = planViewModel,
+                            onCourseClick = state.onCourseClick,
+                            planViewModel = state.planViewModel,
                         )
                     }
 
                     CoursePlanningView.TIMETABLE -> {
                         CoursePlanningTimetableView(
-                            uiState = planUiState,
+                            uiState = state.planUiState,
                             modifier = Modifier.fillMaxSize(),
                         )
                     }
@@ -130,11 +161,13 @@ private fun CompactCoursePlanningScreen(
     }
 }
 
-private enum class CoursePlanningView(
+enum class CoursePlanningView(
     val label: String,
+    val title: String,
+    val icon: ImageVector,
 ) {
-    CATALOG("課程查詢"),
-    TIMETABLE("課表"),
+    CATALOG("搜尋", "課程搜尋", Icons.Default.Search),
+    TIMETABLE("課表", "我的課表", Icons.Default.DateRange),
 }
 
 private const val CATALOG_WEIGHT = 0.42f

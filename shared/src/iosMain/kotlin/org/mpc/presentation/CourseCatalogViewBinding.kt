@@ -3,6 +3,7 @@ package org.mpc.presentation
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -31,6 +32,12 @@ fun CourseCatalogViewBinding(
             is CoursePlanUiState.Failure -> emptySet()
             is CoursePlanUiState.Success -> current.plan.selectedCourses.keys
         }
+
+    SideEffect {
+        (planUiState as? CoursePlanUiState.Success)?.let { current ->
+            planBridge.updateSelectedCourseCount(current.plan.selectedCourses.size)
+        }
+    }
 
     LaunchedEffect(bridge, searchViewModel) {
         bridge.sendRequests.collect { (semester, query) ->
