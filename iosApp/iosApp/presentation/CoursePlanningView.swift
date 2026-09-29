@@ -12,7 +12,6 @@ struct CoursePlanningView: View {
     @State private var activeSection: Section = .catalog
     @State private var planBridge = CoursePlanBridge()
     @State private var selectedCourses: [CourseSummary] = []
-    @State private var isShowingSelectedCourses = false
 
     var body: some View {
         VStack(spacing: 12) {
@@ -49,11 +48,6 @@ struct CoursePlanningView: View {
         .onDisappear {
             planBridge.observeSelectedCourses(observer: nil)
         }
-        .sheet(isPresented: $isShowingSelectedCourses) {
-            SelectedCoursesSheet(courses: selectedCourses)
-                .presentationDetents([.medium, .large])
-                .presentationDragIndicator(.visible)
-        }
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button("儲存") {
@@ -63,7 +57,7 @@ struct CoursePlanningView: View {
 
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    isShowingSelectedCourses = true
+                    planBridge.requestSelectedCoursesSheet()
                 } label: {
                     Image(systemName: "cart")
                         .overlay(alignment: .topTrailing) {
@@ -82,56 +76,6 @@ struct CoursePlanningView: View {
                 .accessibilityLabel("已選課程")
                 .accessibilityValue("\(selectedCourses.count) 門課")
                 .accessibilityHint("顯示目前已加入的課程")
-            }
-        }
-    }
-}
-
-private struct SelectedCoursesSheet: View {
-    @Environment(\.dismiss) private var dismiss
-
-    let courses: [CourseSummary]
-
-    var body: some View {
-        NavigationStack {
-            Group {
-                if courses.isEmpty {
-                    ContentUnavailableView(
-                        "尚未選擇課程",
-                        systemImage: "cart",
-                        description: Text("加入課程後，會顯示在這裡。")
-                    )
-                } else {
-                    List(courses.indices, id: \.self) { index in
-                        let course = courses[index]
-
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(course.title)
-                                .font(.headline)
-
-                            Text("班級 \(course.classNo) · \(course.credit, specifier: "%.1f") 學分")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-
-                            if !course.teachers.isEmpty {
-                                Text(course.teachers.joined(separator: "、"))
-                                    .font(.footnote)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                        .padding(.vertical, 4)
-                    }
-                    .listStyle(.insetGrouped)
-                }
-            }
-            .navigationTitle("已選課程")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("完成") {
-                        dismiss()
-                    }
-                }
             }
         }
     }

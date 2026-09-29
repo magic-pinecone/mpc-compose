@@ -69,10 +69,10 @@ import org.mpc.presentation.CoursePlanningScreen
 import org.mpc.presentation.CoursePlanningView
 import org.mpc.presentation.PortalScreen
 import org.mpc.presentation.PortalWebScreen
-import org.mpc.presentation.SelectedCoursesBottomSheet
 import org.mpc.presentation.SettingsScreen
 import org.mpc.presentation.theme.AndroidMpcTheme
 import org.mpc.presentation.viewModel.AppSettingsViewModel
+import org.mpc.presentation.views.coursePlanning.SelectedCoursesBottomSheet
 
 @Composable
 fun AndroidAppShell(appGraph: AppGraph) {

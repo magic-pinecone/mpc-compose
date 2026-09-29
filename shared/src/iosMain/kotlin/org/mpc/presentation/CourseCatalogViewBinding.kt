@@ -5,6 +5,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.zacsweers.metrox.viewmodel.metroViewModel
@@ -14,6 +17,7 @@ import org.mpc.presentation.state.CoursePlanUiState
 import org.mpc.presentation.viewModel.CoursePlanViewModel
 import org.mpc.presentation.viewModel.CourseSearchViewModel
 import org.mpc.presentation.views.coursePlanning.CourseSearchResultView
+import org.mpc.presentation.views.coursePlanning.SelectedCoursesBottomSheet
 
 @Composable
 fun CourseCatalogViewBinding(
@@ -25,6 +29,7 @@ fun CourseCatalogViewBinding(
 
     val searchUiState by searchViewModel.uiState.collectAsStateWithLifecycle()
     val planUiState by planViewModel.uiState.collectAsStateWithLifecycle()
+    var isShowingSelectedCourses by remember { mutableStateOf(false) }
 
     val selectedCourseSerialNumbers =
         when (val current = planUiState) {
@@ -57,10 +62,23 @@ fun CourseCatalogViewBinding(
         }
     }
 
+    LaunchedEffect(planBridge) {
+        planBridge.selectedCoursesSheetRequests.collect {
+            isShowingSelectedCourses = true
+        }
+    }
+
     CourseSearchResultView(
         modifier = Modifier.fillMaxSize(),
         uiState = searchUiState.result,
         selectedCourseSerialNumbers = selectedCourseSerialNumbers,
         onToggleCourse = planViewModel::toggleCourse,
     )
+
+    if (isShowingSelectedCourses) {
+        SelectedCoursesBottomSheet(
+            courses = selectedCourses,
+            onDismissRequest = { isShowingSelectedCourses = false },
+        )
+    }
 }

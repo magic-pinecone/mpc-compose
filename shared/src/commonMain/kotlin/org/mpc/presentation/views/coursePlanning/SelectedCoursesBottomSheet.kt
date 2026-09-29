@@ -1,4 +1,4 @@
-package org.mpc.presentation
+package org.mpc.presentation.views.coursePlanning
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,13 +20,14 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.mohamedrejeb.calf.ui.sheet.AdaptiveBottomSheet
+import com.mohamedrejeb.calf.ui.sheet.rememberAdaptiveSheetState
 import org.mpc.domain.model.CourseSummary
 
 @Composable
@@ -35,7 +36,12 @@ fun SelectedCoursesBottomSheet(
     courses: List<CourseSummary>,
     onDismissRequest: () -> Unit,
 ) {
-    ModalBottomSheet(onDismissRequest = onDismissRequest) {
+    val sheetState = rememberAdaptiveSheetState()
+
+    AdaptiveBottomSheet(
+        onDismissRequest = onDismissRequest,
+        adaptiveSheetState = sheetState,
+    ) {
         Column(
             modifier =
             Modifier

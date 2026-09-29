@@ -18,6 +18,7 @@ import org.mpc.presentation.viewModel.CoursePlanViewModel
 import org.mpc.presentation.views.courseDetails.CourseDetailsBottomSheet
 import org.mpc.presentation.views.courseDetails.CourseDetailsSelection
 import org.mpc.presentation.views.coursePlanning.CoursePlanningTimetableView
+import org.mpc.presentation.views.coursePlanning.SelectedCoursesBottomSheet
 
 @Composable
 fun CoursePlanningTimetableViewBinding(
@@ -28,6 +29,7 @@ fun CoursePlanningTimetableViewBinding(
 
     val planUiState by planViewModel.uiState.collectAsStateWithLifecycle()
     var selectedCourse by remember { mutableStateOf<CourseDetailsSelection?>(null) }
+    var isShowingSelectedCourses by remember { mutableStateOf(false) }
     val selectedCourses =
         (planUiState as? CoursePlanUiState.Success)
             ?.plan
@@ -46,6 +48,12 @@ fun CoursePlanningTimetableViewBinding(
         }
     }
 
+    LaunchedEffect(planBridge) {
+        planBridge.selectedCoursesSheetRequests.collect {
+            isShowingSelectedCourses = true
+        }
+    }
+
     CoursePlanningTimetableView(
         uiState = planUiState,
         modifier = Modifier.fillMaxSize(),
@@ -60,6 +68,13 @@ fun CoursePlanningTimetableViewBinding(
             courseRepository = courseRepository,
             onDismissRequest = { selectedCourse = null },
             planViewModel = planViewModel,
+        )
+    }
+
+    if (isShowingSelectedCourses) {
+        SelectedCoursesBottomSheet(
+            courses = selectedCourses,
+            onDismissRequest = { isShowingSelectedCourses = false },
         )
     }
 }

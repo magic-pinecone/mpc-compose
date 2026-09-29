@@ -7,6 +7,9 @@ import org.mpc.domain.model.CourseSummary
 class CoursePlanBridge {
     private val requests = Channel<Unit>(Channel.BUFFERED)
     internal val saveRequests = requests.receiveAsFlow()
+    private val selectedCoursesSheetRequestsChannel = Channel<Unit>(Channel.BUFFERED)
+    internal val selectedCoursesSheetRequests =
+        selectedCoursesSheetRequestsChannel.receiveAsFlow()
     private var latestSelectedCourses: List<CourseSummary> = emptyList()
     private var selectedCoursesObserver: ((List<CourseSummary>) -> Unit)? = null
 
@@ -24,5 +27,9 @@ class CoursePlanBridge {
 
     fun requestSave() {
         requests.trySend(Unit)
+    }
+
+    fun requestSelectedCoursesSheet() {
+        selectedCoursesSheetRequestsChannel.trySend(Unit)
     }
 }
