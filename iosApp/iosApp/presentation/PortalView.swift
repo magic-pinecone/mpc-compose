@@ -15,6 +15,7 @@ struct PortalView: View {
                 webDestination = PortalDestination(title: destination.title, url: destination.url)
             }
         }
+            .ignoresSafeArea(.container, edges: .bottom)
             .navigationTitle("Portal")
             .navigationDestination(item: $webDestination) { destination in
                 PortalWebComposeView(sharedHost: sharedHost, destination: destination)
