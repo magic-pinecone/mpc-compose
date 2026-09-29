@@ -1,5 +1,6 @@
 package org.mpc.presentation.views.coursePlanning
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -23,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -45,6 +47,7 @@ import org.mpc.presentation.theme.MpcTheme
 fun CoursePlanningTimetableSuccessView(
     plan: CoursePlan,
     modifier: Modifier,
+    onCourseClick: (semester: String, course: CourseSummary) -> Unit = { _, _ -> },
 ) {
     val columns = 5
     val rows = CoursePeriod.entries.size
@@ -135,8 +138,12 @@ fun CoursePlanningTimetableSuccessView(
                     }
 
                     timetableBlocks.forEach { block ->
+                        val course = plan.selectedCourses[block.serialNo]
                         TimetableForegroundCell(
                             block = block,
+                            onClick = course?.let { selectedCourse ->
+                                { onCourseClick(plan.semester, selectedCourse) }
+                            },
                             modifier =
                             Modifier
                                 .offset(
@@ -218,6 +225,7 @@ fun TimetableBackgroundCell() {
 fun TimetableForegroundCell(
     block: CourseTimetableBlock,
     modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
 ) {
     val containerColor =
         when (block.type) {
@@ -235,6 +243,15 @@ fun TimetableForegroundCell(
     Surface(
         modifier =
         modifier
+            .then(
+                onClick?.let { click ->
+                    Modifier.clickable(
+                        role = Role.Button,
+                        onClickLabel = "查看課程詳細資訊",
+                        onClick = click,
+                    )
+                } ?: Modifier,
+            )
             .padding(2.dp),
         shape = RoundedCornerShape(4.dp),
         color = containerColor,

@@ -73,6 +73,7 @@ fun CoursePlanningScreen(
             stateHolder.SaveableStateProvider(CoursePlanningView.TIMETABLE) {
                 CoursePlanningTimetableView(
                     uiState = planUiState,
+                    onCourseClick = onCourseClick,
                     modifier =
                     Modifier
                         .weight(TIMETABLE_WEIGHT)
@@ -154,6 +155,7 @@ private fun CompactCoursePlanningScreen(
                     CoursePlanningView.TIMETABLE -> {
                         CoursePlanningTimetableView(
                             uiState = state.planUiState,
+                            onCourseClick = state.onCourseClick,
                             modifier = Modifier.fillMaxSize(),
                         )
                     }
