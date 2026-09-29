@@ -117,41 +117,39 @@ private suspend fun loadCourseSummary(
     courseRepository: CourseRepository,
     semester: String,
     serialNumber: String,
-): CourseSummary? =
-    try {
-        courseRepository
-            .fetchCoursesBySerialNo(
-                semester = semester,
-                serialNos = listOf(CourseSerialNo(serialNumber)),
-            ).courses
-            .singleOrNull()
-    } catch (cause: CancellationException) {
-        throw cause
-    } catch (_: Exception) {
-        null
-    }
+): CourseSummary? = try {
+    courseRepository
+        .fetchCoursesBySerialNo(
+            semester = semester,
+            serialNos = listOf(CourseSerialNo(serialNumber)),
+        ).courses
+        .singleOrNull()
+} catch (cause: CancellationException) {
+    throw cause
+} catch (_: Exception) {
+    null
+}
 
 private suspend fun loadCourseDetails(
     courseRepository: CourseRepository,
     semester: String,
     serialNumber: String,
     summary: CourseSummary,
-): CourseDetailsLoadState.Content =
-    try {
-        CourseDetailsLoadState.Content(
-            summary = summary,
-            detail = courseRepository.fetchCourseDetail(semester, serialNumber),
-            isLoading = false,
-        )
-    } catch (cause: CancellationException) {
-        throw cause
-    } catch (_: Exception) {
-        CourseDetailsLoadState.Content(
-            summary = summary,
-            isLoading = false,
-            supplementalLoadFailed = true,
-        )
-    }
+): CourseDetailsLoadState.Content = try {
+    CourseDetailsLoadState.Content(
+        summary = summary,
+        detail = courseRepository.fetchCourseDetail(semester, serialNumber),
+        isLoading = false,
+    )
+} catch (cause: CancellationException) {
+    throw cause
+} catch (_: Exception) {
+    CourseDetailsLoadState.Content(
+        summary = summary,
+        isLoading = false,
+        supplementalLoadFailed = true,
+    )
+}
 
 private sealed interface CourseDetailsLoadState {
     data object Loading : CourseDetailsLoadState

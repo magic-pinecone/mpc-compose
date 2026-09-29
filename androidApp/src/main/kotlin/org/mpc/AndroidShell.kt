@@ -57,7 +57,6 @@ import org.mpc.domain.model.PortalLaunchMode
 import org.mpc.domain.repository.CourseRepository
 import org.mpc.navigation.AndroidNavigator
 import org.mpc.navigation.AppRoot
-import org.mpc.navigation.CourseDetailsRoute
 import org.mpc.navigation.CoursePlanningRoot
 import org.mpc.navigation.HomeRoot
 import org.mpc.navigation.NewsRoot
@@ -66,8 +65,6 @@ import org.mpc.navigation.PortalWebRoute
 import org.mpc.navigation.SettingsRoute
 import org.mpc.navigation.TopLevelRoute
 import org.mpc.navigation.rememberAndroidNavigationState
-import org.mpc.navigation.scene.BottomSheetSceneStrategy
-import org.mpc.presentation.CourseDetailsScreen
 import org.mpc.presentation.CoursePlanningScreen
 import org.mpc.presentation.CoursePlanningView
 import org.mpc.presentation.PortalScreen
@@ -158,8 +155,6 @@ private fun AndroidPrimaryNavigation(
         currentWindowAdaptiveInfo()
             .windowSizeClass
             .isWidthAtLeastBreakpoint(WIDTH_DP_MEDIUM_LOWER_BOUND)
-    val bottomSheetSceneStrategy = remember { BottomSheetSceneStrategy<NavKey>() }
-    val dialogSceneStrategy = remember { DialogSceneStrategy<NavKey>() }
     val entryProvider =
         entryProvider<NavKey> {
             entry<HomeRoot> {
@@ -197,30 +192,8 @@ private fun AndroidPrimaryNavigation(
                     modifier = Modifier.fillMaxSize(),
                     selectedView = selectedCoursePlanningView,
                     onSelectedViewChange = { view -> selectedCoursePlanningView = view },
-                    onSelectedCoursesChange = { courses -> selectedCourses = courses },
-                    onCourseClick = { semester, course ->
-                        navigationState.currentBackStack.removeAll { route ->
-                            route is CourseDetailsRoute
-                        }
-                        navigator.navigate(
-                            CourseDetailsRoute(
-                                semester = semester,
-                                serialNumber = course.serialNo.value,
-                            ),
-                        )
-                    },
-                )
-            }
-            entry<CourseDetailsRoute>(
-                metadata =
-                DialogSceneStrategy.dialog(
-                    DialogProperties(windowTitle = "課程詳細資訊"),
-                ) + BottomSheetSceneStrategy.bottomSheet(),
-            ) { route ->
-                CourseDetailsScreen(
-                    route = route,
                     courseRepository = courseRepository,
-                    onClose = { navigator.goBack() },
+                    onSelectedCoursesChange = { courses -> selectedCourses = courses },
                 )
             }
         }
@@ -266,12 +239,6 @@ private fun AndroidPrimaryNavigation(
                 NavDisplay(
                     entries = navigationState.toDecoratedEntries(entryProvider),
                     onBack = { navigator.goBack() },
-                    sceneStrategies =
-                    if (isExpanded) {
-                        listOf(dialogSceneStrategy)
-                    } else {
-                        listOf(bottomSheetSceneStrategy)
-                    },
                     modifier =
                     Modifier
                         .fillMaxSize()

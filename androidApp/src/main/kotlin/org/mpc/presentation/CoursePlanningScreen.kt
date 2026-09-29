@@ -18,8 +18,11 @@ import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.SaveableStateHolder
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
@@ -27,8 +30,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_MEDIUM_LOWER_BOUND
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import org.mpc.domain.model.CourseSummary
+import org.mpc.domain.repository.CourseRepository
 import org.mpc.presentation.state.CoursePlanUiState
 import org.mpc.presentation.viewModel.CoursePlanViewModel
+import org.mpc.presentation.views.courseDetails.CourseDetailsBottomSheet
+import org.mpc.presentation.views.courseDetails.CourseDetailsSelection
 import org.mpc.presentation.views.coursePlanning.CoursePlanningTimetableView
 
 @Composable
@@ -36,8 +42,8 @@ fun CoursePlanningScreen(
     modifier: Modifier = Modifier,
     selectedView: CoursePlanningView,
     onSelectedViewChange: (CoursePlanningView) -> Unit,
+    courseRepository: CourseRepository,
     onSelectedCoursesChange: (List<CourseSummary>) -> Unit = {},
-    onCourseClick: (semester: String, course: CourseSummary) -> Unit = { _, _ -> },
     planViewModel: CoursePlanViewModel = metroViewModel(),
 ) {
     val planUiState by planViewModel.uiState.collectAsStateWithLifecycle()
@@ -49,6 +55,11 @@ fun CoursePlanningScreen(
             ?.values
             ?.sortedBy { course -> course.title }
             .orEmpty()
+    var selectedCourseDetails by remember { mutableStateOf<CourseDetailsSelection?>(null) }
+    val onCourseClick: (semester: String, course: CourseSummary) -> Unit = { semester, course ->
+        selectedCourseDetails = CourseDetailsSelection(semester, course)
+    }
+
     SideEffect {
         onSelectedCoursesChange(selectedCourses)
     }
@@ -93,6 +104,15 @@ fun CoursePlanningScreen(
                 planUiState = planUiState,
                 onCourseClick = onCourseClick,
             ),
+        )
+    }
+
+    selectedCourseDetails?.let { selection ->
+        CourseDetailsBottomSheet(
+            selection = selection,
+            courseRepository = courseRepository,
+            onDismissRequest = { selectedCourseDetails = null },
+            planViewModel = planViewModel,
         )
     }
 }
