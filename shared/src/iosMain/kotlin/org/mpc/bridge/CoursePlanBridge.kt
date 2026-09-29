@@ -2,23 +2,24 @@ package org.mpc.bridge
 
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
+import org.mpc.domain.model.CourseSummary
 
 class CoursePlanBridge {
     private val requests = Channel<Unit>(Channel.BUFFERED)
     internal val saveRequests = requests.receiveAsFlow()
-    private var latestSelectedCourseCount = 0
-    private var selectedCourseCountObserver: ((Int) -> Unit)? = null
+    private var latestSelectedCourses: List<CourseSummary> = emptyList()
+    private var selectedCoursesObserver: ((List<CourseSummary>) -> Unit)? = null
 
-    fun observeSelectedCourseCount(observer: ((Int) -> Unit)?) {
-        selectedCourseCountObserver = observer
-        observer?.invoke(latestSelectedCourseCount)
+    fun observeSelectedCourses(observer: ((List<CourseSummary>) -> Unit)?) {
+        selectedCoursesObserver = observer
+        observer?.invoke(latestSelectedCourses)
     }
 
-    fun updateSelectedCourseCount(count: Int) {
-        if (latestSelectedCourseCount == count) return
+    fun updateSelectedCourses(courses: List<CourseSummary>) {
+        if (latestSelectedCourses == courses) return
 
-        latestSelectedCourseCount = count
-        selectedCourseCountObserver?.invoke(count)
+        latestSelectedCourses = courses
+        selectedCoursesObserver?.invoke(courses)
     }
 
     fun requestSave() {

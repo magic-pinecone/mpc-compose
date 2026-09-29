@@ -32,11 +32,16 @@ fun CourseCatalogViewBinding(
             is CoursePlanUiState.Failure -> emptySet()
             is CoursePlanUiState.Success -> current.plan.selectedCourses.keys
         }
+    val selectedCourses =
+        (planUiState as? CoursePlanUiState.Success)
+            ?.plan
+            ?.selectedCourses
+            ?.values
+            ?.sortedBy { course -> course.title }
+            .orEmpty()
 
     SideEffect {
-        (planUiState as? CoursePlanUiState.Success)?.let { current ->
-            planBridge.updateSelectedCourseCount(current.plan.selectedCourses.size)
-        }
+        planBridge.updateSelectedCourses(selectedCourses)
     }
 
     LaunchedEffect(bridge, searchViewModel) {

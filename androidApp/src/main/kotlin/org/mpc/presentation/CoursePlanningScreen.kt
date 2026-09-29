@@ -36,19 +36,21 @@ fun CoursePlanningScreen(
     modifier: Modifier = Modifier,
     selectedView: CoursePlanningView,
     onSelectedViewChange: (CoursePlanningView) -> Unit,
-    onSelectedCourseCountChange: (Int) -> Unit = {},
+    onSelectedCoursesChange: (List<CourseSummary>) -> Unit = {},
     onCourseClick: (semester: String, course: CourseSummary) -> Unit = { _, _ -> },
     planViewModel: CoursePlanViewModel = metroViewModel(),
 ) {
     val planUiState by planViewModel.uiState.collectAsStateWithLifecycle()
     val stateHolder = rememberSaveableStateHolder()
+    val selectedCourses =
+        (planUiState as? CoursePlanUiState.Success)
+            ?.plan
+            ?.selectedCourses
+            ?.values
+            ?.sortedBy { course -> course.title }
+            .orEmpty()
     SideEffect {
-        val selectedCourseCount =
-            (planUiState as? CoursePlanUiState.Success)
-                ?.plan
-                ?.selectedCourses
-                ?.size ?: 0
-        onSelectedCourseCountChange(selectedCourseCount)
+        onSelectedCoursesChange(selectedCourses)
     }
     val isExpanded =
         currentWindowAdaptiveInfo()

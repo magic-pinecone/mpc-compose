@@ -18,11 +18,16 @@ fun CoursePlanningTimetableViewBinding(planBridge: CoursePlanBridge) {
     val planViewModel: CoursePlanViewModel = metroViewModel()
 
     val planUiState by planViewModel.uiState.collectAsStateWithLifecycle()
+    val selectedCourses =
+        (planUiState as? CoursePlanUiState.Success)
+            ?.plan
+            ?.selectedCourses
+            ?.values
+            ?.sortedBy { course -> course.title }
+            .orEmpty()
 
     SideEffect {
-        (planUiState as? CoursePlanUiState.Success)?.let { current ->
-            planBridge.updateSelectedCourseCount(current.plan.selectedCourses.size)
-        }
+        planBridge.updateSelectedCourses(selectedCourses)
     }
 
     LaunchedEffect(planBridge, planViewModel) {

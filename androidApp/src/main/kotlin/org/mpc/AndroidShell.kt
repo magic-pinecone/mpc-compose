@@ -30,7 +30,6 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteItem
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -53,6 +52,7 @@ import androidx.navigation3.ui.NavDisplay
 import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_MEDIUM_LOWER_BOUND
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import org.mpc.di.AppGraph
+import org.mpc.domain.model.CourseSummary
 import org.mpc.domain.model.PortalLaunchMode
 import org.mpc.domain.repository.CourseRepository
 import org.mpc.navigation.AndroidNavigator
@@ -72,6 +72,7 @@ import org.mpc.presentation.CoursePlanningScreen
 import org.mpc.presentation.CoursePlanningView
 import org.mpc.presentation.PortalScreen
 import org.mpc.presentation.PortalWebScreen
+import org.mpc.presentation.SelectedCoursesBottomSheet
 import org.mpc.presentation.SettingsScreen
 import org.mpc.presentation.theme.AndroidMpcTheme
 import org.mpc.presentation.viewModel.AppSettingsViewModel
@@ -151,7 +152,8 @@ private fun AndroidPrimaryNavigation(
     val navigator = remember(navigationState) { AndroidNavigator(navigationState) }
     val uriHandler = LocalUriHandler.current
     var selectedCoursePlanningView by rememberSaveable { mutableStateOf(CoursePlanningView.CATALOG) }
-    var selectedCourseCount by rememberSaveable { mutableIntStateOf(0) }
+    var selectedCourses by remember { mutableStateOf(emptyList<CourseSummary>()) }
+    var isShowingSelectedCourses by rememberSaveable { mutableStateOf(false) }
     val isExpanded =
         currentWindowAdaptiveInfo()
             .windowSizeClass
@@ -195,7 +197,7 @@ private fun AndroidPrimaryNavigation(
                     modifier = Modifier.fillMaxSize(),
                     selectedView = selectedCoursePlanningView,
                     onSelectedViewChange = { view -> selectedCoursePlanningView = view },
-                    onSelectedCourseCountChange = { count -> selectedCourseCount = count },
+                    onSelectedCoursesChange = { courses -> selectedCourses = courses },
                     onCourseClick = { semester, course ->
                         navigationState.currentBackStack.removeAll { route ->
                             route is CourseDetailsRoute
@@ -247,7 +249,7 @@ private fun AndroidPrimaryNavigation(
                 selectedTopLevelRoute = navigationState.selectedTopLevelRoute,
                 isExpanded = isExpanded,
                 selectedCoursePlanningView = selectedCoursePlanningView,
-                selectedCourseCount = selectedCourseCount,
+                selectedCourseCount = selectedCourses.size,
             )
 
         Scaffold(
@@ -255,25 +257,34 @@ private fun AndroidPrimaryNavigation(
                 AndroidPrimaryTopBar(
                     state = topBarState,
                     onBack = { navigator.goBack() },
-                    onOpenCoursePlan = { selectedCoursePlanningView = CoursePlanningView.TIMETABLE },
+                    onOpenSelectedCourses = { isShowingSelectedCourses = true },
                     onOpenSettings = onOpenSettings,
                 )
             },
         ) { paddingValues ->
-            NavDisplay(
-                entries = navigationState.toDecoratedEntries(entryProvider),
-                onBack = { navigator.goBack() },
-                sceneStrategies =
-                if (isExpanded) {
-                    listOf(dialogSceneStrategy)
-                } else {
-                    listOf(bottomSheetSceneStrategy)
-                },
-                modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-            )
+            Box(modifier = Modifier.fillMaxSize()) {
+                NavDisplay(
+                    entries = navigationState.toDecoratedEntries(entryProvider),
+                    onBack = { navigator.goBack() },
+                    sceneStrategies =
+                    if (isExpanded) {
+                        listOf(dialogSceneStrategy)
+                    } else {
+                        listOf(bottomSheetSceneStrategy)
+                    },
+                    modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                )
+
+                if (isShowingSelectedCourses) {
+                    SelectedCoursesBottomSheet(
+                        courses = selectedCourses,
+                        onDismissRequest = { isShowingSelectedCourses = false },
+                    )
+                }
+            }
         }
     }
 }
@@ -283,7 +294,7 @@ private fun AndroidPrimaryNavigation(
 private fun AndroidPrimaryTopBar(
     state: PrimaryTopBarState,
     onBack: () -> Unit,
-    onOpenCoursePlan: () -> Unit,
+    onOpenSelectedCourses: () -> Unit,
     onOpenSettings: () -> Unit,
 ) {
     TopAppBar(
@@ -314,10 +325,10 @@ private fun AndroidPrimaryTopBar(
                             }
                         },
                     ) {
-                        FilledTonalIconButton(onClick = onOpenCoursePlan) {
+                        FilledTonalIconButton(onClick = onOpenSelectedCourses) {
                             Icon(
                                 imageVector = Icons.Default.ShoppingCart,
-                                contentDescription = "查看課表",
+                                contentDescription = "查看已選課程",
                             )
                         }
                     }
@@ -354,9 +365,7 @@ private data class PrimaryTopBarState(
 
     val showsCoursePlanAction: Boolean
         get() =
-            selectedTopLevelRoute == CoursePlanningRoot &&
-                !isExpanded &&
-                selectedCoursePlanningView == CoursePlanningView.CATALOG
+            selectedTopLevelRoute == CoursePlanningRoot
 }
 
 private const val MAX_COURSE_COUNT_BADGE = 99
