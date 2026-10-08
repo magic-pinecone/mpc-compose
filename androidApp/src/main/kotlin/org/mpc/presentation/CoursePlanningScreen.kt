@@ -1,141 +1,220 @@
 package org.mpc.presentation
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.ButtonGroup
+import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.layout.AdaptStrategy
+import androidx.compose.material3.adaptive.layout.AnimatedPane
+import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
+import androidx.compose.material3.adaptive.layout.SupportingPaneScaffold
+import androidx.compose.material3.adaptive.layout.SupportingPaneScaffoldDefaults
+import androidx.compose.material3.adaptive.layout.SupportingPaneScaffoldRole
+import androidx.compose.material3.adaptive.layout.ThreePaneScaffoldDestinationItem
+import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirectiveWithTwoPanesOnMediumWidth
+import androidx.compose.material3.adaptive.layout.calculateThreePaneScaffoldValue
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.SaveableStateHolder
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_MEDIUM_LOWER_BOUND
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import org.mpc.domain.model.CourseSummary
+import org.mpc.domain.repository.CourseRepository
 import org.mpc.presentation.state.CoursePlanUiState
 import org.mpc.presentation.viewModel.CoursePlanViewModel
+import org.mpc.presentation.views.courseDetails.CourseDetailsBottomSheet
+import org.mpc.presentation.views.courseDetails.CourseDetailsSelection
 import org.mpc.presentation.views.coursePlanning.CoursePlanningTimetableView
+import org.mpc.presentation.views.coursePlanning.SelectedCoursesBottomSheet
 
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun CoursePlanningScreen(
     modifier: Modifier = Modifier,
-    onCourseClick: (semester: String, course: CourseSummary) -> Unit = { _, _ -> },
+    selectedView: CoursePlanningView,
+    onSelectedViewChange: (CoursePlanningView) -> Unit,
+    courseRepository: CourseRepository,
+    onSelectedCoursesChange: (List<CourseSummary>) -> Unit = {},
+    isShowingSelectedCourses: Boolean = false,
+    onDismissSelectedCourses: () -> Unit = {},
+    isCompactCatalog: Boolean = false,
     planViewModel: CoursePlanViewModel = metroViewModel(),
 ) {
     val planUiState by planViewModel.uiState.collectAsStateWithLifecycle()
     val stateHolder = rememberSaveableStateHolder()
-    val isExpanded =
-        currentWindowAdaptiveInfo()
-            .windowSizeClass
-            .isWidthAtLeastBreakpoint(WIDTH_DP_MEDIUM_LOWER_BOUND)
+    val selectedCourses =
+        (planUiState as? CoursePlanUiState.Success)
+            ?.plan
+            ?.selectedCourses
+            ?.values
+            ?.sortedBy { course -> course.title }
+            .orEmpty()
+    var selectedCourseDetails by remember { mutableStateOf<CourseDetailsSelection?>(null) }
+    val onCourseClick: (semester: String, course: CourseSummary) -> Unit = { semester, course ->
+        selectedCourseDetails = CourseDetailsSelection(semester, course)
+    }
 
-    if (isExpanded) {
-        Row(modifier = modifier) {
-            stateHolder.SaveableStateProvider(CoursePlanningView.CATALOG) {
-                CourseCatalogScreen(
-                    modifier =
-                    Modifier
-                        .weight(CATALOG_WEIGHT)
-                        .fillMaxHeight(),
-                    planViewModel = planViewModel,
-                    onCourseClick = onCourseClick,
-                )
-            }
-            VerticalDivider()
-            stateHolder.SaveableStateProvider(CoursePlanningView.TIMETABLE) {
-                CoursePlanningTimetableView(
-                    uiState = planUiState,
-                    modifier =
-                    Modifier
-                        .weight(TIMETABLE_WEIGHT)
-                        .fillMaxHeight(),
-                )
-            }
-        }
+    SideEffect {
+        onSelectedCoursesChange(selectedCourses)
+    }
+    val adaptiveInfo = currentWindowAdaptiveInfo()
+    val isTabletop = adaptiveInfo.windowPosture.isTabletop
+    val directive = calculatePaneScaffoldDirectiveWithTwoPanesOnMediumWidth(adaptiveInfo).let {
+        it.copy(
+            maxHorizontalPartitions = if (isTabletop) 1 else it.maxHorizontalPartitions.coerceAtMost(2),
+            maxVerticalPartitions = if (isTabletop) 2 else 1,
+        )
+    }
+    val currentPane = if (isTabletop || selectedView == CoursePlanningView.TIMETABLE) {
+        SupportingPaneScaffoldRole.Supporting
     } else {
-        CompactCoursePlanningScreen(
-            modifier = modifier,
-            stateHolder = stateHolder,
+        SupportingPaneScaffoldRole.Main
+    }
+    val scaffoldValue = calculateThreePaneScaffoldValue(
+        maxHorizontalPartitions = directive.maxHorizontalPartitions,
+        maxVerticalPartitions = directive.maxVerticalPartitions,
+        adaptStrategies = SupportingPaneScaffoldDefaults.adaptStrategies(
+            mainPaneAdaptStrategy = if (isTabletop) {
+                AdaptStrategy.Reflow(SupportingPaneScaffoldRole.Supporting)
+            } else {
+                AdaptStrategy.Hide
+            },
+            supportingPaneAdaptStrategy = AdaptStrategy.Hide,
+        ),
+        currentDestination = ThreePaneScaffoldDestinationItem<Unit>(currentPane),
+    )
+    val showsBothPanes = scaffoldValue.primary != PaneAdaptedValue.Hidden &&
+        scaffoldValue.secondary != PaneAdaptedValue.Hidden
+
+    Column(modifier = modifier) {
+        if (!showsBothPanes) {
+            CoursePlanningSectionPicker(selectedView, onSelectedViewChange)
+        }
+        SupportingPaneScaffold(
+            modifier = Modifier.fillMaxWidth().weight(1f),
+            directive = directive,
+            value = scaffoldValue,
+            mainPane = {
+                AnimatedPane {
+                    CourseCatalogPane(
+                        modifier = Modifier.fillMaxSize(),
+                        stateHolder = stateHolder,
+                        isCompactCatalog = isCompactCatalog,
+                        planViewModel = planViewModel,
+                        onCourseClick = onCourseClick,
+                    )
+                }
+            },
+            supportingPane = {
+                AnimatedPane {
+                    CourseTimetablePane(
+                        modifier = Modifier.fillMaxSize(),
+                        stateHolder = stateHolder,
+                        planUiState = planUiState,
+                        onCourseClick = onCourseClick,
+                    )
+                }
+            },
+        )
+    }
+
+    selectedCourseDetails?.let { selection ->
+        CourseDetailsBottomSheet(
+            selection = selection,
+            courseRepository = courseRepository,
+            onDismissRequest = { selectedCourseDetails = null },
             planViewModel = planViewModel,
-            planUiState = planUiState,
+        )
+    }
+
+    if (isShowingSelectedCourses) {
+        SelectedCoursesBottomSheet(
+            courses = selectedCourses,
+            onDismissRequest = onDismissSelectedCourses,
+            onRemoveCourse = planViewModel::toggleCourse,
+            canEditPlan = planUiState is CoursePlanUiState.Success,
+        )
+    }
+}
+
+@Composable
+private fun CourseCatalogPane(
+    modifier: Modifier,
+    stateHolder: SaveableStateHolder,
+    isCompactCatalog: Boolean,
+    planViewModel: CoursePlanViewModel,
+    onCourseClick: (semester: String, course: CourseSummary) -> Unit,
+) {
+    stateHolder.SaveableStateProvider(CoursePlanningView.CATALOG) {
+        CourseCatalogScreen(
+            modifier = modifier,
+            isCompact = isCompactCatalog,
+            planViewModel = planViewModel,
             onCourseClick = onCourseClick,
         )
     }
 }
 
 @Composable
-private fun CompactCoursePlanningScreen(
+private fun CourseTimetablePane(
     modifier: Modifier,
     stateHolder: SaveableStateHolder,
-    planViewModel: CoursePlanViewModel,
     planUiState: CoursePlanUiState,
     onCourseClick: (semester: String, course: CourseSummary) -> Unit,
 ) {
-    var selectedView by rememberSaveable { mutableStateOf(CoursePlanningView.CATALOG) }
+    stateHolder.SaveableStateProvider(CoursePlanningView.TIMETABLE) {
+        CoursePlanningTimetableView(
+            uiState = planUiState,
+            onCourseClick = onCourseClick,
+            modifier = modifier,
+        )
+    }
+}
 
-    Column(modifier = modifier) {
-        Row(
-            modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            CoursePlanningView.entries.forEach { view ->
-                FilterChip(
-                    selected = selectedView == view,
-                    onClick = { selectedView = view },
-                    label = { Text(view.label) },
-                )
-            }
-        }
-        Box(
-            modifier =
-            Modifier
-                .fillMaxWidth()
-                .weight(1f),
-        ) {
-            stateHolder.SaveableStateProvider(selectedView) {
-                when (selectedView) {
-                    CoursePlanningView.CATALOG -> {
-                        CourseCatalogScreen(
-                            modifier = Modifier.fillMaxSize(),
-                            onCourseClick = onCourseClick,
-                            planViewModel = planViewModel,
-                        )
-                    }
-
-                    CoursePlanningView.TIMETABLE -> {
-                        CoursePlanningTimetableView(
-                            uiState = planUiState,
-                            modifier = Modifier.fillMaxSize(),
-                        )
-                    }
-                }
-            }
+@Composable
+private fun CoursePlanningSectionPicker(
+    selectedView: CoursePlanningView,
+    onSelectedViewChange: (CoursePlanningView) -> Unit,
+) {
+    ButtonGroup(
+        overflowIndicator = { menuState -> ButtonGroupDefaults.OverflowIndicator(menuState) },
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+    ) {
+        CoursePlanningView.entries.forEach { view ->
+            toggleableItem(
+                checked = selectedView == view,
+                onCheckedChange = { isChecked ->
+                    if (isChecked) onSelectedViewChange(view)
+                },
+                label = view.label,
+                icon = { Icon(imageVector = view.icon, contentDescription = null) },
+                weight = 1f,
+            )
         }
     }
 }
 
-private enum class CoursePlanningView(
+enum class CoursePlanningView(
     val label: String,
+    val title: String,
+    val icon: ImageVector,
 ) {
-    CATALOG("課程查詢"),
-    TIMETABLE("課表"),
+    CATALOG("搜尋", "課程搜尋", Icons.Default.Search),
+    TIMETABLE("課表", "我的課表", Icons.Default.DateRange),
 }
-
-private const val CATALOG_WEIGHT = 0.42f
-private const val TIMETABLE_WEIGHT = 0.58f
