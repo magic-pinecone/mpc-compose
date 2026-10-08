@@ -14,6 +14,7 @@ struct CoursePlanningView: View {
     @State private var planBridge = CoursePlanBridge()
     @State private var selectedCourses: [CourseSummary] = []
     @State private var canEditPlan = false
+    @State private var isShowingSelectedCourses = false
     @State private var courseDetailSelection: CourseDetailSelection?
     @AppStorage("courseCatalogCompactMode") private var isCompactCatalog = false
     @State private var catalogQuery = ""
@@ -72,6 +73,15 @@ struct CoursePlanningView: View {
             planBridge.observeSelectedCourses(observer: nil)
             planBridge.observeCourseDetailsRequest(observer: nil)
         }
+        .sheet(isPresented: $isShowingSelectedCourses) {
+            SelectedCoursesSheet(
+                planBridge: planBridge,
+                courses: selectedCourses,
+                canEditPlan: canEditPlan
+            )
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
+        }
         .sheet(item: $courseDetailSelection) { selection in
             CourseDetailSheet(
                 selection: selection,
@@ -90,6 +100,31 @@ struct CoursePlanningView: View {
                 Button("儲存") {
                     planBridge.requestSave()
                 }
+            }
+
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    isShowingSelectedCourses = true
+                } label: {
+                    Image(systemName: "cart")
+                        .overlay(alignment: .topTrailing) {
+                            if !selectedCourses.isEmpty {
+                                Text(
+                                    selectedCourses.count > 99 ? "99+" : "\(selectedCourses.count)"
+                                )
+                                .font(.system(size: 10, weight: .bold, design: .rounded))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 4)
+                                .frame(minWidth: 16, minHeight: 16)
+                                .background(.red, in: Capsule())
+                                .offset(x: 9, y: -8)
+                                .accessibilityHidden(true)
+                            }
+                        }
+                }
+                .accessibilityLabel("已選課程")
+                .accessibilityValue("\(selectedCourses.count) 門課")
+                .accessibilityHint("顯示目前已加入的課程")
             }
 
             if activeSection == .catalog {
