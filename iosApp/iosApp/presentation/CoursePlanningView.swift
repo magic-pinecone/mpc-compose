@@ -19,47 +19,82 @@ struct CoursePlanningView: View {
     @AppStorage("courseCatalogCompactMode") private var isCompactCatalog = false
     @State private var catalogQuery = ""
     @State private var catalogBridge = CourseSearchBridge()
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     private let semester = "115-1"
 
     var body: some View {
-        VStack(spacing: 12) {
-            Picker("選課檢視", selection: $activeSection) {
-                Text("搜尋").tag(Section.catalog)
-                Text("課表").tag(Section.timetable)
-            }
-            .pickerStyle(.segmented)
-            .accessibilityIdentifier("course-planning-section")
-            .padding(.horizontal)
-            .padding(.top, 8)
+        GeometryReader { geometry in
+            // Size classes support Duo's inner display; width also supports existing landscape layouts.
+            let isWide = horizontalSizeClass == .regular || geometry.size.width >= 600
+            let layout = CoursePlanningPaneLayout(
+                isExpanded: isWide,
+                division: geometry.coursePlanningDivision
+            )
 
-            // Retain both hosts so section changes preserve their controllers and loaded state.
-            ZStack {
-                CourseCatalogView(
-                    sharedHost: sharedHost,
-                    planBridge: planBridge,
-                    selectedCourses: selectedCourses,
-                    canEditPlan: canEditPlan,
-                    isCompact: isCompactCatalog,
-                    semester: semester,
-                    query: $catalogQuery,
-                    bridge: catalogBridge
-                )
-                .opacity(activeSection == .catalog ? 1 : 0)
-                .disabled(activeSection != .catalog)
-                .allowsHitTesting(activeSection == .catalog)
-                .accessibilityHidden(activeSection != .catalog)
+            VStack(spacing: isWide ? 0 : 12) {
+                if !isWide {
+                    Picker("選課檢視", selection: $activeSection) {
+                        Text("搜尋").tag(Section.catalog)
+                        Text("課表").tag(Section.timetable)
+                    }
+                    .pickerStyle(.segmented)
+                    .accessibilityIdentifier("course-planning-section")
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+                }
 
-                CoursePlanningTimetableView(
-                    sharedHost: sharedHost,
-                    planBridge: planBridge
-                )
-                .opacity(activeSection == .timetable ? 1 : 0)
-                .allowsHitTesting(activeSection == .timetable)
-                .accessibilityHidden(activeSection != .timetable)
+                // Retain both hosts while their frames adapt to the available regions.
+                layout {
+                    CourseCatalogView(
+                        sharedHost: sharedHost,
+                        planBridge: planBridge,
+                        selectedCourses: selectedCourses,
+                        canEditPlan: canEditPlan,
+                        isCompact: isCompactCatalog,
+                        semester: semester,
+                        query: $catalogQuery,
+                        bridge: catalogBridge
+                    )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .clipped()
+                    .opacity(isWide || activeSection == .catalog ? 1 : 0)
+                    .disabled(!isWide && activeSection != .catalog)
+                    .allowsHitTesting(isWide || activeSection == .catalog)
+                    .accessibilityHidden(!isWide && activeSection != .catalog)
+
+                    Color(uiColor: .separator)
+                        .allowsHitTesting(false)
+                        .accessibilityHidden(true)
+
+                    CoursePlanningTimetableView(
+                        sharedHost: sharedHost,
+                        planBridge: planBridge
+                    )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .clipped()
+                    .opacity(isWide || activeSection == .timetable ? 1 : 0)
+                    .allowsHitTesting(isWide || activeSection == .timetable)
+                    .accessibilityHidden(!isWide && activeSection != .timetable)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .navigationTitle(isWide ? "選課" : (activeSection == .catalog ? "課程搜尋" : "我的課表"))
+            .toolbar {
+                if isWide || activeSection == .catalog {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Menu {
+                            Toggle(
+                                "精簡課程卡片", systemImage: "rectangle.compress.vertical",
+                                isOn: $isCompactCatalog
+                            )
+                        } label: {
+                            Label("顯示選項", systemImage: "slider.horizontal.3")
+                        }
+                        .accessibilityIdentifier("course-display-options")
+                    }
+                }
+            }
         }
-        .navigationTitle(activeSection == .catalog ? "課程搜尋" : "我的課表")
         .onAppear {
             planBridge.observeSelectedCourses(observer: { courses in
                 selectedCourses = courses
@@ -97,7 +132,7 @@ struct CoursePlanningView: View {
         }
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
-                Button("儲存") {
+                Button("儲存", systemImage: "square.and.arrow.down") {
                     planBridge.requestSave()
                 }
             }
@@ -106,39 +141,12 @@ struct CoursePlanningView: View {
                 Button {
                     isShowingSelectedCourses = true
                 } label: {
-                    Image(systemName: "cart")
-                        .overlay(alignment: .topTrailing) {
-                            if !selectedCourses.isEmpty {
-                                Text(
-                                    selectedCourses.count > 99 ? "99+" : "\(selectedCourses.count)"
-                                )
-                                .font(.system(size: 10, weight: .bold, design: .rounded))
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 4)
-                                .frame(minWidth: 16, minHeight: 16)
-                                .background(.red, in: Capsule())
-                                .offset(x: 9, y: -8)
-                                .accessibilityHidden(true)
-                            }
-                        }
+                    Label("已選課程", systemImage: "cart")
                 }
+                .badge(selectedCourses.count)
                 .accessibilityLabel("已選課程")
                 .accessibilityValue("\(selectedCourses.count) 門課")
                 .accessibilityHint("顯示目前已加入的課程")
-            }
-
-            if activeSection == .catalog {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Menu {
-                        Toggle(
-                            "精簡課程卡片", systemImage: "rectangle.compress.vertical",
-                            isOn: $isCompactCatalog
-                        )
-                    } label: {
-                        Label("顯示選項", systemImage: "ellipsis")
-                    }
-                    .accessibilityIdentifier("course-display-options")
-                }
             }
         }
     }
