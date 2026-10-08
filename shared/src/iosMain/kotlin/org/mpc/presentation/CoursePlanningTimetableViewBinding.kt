@@ -45,5 +45,8 @@ fun CoursePlanningTimetableViewBinding(planBridge: CoursePlanBridge) {
     CoursePlanningTimetableView(
         uiState = planUiState,
         modifier = Modifier.fillMaxSize(),
+        onCourseClick = { semester, course ->
+            planBridge.requestCourseDetails(semester, course)
+        },
     )
 }

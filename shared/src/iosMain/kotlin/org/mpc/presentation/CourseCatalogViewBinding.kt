@@ -88,6 +88,9 @@ fun CourseCatalogViewBinding(
         modifier = Modifier.fillMaxSize(),
         uiState = searchUiState.result,
         selectedCourseSerialNumbers = selectedCourses.map { it.serialNo }.toSet(),
+        onCourseClick = { course ->
+            planBridge.requestCourseDetails(semester = searchUiState.semester, course = course)
+        },
         onToggleCourse = planViewModel::toggleCourse,
     )
 }
