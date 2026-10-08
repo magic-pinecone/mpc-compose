@@ -59,7 +59,10 @@ class IosSharedHost internal constructor(
     fun coursePlanningTimetableScreenController(planBridge: CoursePlanBridge): UIViewController = ComposeUIViewController {
         ProvideAppDependencies(appGraph) {
             ThemedContent {
-                CoursePlanningTimetableViewBinding(planBridge)
+                CoursePlanningTimetableViewBinding(
+                    planBridge = planBridge,
+                    draftStore = appGraph.coursePlanDraftStore,
+                )
             }
         }
     }

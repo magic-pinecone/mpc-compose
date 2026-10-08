@@ -1,11 +1,9 @@
 package org.mpc.presentation
 
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import org.mpc.bridge.CourseCatalogSnapshot
@@ -16,7 +14,6 @@ import org.mpc.presentation.state.CourseSearchError
 import org.mpc.presentation.state.CourseSearchResultUiState
 import org.mpc.presentation.viewModel.CoursePlanViewModel
 import org.mpc.presentation.viewModel.CourseSearchViewModel
-import org.mpc.presentation.views.coursePlanning.CourseSearchResultView
 
 @Composable
 fun CourseCatalogViewBinding(
@@ -83,14 +80,4 @@ fun CourseCatalogViewBinding(
             planViewModel.toggleCourse(course)
         }
     }
-
-    CourseSearchResultView(
-        modifier = Modifier.fillMaxSize(),
-        uiState = searchUiState.result,
-        selectedCourseSerialNumbers = selectedCourses.map { it.serialNo }.toSet(),
-        onCourseClick = { course ->
-            planBridge.requestCourseDetails(semester = searchUiState.semester, course = course)
-        },
-        onToggleCourse = planViewModel::toggleCourse,
-    )
 }
