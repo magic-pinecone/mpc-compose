@@ -17,6 +17,7 @@ import org.mpc.core.createDatabaseBuilder
 import org.mpc.di.AppGraph
 import org.mpc.di.createAppGraph
 import org.mpc.domain.model.AppThemeMode
+import org.mpc.domain.model.CourseDetail
 import org.mpc.domain.model.PortalShortcutDestination
 import org.mpc.presentation.CourseCatalogViewBinding
 import org.mpc.presentation.CoursePlanningTimetableViewBinding
@@ -30,6 +31,12 @@ import platform.UIKit.UIViewController
 class IosSharedHost internal constructor(
     private val appGraph: AppGraph,
 ) {
+    @Throws(Exception::class)
+    suspend fun loadCourseDetail(
+        semester: String,
+        serialNumber: String,
+    ): CourseDetail = appGraph.courseRepository.fetchCourseDetail(semester, serialNumber)
+
     private var latestThemeMode = AppThemeMode.SYSTEM
     private var themeModeObserver: ((AppThemeMode) -> Unit)? = null
 
@@ -52,7 +59,10 @@ class IosSharedHost internal constructor(
     fun coursePlanningTimetableScreenController(planBridge: CoursePlanBridge): UIViewController = ComposeUIViewController {
         ProvideAppDependencies(appGraph) {
             ThemedContent {
-                CoursePlanningTimetableViewBinding(planBridge)
+                CoursePlanningTimetableViewBinding(
+                    planBridge = planBridge,
+                    draftStore = appGraph.coursePlanDraftStore,
+                )
             }
         }
     }

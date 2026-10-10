@@ -33,6 +33,7 @@ dependencies {
     implementation(libs.compose.materialIconsCore)
     implementation(libs.compose.material3)
     implementation(libs.compose.material3AdaptiveNavigationSuite)
+    implementation(libs.androidx.material3AdaptiveLayout)
 
     implementation(libs.compose.uiToolingPreview)
     debugImplementation(libs.compose.uiTooling)

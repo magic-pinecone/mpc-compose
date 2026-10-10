@@ -17,7 +17,10 @@ data class CourseSummary(
     val departmentName: String,
     val courseType: CourseType,
     val detailUrl: String,
-)
+) {
+    // A scalar identity for native clients; value classes export as opaque objects.
+    val serialNumber: String get() = serialNo.value
+}
 
 enum class PasswordCardType(
     val description: String,

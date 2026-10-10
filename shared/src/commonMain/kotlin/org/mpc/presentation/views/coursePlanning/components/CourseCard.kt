@@ -14,9 +14,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -25,11 +28,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.mohamedrejeb.calf.ui.button.AdaptiveButton
+import com.mohamedrejeb.calf.ui.button.AdaptiveIconButton
+import com.mohamedrejeb.calf.ui.button.LiquidGlassButtonColors
 import com.mohamedrejeb.calf.ui.gesture.adaptiveClickable
 import org.mpc.domain.model.CourseDay
 import org.mpc.domain.model.CoursePeriod
@@ -51,81 +59,115 @@ fun CourseCard(
     isSelected: Boolean,
     onCardClick: () -> Unit = {},
     onButtonClick: () -> Unit = {},
+    isCompact: Boolean = false,
+    canEditPlan: Boolean = true,
 ) {
-    val cardShape = RoundedCornerShape(12.dp)
+    val cardShape = MaterialTheme.shapes.large
 
     Surface(
         modifier =
-        modifier.adaptiveClickable(
+        modifier.semantics {
+            stateDescription = if (isSelected) "已加入課表" else "尚未加入課表"
+        }.adaptiveClickable(
             shape = cardShape,
             role = Role.Button,
             onClick = onCardClick,
         ),
         shape = cardShape,
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        color =
+        if (isSelected) {
+            MaterialTheme.colorScheme.surfaceContainerHigh
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerLow
+        },
+        border =
+        BorderStroke(
+            1.dp,
+            if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+        ),
     ) {
-        Column(
-            modifier = Modifier.padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.Top,
+        if (isCompact) {
+            CompactCourseCardContent(
+                courseSummary = courseSummary,
+                isSelected = isSelected,
+                canEditPlan = canEditPlan,
+                onToggleSelection = onButtonClick,
+            )
+        } else {
+            Column(
+                modifier = Modifier.padding(14.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.Top,
+                ) {
+                    Text(
+                        text = courseSummary.title,
+                        modifier = Modifier.weight(1f),
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    CourseTypeBadge(courseSummary.courseType, isCompact = false)
+                }
                 Text(
-                    text = courseSummary.title,
-                    modifier = Modifier.weight(1f),
+                    text = courseSummary.primaryMetadataText(),
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                )
-                Spacer(Modifier.width(8.dp))
-                CourseTypeBadge(courseSummary.courseType)
-            }
-
-            Text(
-                text = courseSummary.informationText(),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.horizontalScroll(rememberScrollState()),
-            )
-
-            CourseInfoRail(courseSummary)
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    imageVector = schedule,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                    tint = MaterialTheme.colorScheme.primary,
-                )
-                Spacer(Modifier.width(6.dp))
-                Text(
-                    text = courseSummary.scheduleText(),
-                    modifier = Modifier.weight(1f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                Spacer(Modifier.width(8.dp))
-                AdaptiveButton(
-                    onClick = onButtonClick,
-                    modifier = Modifier.heightIn(min = 40.dp),
-                    colors =
-                    ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                        contentColor = MaterialTheme.colorScheme.onSurface,
-                    ),
-                    contentPadding = ButtonDefaults.ContentPadding,
+
+                CourseInfoRail(courseSummary)
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(if (isSelected) "移除" else "加入")
+                    Icon(
+                        imageVector = schedule,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        text = courseSummary.scheduleText(),
+                        modifier = Modifier.weight(1f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    AdaptiveButton(
+                        onClick = onButtonClick,
+                        enabled = canEditPlan,
+                        modifier = Modifier.heightIn(min = 48.dp).semantics {
+                            contentDescription = courseSummary.selectionActionDescription(isSelected)
+                        },
+                        colors =
+                        if (isSelected) {
+                            ButtonDefaults.filledTonalButtonColors()
+                        } else {
+                            ButtonDefaults.buttonColors()
+                        },
+                        liquidGlassColors = if (isSelected) {
+                            LiquidGlassButtonColors(
+                                tintColor = MaterialTheme.colorScheme.secondaryContainer,
+                                surfaceColor = MaterialTheme.colorScheme.secondaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                disabledContentColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.4f),
+                            )
+                        } else {
+                            null
+                        },
+                        contentPadding = ButtonDefaults.ContentPadding,
+                    ) {
+                        Text(if (isSelected) "移除" else "加入")
+                    }
                 }
             }
         }
@@ -133,22 +175,61 @@ fun CourseCard(
 }
 
 @Composable
-private fun CourseTypeBadge(courseType: CourseType) {
+internal fun CourseTypeBadge(
+    courseType: CourseType,
+    isCompact: Boolean,
+) {
     Box(
         modifier =
         Modifier
             .background(
                 color = MaterialTheme.colorScheme.secondaryContainer,
-                shape = RoundedCornerShape(8.dp),
-            ).padding(horizontal = 10.dp, vertical = 5.dp),
+                shape = MaterialTheme.shapes.small,
+            ).padding(horizontal = if (isCompact) 8.dp else 10.dp, vertical = if (isCompact) 3.dp else 5.dp),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = courseType.description,
-            maxLines = 1,
-            style = MaterialTheme.typography.labelMedium,
+            maxLines = if (isCompact) 1 else 2,
+            style = if (isCompact) MaterialTheme.typography.labelSmall else MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSecondaryContainer,
             fontWeight = FontWeight.Medium,
+        )
+    }
+}
+
+@Composable
+internal fun CompactCourseSelectionControl(
+    isSelected: Boolean,
+    canEditPlan: Boolean,
+    courseSummary: CourseSummary,
+    onClick: () -> Unit,
+) {
+    AdaptiveIconButton(
+        onClick = onClick,
+        enabled = canEditPlan,
+        modifier = Modifier.size(48.dp).semantics {
+            contentDescription = courseSummary.selectionActionDescription(isSelected)
+        },
+        colors = if (isSelected) {
+            IconButtonDefaults.filledTonalIconButtonColors()
+        } else {
+            IconButtonDefaults.iconButtonColors()
+        },
+        liquidGlassColors = if (isSelected) {
+            LiquidGlassButtonColors(
+                tintColor = MaterialTheme.colorScheme.secondaryContainer,
+                surfaceColor = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                disabledContentColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.4f),
+            )
+        } else {
+            null
+        },
+    ) {
+        Icon(
+            imageVector = if (isSelected) Icons.Default.Remove else Icons.Default.Add,
+            contentDescription = null,
         )
     }
 }
@@ -187,7 +268,7 @@ private fun CourseInfoBadge(
         Modifier
             .background(
                 color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                shape = RoundedCornerShape(6.dp),
+                shape = MaterialTheme.shapes.extraSmall,
             ).padding(horizontal = 8.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -211,13 +292,18 @@ private fun CourseInfoBadge(
 /*
     Some helper function to give the information on the card
  */
-private fun CourseSummary.teacherText(): String = teachers.joinToString(separator = "、")
+private fun CourseSummary.selectionActionDescription(isSelected: Boolean): String = if (isSelected) {
+    "從課表移除 $title"
+} else {
+    "加入課表 $title"
+}
 
-private fun CourseSummary.informationText(): String = listOf(
-    classNo,
-    "${credit.toInt()} 學分",
-    teacherText(),
-).joinToString(separator = " · ")
+private fun CourseSummary.primaryMetadataText(): String {
+    val instructorText = teachers.filter { it.isNotBlank() }.joinToString("、").ifBlank { "未提供授課教師" }
+    return listOf(classNo, "${credit.toString().removeSuffix(".0")} 學分", instructorText)
+        .filter { it.isNotBlank() }
+        .joinToString(" · ")
+}
 
 private fun CourseSummary.departmentText(): String = "$collegeName / $departmentName"
 
@@ -229,8 +315,16 @@ private fun CourseSummary.enrollmentText(): String = if (waitCnt > 0) {
 
 private fun CourseSummary.passwordText(): String = passwordCard.description
 
-private fun CourseSummary.scheduleText(): String = classTimes.joinToString(separator = "、") {
-    "${it.day.code}-${it.period.description}"
+internal fun CourseSummary.scheduleText(): String {
+    val scheduleSlots = classTimes
+        .filter { time -> time.day != CourseDay.UNKNOWN }
+        .distinct()
+        .sortedWith(compareBy<CourseTime> { time -> time.day.order }.thenBy { time -> time.period.order })
+    if (scheduleSlots.isEmpty()) return "未提供上課時間"
+
+    return scheduleSlots.joinToString("、") { time ->
+        "${time.day.code}-${time.period.description}"
+    }
 }
 
 @Composable
