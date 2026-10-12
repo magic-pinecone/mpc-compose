@@ -139,6 +139,7 @@ fun CoursePlanningTimetableSuccessView(
                             ) {
                                 Text(
                                     text = it.description,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     style = MaterialTheme.typography.labelMedium,
                                 )
                             }
@@ -171,6 +172,7 @@ fun CoursePlanningTimetableSuccessView(
                             ) {
                                 Text(
                                     text = it.description,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     style = MaterialTheme.typography.labelSmall,
                                     textAlign = TextAlign.Center,
                                 )
