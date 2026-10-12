@@ -1,5 +1,6 @@
 package org.mpc.presentation.views.coursePlanning
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -23,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -45,13 +47,14 @@ import org.mpc.presentation.theme.MpcTheme
 fun CoursePlanningTimetableSuccessView(
     plan: CoursePlan,
     modifier: Modifier,
+    onCourseClick: (semester: String, course: CourseSummary) -> Unit = { _, _ -> },
 ) {
-    val columns = 5
     val rows = CoursePeriod.entries.size
-    val timetableBlocks =
-        plan
-            .toTimetableBlocks()
-            .filter { it.time.day.order <= columns }
+    val timetableBlocks = plan.toTimetableBlocks()
+    val columns = timetableBlocks.maxOfOrNull { it.time.day.order }?.coerceAtLeast(5) ?: 5
+    val coursesWithoutTime = plan.selectedCourses.values.count { course ->
+        course.classTimes.none { it.day != CourseDay.UNKNOWN }
+    }
 
     Box(
         modifier =
@@ -61,6 +64,15 @@ fun CoursePlanningTimetableSuccessView(
         Column(
             modifier = Modifier.fillMaxSize(),
         ) {
+            if (coursesWithoutTime > 0) {
+                Text(
+                    text = "$coursesWithoutTime 門課程尚無上課時間，可在已選課程中查看。",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 8.dp),
+                )
+            }
+
             Row {
                 Spacer(modifier = Modifier.width(16.dp))
                 Row(
@@ -135,8 +147,12 @@ fun CoursePlanningTimetableSuccessView(
                     }
 
                     timetableBlocks.forEach { block ->
+                        val course = plan.selectedCourses[block.serialNo]
                         TimetableForegroundCell(
                             block = block,
+                            onClick = course?.let { selectedCourse ->
+                                { onCourseClick(plan.semester, selectedCourse) }
+                            },
                             modifier =
                             Modifier
                                 .offset(
@@ -149,7 +165,7 @@ fun CoursePlanningTimetableSuccessView(
 
                     if (plan.selectedCourses.isEmpty()) {
                         Text(
-                            text = "尚未加入課程",
+                            text = "搜尋課程並加入，開始安排課表",
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.align(Alignment.Center),
@@ -218,6 +234,7 @@ fun TimetableBackgroundCell() {
 fun TimetableForegroundCell(
     block: CourseTimetableBlock,
     modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
 ) {
     val containerColor =
         when (block.type) {
@@ -235,6 +252,15 @@ fun TimetableForegroundCell(
     Surface(
         modifier =
         modifier
+            .then(
+                onClick?.let { click ->
+                    Modifier.clickable(
+                        role = Role.Button,
+                        onClickLabel = "查看課程詳細資訊",
+                        onClick = click,
+                    )
+                } ?: Modifier,
+            )
             .padding(2.dp),
         shape = RoundedCornerShape(4.dp),
         color = containerColor,

@@ -6,6 +6,7 @@ struct SettingsView: View {
 
     var body: some View {
         SettingsComposeView(sharedHost: sharedHost)
+            .ignoresSafeArea(.container, edges: .bottom)
             .navigationTitle("設定")
     }
 }

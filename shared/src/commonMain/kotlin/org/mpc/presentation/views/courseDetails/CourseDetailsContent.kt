@@ -1,4 +1,4 @@
-package org.mpc.presentation
+package org.mpc.presentation.views.courseDetails
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -19,71 +19,27 @@ import org.mpc.domain.model.CourseDetail
 import org.mpc.domain.model.CourseSerialNo
 import org.mpc.domain.model.CourseSummary
 import org.mpc.domain.repository.CourseRepository
-import org.mpc.navigation.CourseDetailsRoute
 import org.mpc.presentation.state.CoursePlanUiState
 import org.mpc.presentation.viewModel.CoursePlanViewModel
-import org.mpc.presentation.views.courseDetails.CourseDetailsActions
-import org.mpc.presentation.views.courseDetails.CourseDetailsUiState
-import org.mpc.presentation.views.courseDetails.CourseDetailsView
 
 @Composable
-fun CourseDetailsScreen(
-    route: CourseDetailsRoute,
+fun CourseDetailsContent(
+    semester: String,
+    serialNumber: String,
     courseRepository: CourseRepository,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
+    initialSummary: CourseSummary? = null,
     planViewModel: CoursePlanViewModel = metroViewModel(),
 ) {
-    var loadState by remember(route) { mutableStateOf<CourseDetailsLoadState>(CourseDetailsLoadState.Loading) }
-    var retryRequest by remember(route) { mutableIntStateOf(0) }
+    val (loadState, onRetry) =
+        rememberCourseDetailsLoadState(
+            semester = semester,
+            serialNumber = serialNumber,
+            initialSummary = initialSummary,
+            courseRepository = courseRepository,
+        )
     val planUiState by planViewModel.uiState.collectAsStateWithLifecycle()
-
-    LaunchedEffect(route, retryRequest) {
-        var summary = (loadState as? CourseDetailsLoadState.Content)?.summary
-        if (summary == null) {
-            loadState = CourseDetailsLoadState.Loading
-            summary =
-                try {
-                    courseRepository
-                        .fetchCoursesBySerialNo(
-                            semester = route.semester,
-                            serialNos = listOf(CourseSerialNo(route.serialNumber)),
-                        ).courses
-                        .singleOrNull()
-                } catch (cause: CancellationException) {
-                    throw cause
-                } catch (_: Exception) {
-                    null
-                }
-
-            if (summary == null) {
-                loadState = CourseDetailsLoadState.Unavailable
-                return@LaunchedEffect
-            }
-        }
-
-        loadState = CourseDetailsLoadState.Content(summary = summary)
-        loadState =
-            try {
-                CourseDetailsLoadState.Content(
-                    summary = summary,
-                    detail =
-                    courseRepository.fetchCourseDetail(
-                        semester = route.semester,
-                        serialNo = route.serialNumber,
-                    ),
-                    isLoading = false,
-                )
-            } catch (cause: CancellationException) {
-                throw cause
-            } catch (_: Exception) {
-                CourseDetailsLoadState.Content(
-                    summary = summary,
-                    isLoading = false,
-                    supplementalLoadFailed = true,
-                )
-            }
-    }
 
     val content = loadState as? CourseDetailsLoadState.Content
     val isSelected =
@@ -107,13 +63,14 @@ fun CourseDetailsScreen(
                 else -> null
             },
             isSelected = isSelected,
+            canEditPlan = planUiState is CoursePlanUiState.Success,
         ),
         actions =
         CourseDetailsActions(
             onToggleCourse = {
                 content?.summary?.let(planViewModel::toggleCourse)
             },
-            onRetry = { retryRequest++ },
+            onRetry = onRetry,
             onClose = onClose,
         ),
         modifier =
@@ -121,6 +78,77 @@ fun CourseDetailsScreen(
             .fillMaxWidth()
             .widthIn(max = 640.dp)
             .heightIn(max = 720.dp),
+    )
+}
+
+@Composable
+private fun rememberCourseDetailsLoadState(
+    semester: String,
+    serialNumber: String,
+    initialSummary: CourseSummary?,
+    courseRepository: CourseRepository,
+): Pair<CourseDetailsLoadState, () -> Unit> {
+    var loadState by remember(semester, serialNumber) {
+        mutableStateOf<CourseDetailsLoadState>(
+            initialSummary?.let(CourseDetailsLoadState::Content) ?: CourseDetailsLoadState.Loading,
+        )
+    }
+    var retryRequest by remember(semester, serialNumber) { mutableIntStateOf(0) }
+
+    LaunchedEffect(semester, serialNumber, initialSummary, retryRequest) {
+        var summary = initialSummary ?: (loadState as? CourseDetailsLoadState.Content)?.summary
+        if (summary == null) {
+            loadState = CourseDetailsLoadState.Loading
+            summary = loadCourseSummary(courseRepository, semester, serialNumber)
+        }
+
+        if (summary == null) {
+            loadState = CourseDetailsLoadState.Unavailable
+            return@LaunchedEffect
+        }
+
+        loadState = CourseDetailsLoadState.Content(summary = summary)
+        loadState = loadCourseDetails(courseRepository, semester, serialNumber, summary)
+    }
+
+    return loadState to { retryRequest++ }
+}
+
+private suspend fun loadCourseSummary(
+    courseRepository: CourseRepository,
+    semester: String,
+    serialNumber: String,
+): CourseSummary? = try {
+    courseRepository
+        .fetchCoursesBySerialNo(
+            semester = semester,
+            serialNos = listOf(CourseSerialNo(serialNumber)),
+        ).courses
+        .singleOrNull()
+} catch (cause: CancellationException) {
+    throw cause
+} catch (_: Exception) {
+    null
+}
+
+private suspend fun loadCourseDetails(
+    courseRepository: CourseRepository,
+    semester: String,
+    serialNumber: String,
+    summary: CourseSummary,
+): CourseDetailsLoadState.Content = try {
+    CourseDetailsLoadState.Content(
+        summary = summary,
+        detail = courseRepository.fetchCourseDetail(semester, serialNumber),
+        isLoading = false,
+    )
+} catch (cause: CancellationException) {
+    throw cause
+} catch (_: Exception) {
+    CourseDetailsLoadState.Content(
+        summary = summary,
+        isLoading = false,
+        supplementalLoadFailed = true,
     )
 }
 

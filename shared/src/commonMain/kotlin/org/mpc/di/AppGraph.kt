@@ -9,10 +9,12 @@ import dev.zacsweers.metro.createGraphFactory
 import dev.zacsweers.metrox.viewmodel.ViewModelGraph
 import org.mpc.data.local.database.AppDatabase
 import org.mpc.domain.repository.CourseRepository
+import org.mpc.presentation.state.CoursePlanDraftStore
 
 @DependencyGraph(AppScope::class)
 interface AppGraph : ViewModelGraph {
     val courseRepository: CourseRepository
+    val coursePlanDraftStore: CoursePlanDraftStore
 
     @DependencyGraph.Factory
     fun interface Factory {

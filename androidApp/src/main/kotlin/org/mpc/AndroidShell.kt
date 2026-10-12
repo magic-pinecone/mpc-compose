@@ -8,30 +8,50 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteItem
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -45,11 +65,11 @@ import androidx.navigation3.ui.NavDisplay
 import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_MEDIUM_LOWER_BOUND
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import org.mpc.di.AppGraph
+import org.mpc.domain.model.CourseSummary
 import org.mpc.domain.model.PortalLaunchMode
 import org.mpc.domain.repository.CourseRepository
 import org.mpc.navigation.AndroidNavigator
 import org.mpc.navigation.AppRoot
-import org.mpc.navigation.CourseDetailsRoute
 import org.mpc.navigation.CoursePlanningRoot
 import org.mpc.navigation.HomeRoot
 import org.mpc.navigation.NewsRoot
@@ -58,14 +78,15 @@ import org.mpc.navigation.PortalWebRoute
 import org.mpc.navigation.SettingsRoute
 import org.mpc.navigation.TopLevelRoute
 import org.mpc.navigation.rememberAndroidNavigationState
-import org.mpc.navigation.scene.BottomSheetSceneStrategy
-import org.mpc.presentation.CourseDetailsScreen
 import org.mpc.presentation.CoursePlanningScreen
+import org.mpc.presentation.CoursePlanningView
 import org.mpc.presentation.PortalScreen
 import org.mpc.presentation.PortalWebScreen
 import org.mpc.presentation.SettingsScreen
-import org.mpc.presentation.theme.MpcTheme
+import org.mpc.presentation.state.CoursePlanUiState
+import org.mpc.presentation.theme.AndroidMpcTheme
 import org.mpc.presentation.viewModel.AppSettingsViewModel
+import org.mpc.presentation.viewModel.CoursePlanViewModel
 
 @Composable
 fun AndroidAppShell(appGraph: AppGraph) {
@@ -112,7 +133,7 @@ private fun AndroidAppContent(appGraph: AppGraph) {
             }
         }
 
-    MpcTheme(themeMode = settings.themeMode) {
+    AndroidMpcTheme(themeMode = settings.themeMode) {
         NavDisplay(
             backStack = appBackStack,
             onBack = { appBackStack.removeLastOrNull() },
@@ -141,12 +162,28 @@ private fun AndroidPrimaryNavigation(
     val navigationState = rememberAndroidNavigationState()
     val navigator = remember(navigationState) { AndroidNavigator(navigationState) }
     val uriHandler = LocalUriHandler.current
+    val planViewModel: CoursePlanViewModel = metroViewModel()
+    val planUiState by planViewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+    val displayPreferences = remember(context) {
+        context.getSharedPreferences("course_catalog_display", android.content.Context.MODE_PRIVATE)
+    }
+    var isCompactCatalog by rememberSaveable {
+        mutableStateOf(displayPreferences.getBoolean("compact", false))
+    }
+    LaunchedEffect(planViewModel) {
+        planViewModel.saveResult.collect { saved ->
+            snackbarHostState.showSnackbar(if (saved) "課表已儲存" else "課表儲存失敗，請重試")
+        }
+    }
+    var selectedCoursePlanningView by rememberSaveable { mutableStateOf(CoursePlanningView.CATALOG) }
+    var selectedCourses by remember { mutableStateOf(emptyList<CourseSummary>()) }
+    var isShowingSelectedCourses by rememberSaveable { mutableStateOf(false) }
+    val adaptiveInfo = currentWindowAdaptiveInfo()
     val isExpanded =
-        currentWindowAdaptiveInfo()
-            .windowSizeClass
-            .isWidthAtLeastBreakpoint(WIDTH_DP_MEDIUM_LOWER_BOUND)
-    val bottomSheetSceneStrategy = remember { BottomSheetSceneStrategy<NavKey>() }
-    val dialogSceneStrategy = remember { DialogSceneStrategy<NavKey>() }
+        adaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(WIDTH_DP_MEDIUM_LOWER_BOUND) ||
+            adaptiveInfo.windowPosture.isTabletop
     val entryProvider =
         entryProvider<NavKey> {
             entry<HomeRoot> {
@@ -182,29 +219,14 @@ private fun AndroidPrimaryNavigation(
             entry<CoursePlanningRoot> {
                 CoursePlanningScreen(
                     modifier = Modifier.fillMaxSize(),
-                    onCourseClick = { semester, course ->
-                        navigationState.currentBackStack.removeAll { route ->
-                            route is CourseDetailsRoute
-                        }
-                        navigator.navigate(
-                            CourseDetailsRoute(
-                                semester = semester,
-                                serialNumber = course.serialNo.value,
-                            ),
-                        )
-                    },
-                )
-            }
-            entry<CourseDetailsRoute>(
-                metadata =
-                DialogSceneStrategy.dialog(
-                    DialogProperties(windowTitle = "課程詳細資訊"),
-                ) + BottomSheetSceneStrategy.bottomSheet(),
-            ) { route ->
-                CourseDetailsScreen(
-                    route = route,
+                    planViewModel = planViewModel,
+                    isCompactCatalog = isCompactCatalog,
+                    selectedView = selectedCoursePlanningView,
+                    onSelectedViewChange = { view -> selectedCoursePlanningView = view },
                     courseRepository = courseRepository,
-                    onClose = { navigator.goBack() },
+                    onSelectedCoursesChange = { courses -> selectedCourses = courses },
+                    isShowingSelectedCourses = isShowingSelectedCourses,
+                    onDismissSelectedCourses = { isShowingSelectedCourses = false },
                 )
             }
         }
@@ -227,53 +249,170 @@ private fun AndroidPrimaryNavigation(
         },
     ) {
         val currentPortalWebRoute = navigationState.currentBackStack.lastOrNull() as? PortalWebRoute
+        val topBarState =
+            PrimaryTopBarState(
+                currentPortalWebRoute = currentPortalWebRoute,
+                selectedTopLevelRoute = navigationState.selectedTopLevelRoute,
+                isExpanded = isExpanded,
+                selectedCoursePlanningView = selectedCoursePlanningView,
+                selectedCourseCount = selectedCourses.size,
+                canSavePlan = planUiState is CoursePlanUiState.Success,
+                isCompactCatalog = isCompactCatalog,
+            )
 
         Scaffold(
             topBar = {
-                TopAppBar(
-                    title = {
-                        Text(currentPortalWebRoute?.title ?: "Magic Pinecone")
-                    },
-                    navigationIcon = {
-                        if (currentPortalWebRoute != null) {
-                            IconButton(onClick = { navigator.goBack() }) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "返回",
-                                )
-                            }
-                        }
-                    },
-                    actions = {
-                        if (currentPortalWebRoute == null) {
-                            IconButton(onClick = onOpenSettings) {
-                                Icon(
-                                    imageVector = Icons.Default.Settings,
-                                    contentDescription = "設定",
-                                )
-                            }
-                        }
-                    },
+                AndroidPrimaryTopBar(
+                    state = topBarState,
+                    coursePlanActions = CoursePlanTopBarActions(
+                        onSavePlan = planViewModel::savePlan,
+                        onToggleCompactCatalog = {
+                            isCompactCatalog = !isCompactCatalog
+                            displayPreferences.edit().putBoolean("compact", isCompactCatalog).apply()
+                        },
+                        onOpenSelectedCourses = { isShowingSelectedCourses = true },
+                    ),
+                    onBack = { navigator.goBack() },
+                    onOpenSettings = onOpenSettings,
                 )
             },
+            snackbarHost = { SnackbarHost(snackbarHostState) },
         ) { paddingValues ->
-            NavDisplay(
-                entries = navigationState.toDecoratedEntries(entryProvider),
-                onBack = { navigator.goBack() },
-                sceneStrategies =
-                if (isExpanded) {
-                    listOf(dialogSceneStrategy)
-                } else {
-                    listOf(bottomSheetSceneStrategy)
-                },
-                modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-            )
+            Box(modifier = Modifier.fillMaxSize()) {
+                NavDisplay(
+                    entries = navigationState.toDecoratedEntries(entryProvider),
+                    onBack = { navigator.goBack() },
+                    modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                )
+            }
         }
     }
 }
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun AndroidPrimaryTopBar(
+    state: PrimaryTopBarState,
+    coursePlanActions: CoursePlanTopBarActions,
+    onBack: () -> Unit,
+    onOpenSettings: () -> Unit,
+) {
+    TopAppBar(
+        title = { Text(state.title) },
+        navigationIcon = {
+            if (state.currentPortalWebRoute != null) {
+                IconButton(onClick = onBack) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "返回",
+                    )
+                }
+            }
+        },
+        actions = {
+            if (state.currentPortalWebRoute == null) {
+                if (state.showsCoursePlanAction) {
+                    TextButton(onClick = coursePlanActions.onSavePlan, enabled = state.canSavePlan) {
+                        Text("儲存")
+                    }
+                    BadgedBox(
+                        badge = {
+                            if (state.selectedCourseCount > 0) {
+                                Badge(modifier = Modifier.clearAndSetSemantics {}) {
+                                    Text(
+                                        state.selectedCourseCount
+                                            .coerceAtMost(MAX_COURSE_COUNT_BADGE)
+                                            .toString(),
+                                    )
+                                }
+                            }
+                        },
+                    ) {
+                        FilledTonalIconButton(
+                            onClick = coursePlanActions.onOpenSelectedCourses,
+                            modifier =
+                            Modifier.semantics {
+                                contentDescription = "查看已選課程"
+                                stateDescription = "${state.selectedCourseCount} 門課"
+                            },
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ShoppingCart,
+                                contentDescription = null,
+                            )
+                        }
+                    }
+                }
+                if (state.showsCoursePlanAction && (state.isExpanded || state.selectedCoursePlanningView == CoursePlanningView.CATALOG)) {
+                    var isShowingDisplayOptions by remember { mutableStateOf(false) }
+                    Box {
+                        IconButton(onClick = { isShowingDisplayOptions = true }) {
+                            Icon(Icons.Default.MoreVert, contentDescription = "顯示選項")
+                        }
+                        DropdownMenu(
+                            expanded = isShowingDisplayOptions,
+                            onDismissRequest = { isShowingDisplayOptions = false },
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("精簡課程卡片") },
+                                leadingIcon = {
+                                    if (state.isCompactCatalog) Icon(Icons.Default.Check, contentDescription = "已啟用")
+                                },
+                                onClick = {
+                                    coursePlanActions.onToggleCompactCatalog()
+                                    isShowingDisplayOptions = false
+                                },
+                            )
+                        }
+                    }
+                }
+                IconButton(onClick = onOpenSettings) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = "設定",
+                    )
+                }
+            }
+        },
+    )
+}
+
+private data class CoursePlanTopBarActions(
+    val onSavePlan: () -> Unit,
+    val onToggleCompactCatalog: () -> Unit,
+    val onOpenSelectedCourses: () -> Unit,
+)
+
+private data class PrimaryTopBarState(
+    val currentPortalWebRoute: PortalWebRoute?,
+    val selectedTopLevelRoute: NavKey,
+    val isExpanded: Boolean,
+    val selectedCoursePlanningView: CoursePlanningView,
+    val selectedCourseCount: Int,
+    val canSavePlan: Boolean,
+    val isCompactCatalog: Boolean,
+) {
+    val title: String
+        get() =
+            when {
+                currentPortalWebRoute != null -> currentPortalWebRoute.title
+                selectedTopLevelRoute == CoursePlanningRoot && isExpanded -> "選課"
+                selectedTopLevelRoute == CoursePlanningRoot -> selectedCoursePlanningView.title
+                selectedTopLevelRoute == HomeRoot -> "首頁"
+                selectedTopLevelRoute == NewsRoot -> "新聞"
+                selectedTopLevelRoute == PortalRoot -> "Portal"
+                else -> "Magic Pinecone"
+            }
+
+    val showsCoursePlanAction: Boolean
+        get() =
+            selectedTopLevelRoute == CoursePlanningRoot
+}
+
+private const val MAX_COURSE_COUNT_BADGE = 99
 
 @Composable
 private fun SettingsDialog(

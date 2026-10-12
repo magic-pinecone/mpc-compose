@@ -10,6 +10,7 @@ import dev.zacsweers.metro.binding
 import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.mpc.domain.model.CoursePlan
@@ -33,6 +34,9 @@ class CoursePlanViewModel(
     private val semester = "115-1"
 
     val uiState = draftStore.uiState
+
+    private val saveResults = Channel<Boolean>(capacity = Channel.BUFFERED)
+    val saveResult = saveResults.receiveAsFlow()
 
     private val saveRequests = Channel<CoursePlan>(capacity = Channel.CONFLATED)
 
@@ -80,9 +84,12 @@ class CoursePlanViewModel(
                             pendingPlan = saveRequests.tryReceive().getOrNull()
                         }
                     }
+                }.onSuccess {
+                    saveResults.trySend(true)
                 }.onFailure { cause ->
                     cause.rethrowIfCancellationOrFatal()
                     Logger.e(cause.toString())
+                    saveResults.trySend(false)
                 }
             }
         }

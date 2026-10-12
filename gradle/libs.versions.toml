@@ -17,6 +17,7 @@ calf = "0.14.0"
 junit = "4.13.2"
 kotlin = "2.4.20"
 material3 = "1.12.0-alpha03"
+material3-adaptive = "1.2.0"
 materialIcons = "1.7.3"
 metro = "1.4.3"
 navigation3 = "1.1.5"
@@ -58,6 +59,7 @@ compose-materialIconsCore = { module = "org.jetbrains.compose.material:material-
 compose-materialIconsExtended = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "materialIcons" }
 compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "material3" }
 compose-material3AdaptiveNavigationSuite = { module = "org.jetbrains.compose.material3:material3-adaptive-navigation-suite", version.ref = "material3" }
+androidx-material3AdaptiveLayout = { module = "androidx.compose.material3.adaptive:adaptive-layout", version.ref = "material3-adaptive" }
 compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "composeMultiplatform" }
 compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
 compose-uiToolingPreview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }

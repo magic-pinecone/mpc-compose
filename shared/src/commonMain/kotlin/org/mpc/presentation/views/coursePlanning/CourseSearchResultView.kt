@@ -13,6 +13,9 @@ fun CourseSearchResultView(
     selectedCourseSerialNumbers: Set<CourseSerialNo>,
     onCourseClick: (CourseSummary) -> Unit = {},
     onToggleCourse: (CourseSummary) -> Unit,
+    isCompact: Boolean = false,
+    canEditPlan: Boolean = true,
+    onRetry: () -> Unit = {},
 ) {
     when (uiState) {
         is CourseSearchResultUiState.Success -> {
@@ -22,11 +25,17 @@ fun CourseSearchResultView(
                 selectedCourseSerialNumbers = selectedCourseSerialNumbers,
                 onCourseClick = onCourseClick,
                 onCourseToggle = onToggleCourse,
+                isCompact = isCompact,
+                canEditPlan = canEditPlan,
             )
         }
 
         is CourseSearchResultUiState.Failure -> {
-            CourseSearchResultFailureView(modifier, uiState.error)
+            CourseSearchResultFailureView(
+                modifier = modifier,
+                error = uiState.error,
+                onRetry = onRetry,
+            )
         }
 
         CourseSearchResultUiState.Loading -> {
