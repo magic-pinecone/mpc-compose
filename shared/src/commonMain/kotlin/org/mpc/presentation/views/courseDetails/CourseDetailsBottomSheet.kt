@@ -12,8 +12,11 @@ import org.mpc.presentation.viewModel.CoursePlanViewModel
 
 data class CourseDetailsSelection(
     val semester: String,
-    val course: CourseSummary,
-)
+    val serialNumber: String,
+    val course: CourseSummary? = null,
+) {
+    constructor(semester: String, course: CourseSummary) : this(semester, course.serialNumber, course)
+}
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -33,7 +36,7 @@ fun CourseDetailsBottomSheet(
     ) {
         CourseDetailsContent(
             semester = selection.semester,
-            serialNumber = selection.course.serialNo.value,
+            serialNumber = selection.serialNumber,
             courseRepository = courseRepository,
             onClose = onDismissRequest,
             modifier = Modifier.fillMaxWidth(),

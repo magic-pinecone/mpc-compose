@@ -25,8 +25,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.SaveableStateHolder
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -65,7 +66,9 @@ fun CoursePlanningScreen(
             ?.values
             ?.sortedBy { course -> course.title }
             .orEmpty()
-    var selectedCourseDetails by remember { mutableStateOf<CourseDetailsSelection?>(null) }
+    var selectedCourseDetails by rememberSaveable(stateSaver = CourseDetailsSelectionSaver) {
+        mutableStateOf<CourseDetailsSelection?>(null)
+    }
     val onCourseClick: (semester: String, course: CourseSummary) -> Unit = { semester, course ->
         selectedCourseDetails = CourseDetailsSelection(semester, course)
     }
@@ -152,6 +155,12 @@ fun CoursePlanningScreen(
         )
     }
 }
+
+// Persist only the lookup key; the sheet reloads its summary after recreation.
+internal val CourseDetailsSelectionSaver = listSaver<CourseDetailsSelection?, String>(
+    save = { selection -> selection?.let { listOf(it.semester, it.serialNumber) }.orEmpty() },
+    restore = { CourseDetailsSelection(semester = it[0], serialNumber = it[1]) },
+)
 
 @Composable
 private fun CourseCatalogPane(
