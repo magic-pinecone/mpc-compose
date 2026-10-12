@@ -53,4 +53,8 @@ These captures show the populated timetable on an iPhone 15 simulator running iO
 | --- | --- |
 | ![iOS light timetable](screenshots/ios-light.png) | ![iOS dark timetable](screenshots/ios-dark.png) |
 
-The supplied Apple Calendar and Google Calendar images informed the block and grid styling. These are iOS runtime captures; Android has build and palette-contrast verification but has not been visually checked on an emulator for this change.
+The Android light-mode capture shows the same LN0025-A/B sections in a draft on a Pixel 9 emulator running Android 17 (API 37), using shuffled colors. Both blocks and the weekday/period labels are readable; all periods through D fit above the navigation bar.
+
+![Android light timetable](screenshots/android-light.png)
+
+The supplied Apple Calendar and Google Calendar images informed the block and grid styling. Runtime screenshots now cover iOS light/dark and Android light appearances.
