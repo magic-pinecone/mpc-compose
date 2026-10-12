@@ -53,8 +53,10 @@ These captures show the populated timetable on an iPhone 15 simulator running iO
 | --- | --- |
 | ![iOS light timetable](screenshots/ios-light.png) | ![iOS dark timetable](screenshots/ios-dark.png) |
 
-The Android light-mode capture shows the same LN0025-A/B sections in a draft on a Pixel 9 emulator running Android 17 (API 37), using shuffled colors. Both blocks and the weekday/period labels are readable; all periods through D fit above the navigation bar.
+The Android captures show the same LN0025-A/B sections in a draft on a Pixel 9 emulator running Android 17 (API 37), using shuffled colors. They show Google Calendar's Banana and Sage fills with white course text in light mode and black course text in dark mode. Weekday/period labels and system bar icons follow the selected appearance; all periods through D fit above the navigation bar.
 
-![Android light timetable](screenshots/android-light.png)
+| Light | Dark |
+| --- | --- |
+| ![Android light timetable](screenshots/android-light.png) | ![Android dark timetable](screenshots/android-dark.png) |
 
-The supplied Apple Calendar and Google Calendar images informed the block and grid styling. Runtime screenshots now cover iOS light/dark and Android light appearances.
+The supplied Apple Calendar and Google Calendar images informed the block and grid styling. Runtime screenshots cover both iOS and Android in light and dark appearances.
