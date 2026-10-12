@@ -58,7 +58,10 @@ internal fun CompactCourseCardContent(
 
 @Composable
 private fun CompactCourseMetadata(course: CourseSummary, accessibilityTextSize: Boolean) {
-    val teachers = course.teachers.filter { it.isNotBlank() }.joinToString("、")
+    val teachers = course.teachers
+        .filter { it.isNotBlank() }
+        .joinToString("、")
+        .ifBlank { "未提供授課教師" }
     val credits = "${course.credit.creditLabel()} 學分"
     val metadata: @Composable (String, Modifier) -> Unit = { text, modifier ->
         Text(
