@@ -44,3 +44,13 @@ When assigning a new course, count live courses in each color slot and choose a 
 `timetableColorDistribution` counts active course identities per resolved palette hue, excluding removed courses and repeated meetings. The regression suite checks classification, stable assignments, allocation after removals, and distributions for 1, 6, 11, 22, and 33 courses across 1,000 synthetic semester seeds each.
 
 Measured Kotlin test output is saved in [shuffle-distribution.csv](shuffle-distribution.csv). All initial plans have per-color counts differing by at most one. Eleven-course plans use each hue once; 22- and 33-course plans use each hue twice and three times respectively. Across 1,000 six-course plans, aggregate hue frequencies range from 522 to 576 (ideal: 545.45). These are synthetic algorithm measurements, not student data or analytics telemetry.
+
+## Screenshot references
+
+These captures show the populated timetable on an iPhone 15 simulator running iOS 27, in shuffled mode. LN0025-A and LN0025-B are separate course sections with the same title, so they have different course colors. Weekday and period labels remain readable, and periods C/D fit above the native tab bar.
+
+| Light | Dark |
+| --- | --- |
+| ![iOS light timetable](screenshots/ios-light.png) | ![iOS dark timetable](screenshots/ios-dark.png) |
+
+The supplied Apple Calendar and Google Calendar images informed the block and grid styling. These are iOS runtime captures; Android has build and palette-contrast verification but has not been visually checked on an emulator for this change.
