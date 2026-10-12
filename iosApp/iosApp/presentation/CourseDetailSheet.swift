@@ -134,8 +134,19 @@ private struct CourseDetailFacts: View {
                 Text(course.credit, format: .number.precision(.fractionLength(0...1)))
             }
             LabeledContent("課程類別", value: course.courseType.description_)
-            LabeledContent("授課教師", value: course.teachers.joined(separator: "、").nilIfBlank ?? "未提供")
-            LabeledContent("開課單位", value: [course.collegeName, course.departmentName].filter { !$0.isEmpty }.joined(separator: "／"))
+            LabeledContent(
+                "授課教師",
+                value: course.teachers
+                    .filter { $0.nilIfBlank != nil }
+                    .joined(separator: "、")
+                    .nilIfBlank ?? "未提供"
+            )
+            LabeledContent(
+                "開課單位",
+                value: [course.collegeName, course.departmentName]
+                    .filter { $0.nilIfBlank != nil }
+                    .joined(separator: "／")
+            )
         }
         Section("選課資訊") {
             LabeledContent("上課時間", value: course.scheduleDescription)
