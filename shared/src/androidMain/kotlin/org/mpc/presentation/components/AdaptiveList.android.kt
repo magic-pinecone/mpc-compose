@@ -88,15 +88,20 @@ private fun SwipeableListRow(
         }
     }
     val canAct = item.actionLabel != null
-    var actionDispatched by remember { mutableStateOf(false) }
+    var actionDispatched by remember(item.id, canAct) { mutableStateOf(false) }
     val performAction = {
         if (canAct && !actionDispatched) {
             actionDispatched = true
             onItemAction(item.id)
         }
     }
-    LaunchedEffect(canAct) {
-        if (!canAct) revealState.snapTo(false)
+    LaunchedEffect(item.id, canAct, actionDispatched, revealState) {
+        if (!canAct || actionDispatched) {
+            revealState.snapTo(false)
+            // A request may leave the item in the list. Allow a new interaction
+            // after closing, while guarding duplicate dispatches until then.
+            actionDispatched = false
+        }
     }
     Box(modifier = modifier.clipToBounds()) {
         if (canAct && revealState.offset < 0f) {
