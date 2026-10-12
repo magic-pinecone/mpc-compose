@@ -124,6 +124,7 @@ private fun SettingsSectionTitle(
         Text(
             text = title,
             style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
         )
         Text(
             text = description,
@@ -159,7 +160,10 @@ private fun SettingsChoiceRow(
         )
         Spacer(Modifier.width(6.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = title)
+            Text(
+                text = title,
+                color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             Text(
                 text = description,
                 style = MaterialTheme.typography.bodySmall,
