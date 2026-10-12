@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.map
 import org.mpc.domain.model.AppSettings
 import org.mpc.domain.model.AppThemeMode
 import org.mpc.domain.model.PortalAuthenticationMode
+import org.mpc.domain.model.TimetableColorMode
 import org.mpc.domain.repository.AppSettingsRepository
 
 @ContributesBinding(AppScope::class)
@@ -45,15 +46,23 @@ internal class DefaultAppSettingsRepository(
             preferences[portalAuthenticationModeKey] = authenticationMode.name
         }
     }
+
+    override suspend fun setTimetableColorMode(colorMode: TimetableColorMode) {
+        dataStore.edit { preferences ->
+            preferences[timetableColorModeKey] = colorMode.name
+        }
+    }
 }
 
 private val themeModeKey = stringPreferencesKey("appearance.theme_mode")
 private val portalAuthenticationModeKey = stringPreferencesKey("portal.authentication_mode")
+private val timetableColorModeKey = stringPreferencesKey("timetable.color_mode")
 
 private fun Preferences.toAppSettings(): AppSettings = AppSettings(
     themeMode = this[themeModeKey].toEnumOrDefault(AppThemeMode.SYSTEM),
     // Fall back to manual sign-in until platform credential adapters are available.
     portalAuthenticationMode = PortalAuthenticationMode.MANUAL_PORTAL,
+    timetableColorMode = this[timetableColorModeKey].toEnumOrDefault(TimetableColorMode.CATEGORY),
 )
 
 private inline fun <reified T : Enum<T>> String?.toEnumOrDefault(default: T): T = this?.let { value ->

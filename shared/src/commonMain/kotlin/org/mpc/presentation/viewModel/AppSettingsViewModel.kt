@@ -17,6 +17,7 @@ import kotlinx.coroutines.launch
 import org.mpc.domain.model.AppSettings
 import org.mpc.domain.model.AppThemeMode
 import org.mpc.domain.model.PortalAuthenticationMode
+import org.mpc.domain.model.TimetableColorMode
 import org.mpc.domain.repository.AppSettingsRepository
 
 @Inject
@@ -46,6 +47,12 @@ class AppSettingsViewModel(
     fun setPortalAuthenticationMode(authenticationMode: PortalAuthenticationMode) {
         persistSetting {
             settingsRepository.setPortalAuthenticationMode(authenticationMode)
+        }
+    }
+
+    fun setTimetableColorMode(colorMode: TimetableColorMode) {
+        persistSetting {
+            settingsRepository.setTimetableColorMode(colorMode)
         }
     }
 

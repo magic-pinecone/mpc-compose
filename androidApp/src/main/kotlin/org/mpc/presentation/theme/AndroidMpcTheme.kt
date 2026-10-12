@@ -9,12 +9,15 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.expressiveLightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalContext
 import org.mpc.domain.model.AppThemeMode
+import org.mpc.domain.model.TimetableColorMode
 
 @Composable
 fun AndroidMpcTheme(
     themeMode: AppThemeMode = AppThemeMode.SYSTEM,
+    timetableColorMode: TimetableColorMode = TimetableColorMode.CATEGORY,
     content: @Composable () -> Unit,
 ) {
     val darkTheme =
@@ -34,6 +37,8 @@ fun AndroidMpcTheme(
     MaterialExpressiveTheme(
         colorScheme = colorScheme,
         motionScheme = MotionScheme.expressive(),
-        content = content,
+        content = {
+            CompositionLocalProvider(LocalTimetableColorMode provides timetableColorMode, content = content)
+        },
     )
 }
