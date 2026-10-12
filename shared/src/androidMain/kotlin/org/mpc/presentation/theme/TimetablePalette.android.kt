@@ -2,42 +2,31 @@ package org.mpc.presentation.theme
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
 
-private data class MaterialTimetableSwatch(
-    val lightContainer: Color,
-    val darkContainer: Color,
+private data class GoogleCalendarEventSwatch(
+    val lightModeFill: Color,
+    val darkModeFill: Color,
 )
 
-// More saturated Material swatches keep category fills visible in the timetable grid.
+// Current Google Calendar Android event-color pairs, ordered by the stable timetable hue slots.
 private val AndroidTimetableSwatches = listOf(
-    MaterialTimetableSwatch(Color(0xFF64B5F6), Color(0xFF1565C0)), // Blue
-    MaterialTimetableSwatch(Color(0xFF81C784), Color(0xFF2E7D32)), // Green
-    MaterialTimetableSwatch(Color(0xFFFFB74D), Color(0xFFBF360C)), // Orange
-    MaterialTimetableSwatch(Color(0xFFBA68C8), Color(0xFF6A1B9A)), // Purple
-    MaterialTimetableSwatch(Color(0xFF4DB6AC), Color(0xFF00695C)), // Teal
-    MaterialTimetableSwatch(Color(0xFF7986CB), Color(0xFF283593)), // Indigo
-    MaterialTimetableSwatch(Color(0xFFF06292), Color(0xFFAD1457)), // Pink
-    MaterialTimetableSwatch(Color(0xFF69F0AE), Color(0xFF006B4D)), // Mint
-    MaterialTimetableSwatch(Color(0xFFE57373), Color(0xFFC62828)), // Red
-    MaterialTimetableSwatch(Color(0xFF4DD0E1), Color(0xFF006064)), // Cyan
-    MaterialTimetableSwatch(Color(0xFFFFF176), Color(0xFF6D4C00)), // Yellow
+    GoogleCalendarEventSwatch(Color(0xFF3F51B5), Color(0xFF5484ED)), // Blue: Blueberry
+    GoogleCalendarEventSwatch(Color(0xFF0B8043), Color(0xFF51B749)), // Green: Basil
+    GoogleCalendarEventSwatch(Color(0xFFF4511E), Color(0xFFFFB878)), // Orange: Tangerine
+    GoogleCalendarEventSwatch(Color(0xFF8E24AA), Color(0xFFDBADFF)), // Purple: Grape
+    GoogleCalendarEventSwatch(Color(0xFF616161), Color(0xFFE1E1E1)), // Teal: Graphite for MN's neutral
+    GoogleCalendarEventSwatch(Color(0xFF7986CB), Color(0xFFA4BDFC)), // Indigo: Lavender
+    GoogleCalendarEventSwatch(Color(0xFFE67C73), Color(0xFFFF887C)), // Pink: Flamingo
+    GoogleCalendarEventSwatch(Color(0xFF33B679), Color(0xFF7AE7BF)), // Mint: Sage
+    GoogleCalendarEventSwatch(Color(0xFFD50000), Color(0xFFDC2127)), // Red: Tomato
+    GoogleCalendarEventSwatch(Color(0xFF039BE5), Color(0xFF46D6DB)), // Cyan: Peacock
+    GoogleCalendarEventSwatch(Color(0xFFF6BF26), Color(0xFFFBD75B)), // Yellow: Banana
 )
 
 @Composable
 actual fun platformTimetablePalette(darkTheme: Boolean): List<TimetableBlockColors> = AndroidTimetableSwatches.map { swatch ->
-    val container = if (darkTheme) swatch.darkContainer else swatch.lightContainer
     TimetableBlockColors(
-        container = container,
-        content = container.bestContrastingTextColor(),
+        container = if (darkTheme) swatch.darkModeFill else swatch.lightModeFill,
+        content = if (darkTheme) Color.Black else Color.White,
     )
 }
-
-private fun Color.bestContrastingTextColor(): Color {
-    val relativeLuminance = luminance()
-    val blackContrast = (relativeLuminance + WCAG_LUMINANCE_OFFSET) / WCAG_LUMINANCE_OFFSET
-    val whiteContrast = (1f + WCAG_LUMINANCE_OFFSET) / (relativeLuminance + WCAG_LUMINANCE_OFFSET)
-    return if (blackContrast >= whiteContrast) Color.Black else Color.White
-}
-
-private const val WCAG_LUMINANCE_OFFSET = 0.05f
