@@ -87,15 +87,14 @@ actual fun platformTimetablePalette(darkTheme: Boolean): List<TimetableBlockColo
         val background = UIColor.systemBackgroundColor.resolvedColorWithTraitCollection(traits).toRgb()
 
         AppleTimetableColors.map { systemColor ->
-            val resolvedColor = systemColor.resolvedColorWithTraitCollection(traits).toRgb()
-            val container = background.mix(resolvedColor, tint)
-            val content =
-                if (contrastRatio(container, Black) >= MINIMUM_TEXT_CONTRAST) {
-                    Black
-                } else {
-                    White
-                }
-            TimetableBlockColors(container.toComposeColor(), content.toComposeColor())
+            val accent = systemColor.resolvedColorWithTraitCollection(traits).toRgb()
+            val container = background.mix(accent, tint)
+            val content = accent.withTextContrastAgainst(container)
+            TimetableBlockColors(
+                container = container.toComposeColor(),
+                content = content.toComposeColor(),
+                leadingAccent = accent.toComposeColor(),
+            )
         }
     }
 }
@@ -126,6 +125,23 @@ private data class Rgb(
         LUMINANCE_BLUE_WEIGHT * blue.toLinearSrgb()
 
     fun toComposeColor() = Color(red = red, green = green, blue = blue)
+
+    fun withTextContrastAgainst(background: Rgb): Rgb {
+        if (contrastRatio(this, background) >= MINIMUM_TEXT_CONTRAST) return this
+
+        val target = if (contrastRatio(Black, background) >= contrastRatio(White, background)) Black else White
+        var lowerAmount = 0f
+        var upperAmount = 1f
+        repeat(CONTRAST_SEARCH_STEPS) {
+            val candidateAmount = (lowerAmount + upperAmount) / 2f
+            if (contrastRatio(mix(target, candidateAmount), background) >= MINIMUM_TEXT_CONTRAST) {
+                upperAmount = candidateAmount
+            } else {
+                lowerAmount = candidateAmount
+            }
+        }
+        return mix(target, upperAmount)
+    }
 }
 
 @OptIn(ExperimentalForeignApi::class)
@@ -163,8 +179,7 @@ private fun contrastRatio(first: Rgb, second: Rgb): Float {
 private val Black = Rgb(0f, 0f, 0f)
 private val White = Rgb(1f, 1f, 1f)
 private const val MINIMUM_TEXT_CONTRAST = 4.5f
-
-// WCAG relative-luminance and contrast constants for sRGB colors.
+private const val CONTRAST_SEARCH_STEPS = 16
 private const val LUMINANCE_RED_WEIGHT = 0.2126f
 private const val LUMINANCE_GREEN_WEIGHT = 0.7152f
 private const val LUMINANCE_BLUE_WEIGHT = 0.0722f

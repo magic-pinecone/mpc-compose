@@ -27,9 +27,11 @@ Sources: the supplied course-search screenshot, [NCU course map](https://course.
 
 ## Platform palettes
 
-The iOS palette resolves UIColor system hues and background against the host view's traits. A zero-size accessibility-hidden UIKit observer refreshes the Compose palette on trait changes, including Increase Contrast; the selected app light/dark mode overrides only interface style. A soft tint supplies the block background. Black or white text is selected using WCAG sRGB luminance and a 4.5:1 minimum.
+The iOS palette resolves UIColor system hues and background against the host view's traits. A zero-size accessibility-hidden UIKit observer refreshes the Compose palette on trait changes, including Increase Contrast; the selected app light/dark mode overrides only interface style. The block background remains softly tinted, while the resolved system hue supplies a leading marker and initial text color. Text shifts toward black or white only as much as needed to meet the WCAG sRGB contrast ratio of 4.5:1.
 
-Android uses eleven fixed Material-style tonal foreground/background pairs for light and dark modes. These are an app-owned multi-hue palette, not wallpaper-generated system colors. Course colors remain distinct even when the app's Material theme has closely related accent hues.
+Android uses more saturated, fixed Material fills for the same eleven hues. Each fill gets whichever of black or white provides the stronger WCAG sRGB text contrast. This is an app-owned multi-hue palette, not wallpaper-generated system colors.
+
+The shared timetable draws a continuous grid behind its cells, uses tighter 1 dp block insets, and places course titles at the top-left of each block.
 
 Callers can supply `colorMode` and a nonempty `List<TimetableBlockColors>` to `CoursePlanningTimetableSuccessView` to override the defaults.
 

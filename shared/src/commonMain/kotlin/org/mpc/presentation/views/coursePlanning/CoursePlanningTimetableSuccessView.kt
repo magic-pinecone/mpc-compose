@@ -32,6 +32,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.semantics.Role
@@ -300,8 +302,19 @@ fun TimetableBackground(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
+    val gridColor = MaterialTheme.colorScheme.outlineVariant
     Layout(
-        modifier = modifier,
+        modifier = modifier.drawBehind {
+            val strokeWidth = 0.5.dp.toPx()
+            for (column in 0..columns) {
+                val x = size.width * column / columns
+                drawLine(gridColor, Offset(x, 0f), Offset(x, size.height), strokeWidth)
+            }
+            for (row in 0..rows) {
+                val y = size.height * row / rows
+                drawLine(gridColor, Offset(0f, y), Offset(size.width, y), strokeWidth)
+            }
+        },
         content = content,
     ) { measurables, constraints ->
         val cellWidth = constraints.maxWidth / columns
@@ -335,15 +348,7 @@ fun TimetableBackground(
 
 @Composable
 fun TimetableBackgroundCell() {
-    Surface(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(2.dp),
-        shape = RoundedCornerShape(4.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant,
-    ) {
-        Box(modifier = Modifier.fillMaxSize())
-    }
+    Box(modifier = Modifier.fillMaxSize())
 }
 
 @Composable
@@ -370,25 +375,38 @@ fun TimetableForegroundCell(
                     )
                 } ?: Modifier,
             )
-            .padding(2.dp),
+            .padding(1.dp),
         shape = RoundedCornerShape(4.dp),
         color = colors.container,
     ) {
         Box(
-            contentAlignment = Alignment.Center,
-            modifier =
-            Modifier
-                .fillMaxSize()
-                .padding(2.dp),
+            contentAlignment = Alignment.TopStart,
+            modifier = Modifier.fillMaxSize(),
         ) {
+            colors.leadingAccent?.let { accent ->
+                Surface(
+                    color = accent,
+                    shape = RoundedCornerShape(2.dp),
+                    modifier = Modifier
+                        .padding(start = 2.dp, top = 3.dp, bottom = 3.dp)
+                        .width(3.dp)
+                        .fillMaxHeight(),
+                ) {}
+            }
             Text(
+                modifier = Modifier.padding(
+                    start = if (colors.leadingAccent != null) 8.dp else 4.dp,
+                    end = 4.dp,
+                    top = 3.dp,
+                    bottom = 3.dp,
+                ),
                 text = block.title,
                 color = colors.content,
                 fontWeight = FontWeight.Medium,
                 maxLines = block.span.coerceAtLeast(1),
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.labelSmall,
-                textAlign = TextAlign.Center,
+                textAlign = TextAlign.Start,
             )
         }
     }
