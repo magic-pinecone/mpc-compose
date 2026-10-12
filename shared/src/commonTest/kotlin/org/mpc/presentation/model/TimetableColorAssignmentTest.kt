@@ -36,7 +36,7 @@ val timetableColorAssignmentTests by testSuite {
             "HI0001" to TimetableCourseCategory.HISTORY,
             "PE1011-A" to TimetableCourseCategory.PHYSICAL_EDUCATION,
             "SC0003-1" to TimetableCourseCategory.SERVICE_LEARNING,
-            "ZZ0001" to TimetableCourseCategory.RESERVED_TIME,
+            "RV0001" to TimetableCourseCategory.RESERVED_TIME,
         )
         examples.forEach { (code, category) ->
             CourseType.entries.forEach { type ->

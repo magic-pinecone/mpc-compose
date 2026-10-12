@@ -16,7 +16,7 @@ Common categories take precedence over the general required/elective flag:
 | HI0 | 共同歷史 | Mint |
 | PE | 體育 | Red |
 | SC | 服務學習 | Cyan |
-| ZZ | 預留時段 | Yellow |
+| RV | 預留時段 | Yellow |
 | Other + required | 必修 | Blue |
 | Other + elective | 選修 | Green |
 | Other + unknown | 其他 | Neutral |

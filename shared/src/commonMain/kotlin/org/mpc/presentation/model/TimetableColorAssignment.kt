@@ -20,7 +20,7 @@ enum class TimetableCourseCategory(val label: String) {
     HISTORY("共同歷史 HI0"),
     PHYSICAL_EDUCATION("體育 PE"),
     SERVICE_LEARNING("服務學習 SC"),
-    RESERVED_TIME("預留時段 ZZ"),
+    RESERVED_TIME("預留時段 RV"),
     UNKNOWN("其他"),
 }
 
@@ -48,7 +48,7 @@ private val CommonCoursePrefixes = listOf(
     "HI0" to TimetableCourseCategory.HISTORY,
     "PE" to TimetableCourseCategory.PHYSICAL_EDUCATION,
     "SC" to TimetableCourseCategory.SERVICE_LEARNING,
-    "ZZ" to TimetableCourseCategory.RESERVED_TIME,
+    "RV" to TimetableCourseCategory.RESERVED_TIME,
 )
 
 /** Retain prior assignments and allocate new courses to the least-used live color slot. */
