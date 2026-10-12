@@ -16,6 +16,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.mpc.domain.model.CourseSummary
+import org.mpc.presentation.formatting.creditLabel
+import org.mpc.presentation.formatting.scheduleDescription
 
 @Composable
 internal fun CompactCourseCardContent(
@@ -57,7 +59,7 @@ internal fun CompactCourseCardContent(
 @Composable
 private fun CompactCourseMetadata(course: CourseSummary, accessibilityTextSize: Boolean) {
     val teachers = course.teachers.filter { it.isNotBlank() }.joinToString("、")
-    val credits = "${course.credit.toString().removeSuffix(".0")} 學分"
+    val credits = "${course.credit.creditLabel()} 學分"
     val metadata: @Composable (String, Modifier) -> Unit = { text, modifier ->
         Text(
             text = text,
@@ -70,7 +72,7 @@ private fun CompactCourseMetadata(course: CourseSummary, accessibilityTextSize: 
     }
     if (accessibilityTextSize) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            metadata(course.scheduleText(), Modifier)
+            metadata(course.scheduleDescription(), Modifier)
             metadata(teachers, Modifier)
             metadata(credits, Modifier)
         }
@@ -80,7 +82,7 @@ private fun CompactCourseMetadata(course: CourseSummary, accessibilityTextSize: 
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            metadata(course.scheduleText(), Modifier.weight(1f, fill = false))
+            metadata(course.scheduleDescription(), Modifier.weight(1f, fill = false))
             metadata(teachers, Modifier.weight(1f))
             metadata(credits, Modifier)
         }

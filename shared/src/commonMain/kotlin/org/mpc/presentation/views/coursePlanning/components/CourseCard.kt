@@ -46,6 +46,8 @@ import org.mpc.domain.model.CourseSummary
 import org.mpc.domain.model.CourseTime
 import org.mpc.domain.model.CourseType
 import org.mpc.domain.model.PasswordCardType
+import org.mpc.presentation.formatting.creditLabel
+import org.mpc.presentation.formatting.scheduleDescription
 import org.mpc.presentation.icon.apartment
 import org.mpc.presentation.icon.groups
 import org.mpc.presentation.icon.key
@@ -135,7 +137,7 @@ fun CourseCard(
                     )
                     Spacer(Modifier.width(6.dp))
                     Text(
-                        text = courseSummary.scheduleText(),
+                        text = courseSummary.scheduleDescription(),
                         modifier = Modifier.weight(1f),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -300,7 +302,7 @@ private fun CourseSummary.selectionActionDescription(isSelected: Boolean): Strin
 
 private fun CourseSummary.primaryMetadataText(): String {
     val instructorText = teachers.filter { it.isNotBlank() }.joinToString("、").ifBlank { "未提供授課教師" }
-    return listOf(classNo, "${credit.toString().removeSuffix(".0")} 學分", instructorText)
+    return listOf(classNo, "${credit.creditLabel()} 學分", instructorText)
         .filter { it.isNotBlank() }
         .joinToString(" · ")
 }
@@ -314,18 +316,6 @@ private fun CourseSummary.enrollmentText(): String = if (waitCnt > 0) {
 }
 
 private fun CourseSummary.passwordText(): String = passwordCard.description
-
-internal fun CourseSummary.scheduleText(): String {
-    val scheduleSlots = classTimes
-        .filter { time -> time.day != CourseDay.UNKNOWN }
-        .distinct()
-        .sortedWith(compareBy<CourseTime> { time -> time.day.order }.thenBy { time -> time.period.order })
-    if (scheduleSlots.isEmpty()) return "未提供上課時間"
-
-    return scheduleSlots.joinToString("、") { time ->
-        "${time.day.code}-${time.period.description}"
-    }
-}
 
 @Composable
 @Preview

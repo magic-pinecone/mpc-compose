@@ -25,11 +25,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.mohamedrejeb.calf.ui.sheet.AdaptiveBottomSheet
 import com.mohamedrejeb.calf.ui.sheet.rememberAdaptiveSheetState
-import org.mpc.domain.model.CourseDay
 import org.mpc.domain.model.CourseSummary
-import org.mpc.domain.model.CourseTime
 import org.mpc.presentation.components.AdaptiveList
 import org.mpc.presentation.components.AdaptiveListItem
+import org.mpc.presentation.formatting.creditLabel
+import org.mpc.presentation.formatting.scheduleDescription
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -153,17 +153,3 @@ private fun CourseSummary.toListItem(canEditPlan: Boolean): AdaptiveListItem = A
     actionLabel = if (canEditPlan) "移除" else null,
     actionAccessibilityLabel = "從已選課程移除 $title",
 )
-
-private fun CourseSummary.scheduleDescription(): String {
-    val scheduleSlots = classTimes
-        .filter { time -> time.day != CourseDay.UNKNOWN }
-        .distinct()
-        .sortedWith(compareBy<CourseTime> { time -> time.day.order }.thenBy { time -> time.period.order })
-    if (scheduleSlots.isEmpty()) return "未提供上課時間"
-
-    return scheduleSlots.joinToString("、") { time ->
-        "${time.day.code}-${time.period.description}"
-    }
-}
-
-private fun Double.creditLabel(): String = toString().removeSuffix(".0")
