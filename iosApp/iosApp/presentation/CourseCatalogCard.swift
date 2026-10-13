@@ -211,10 +211,8 @@ private struct CourseCatalogSelectionControl: View {
                 .labelStyle(isCompact ? CourseSelectionLabelStyle.iconOnly : .titleOnly)
                 .frame(minWidth: isCompact ? 28 : 44, minHeight: 28)
         }
-        .buttonStyle(.bordered)
-        .buttonBorderShape(.capsule)
+        .buttonStyle(CourseSelectionButtonStyle(isSelected: isSelected))
         .disabled(!canEditPlan)
-        .tint(isSelected ? .red : .accentColor)
         .accessibilityIdentifier("course-toggle-\(course.serialNumber)")
         .accessibilityLabel(isSelected ? "從課表移除 \(course.title)，\(course.classNo)" : "加入課表 \(course.title)，\(course.classNo)")
     }

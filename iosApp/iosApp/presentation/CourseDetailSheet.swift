@@ -233,8 +233,7 @@ private struct CourseDetailSelectionAction: View {
             .font(.headline)
             .frame(maxWidth: .infinity, minHeight: 36)
         }
-        .buttonStyle(.borderedProminent)
-        .tint(isSelected ? .red : .accentColor)
+        .buttonStyle(CourseSelectionButtonStyle(isSelected: isSelected))
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
         .background(.regularMaterial)
