@@ -95,6 +95,8 @@ struct CoursePlanningView: View {
                 }
             }
         }
+        // Expand the layout itself so pane clipping does not discard content below the tab bar.
+        .ignoresSafeArea(.container, edges: .bottom)
         .onAppear {
             planBridge.observeSelectedCourses(observer: { courses in
                 selectedCourses = courses

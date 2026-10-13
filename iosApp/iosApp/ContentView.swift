@@ -11,18 +11,22 @@ struct ContentView: View {
                 NavigationStack {
                     CoursePlanningView(sharedHost: sharedHost)
                 }
+                .ignoresSafeArea(.container, edges: bottomSafeAreaEdges)
             }
             Tab("Portal", systemImage: "building.columns") {
                 NavigationStack {
                     PortalView(sharedHost: sharedHost)
                 }
+                .ignoresSafeArea(.container, edges: bottomSafeAreaEdges)
             }
             Tab("設定", systemImage: "gear") {
                 NavigationStack {
                     SettingsView(sharedHost: sharedHost)
                 }
+                .ignoresSafeArea(.container, edges: bottomSafeAreaEdges)
             }
         }
+        .ignoresSafeArea(.container, edges: bottomSafeAreaEdges)
         .preferredColorScheme(preferredColorScheme)
         .onAppear {
             sharedHost.observeThemeMode(observer: { selectedMode in
@@ -32,6 +36,14 @@ struct ContentView: View {
         .onDisappear {
             sharedHost.observeThemeMode(observer: nil)
         }
+    }
+
+    // Floating tab bars overlay content on iOS 26 and later.
+    private var bottomSafeAreaEdges: Edge.Set {
+        if #available(iOS 26, *) {
+            return .bottom
+        }
+        return []
     }
 
     private var preferredColorScheme: ColorScheme? {
