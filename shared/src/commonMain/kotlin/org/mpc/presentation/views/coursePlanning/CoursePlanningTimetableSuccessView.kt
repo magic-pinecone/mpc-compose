@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.MaterialTheme
@@ -21,10 +23,22 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.mapSaver
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -39,16 +53,41 @@ import org.mpc.domain.model.CourseSummary
 import org.mpc.domain.model.CourseTime
 import org.mpc.domain.model.CourseType
 import org.mpc.domain.model.PasswordCardType
+import org.mpc.domain.model.TimetableColorMode
 import org.mpc.presentation.model.CourseTimetableBlock
+import org.mpc.presentation.model.TimetableCourseCategory
+import org.mpc.presentation.model.assignTimetableColorSlots
+import org.mpc.presentation.model.shuffledTimetablePaletteIndices
+import org.mpc.presentation.model.timetableCategory
 import org.mpc.presentation.model.toTimetableBlocks
+import org.mpc.presentation.theme.LocalTimetableColorMode
 import org.mpc.presentation.theme.MpcTheme
+import org.mpc.presentation.theme.TimetableBlockColors
+import org.mpc.presentation.theme.platformTimetablePalette
 
 @Composable
 fun CoursePlanningTimetableSuccessView(
     plan: CoursePlan,
     modifier: Modifier,
     onCourseClick: (semester: String, course: CourseSummary) -> Unit = { _, _ -> },
+    colorMode: TimetableColorMode = LocalTimetableColorMode.current,
+    palette: List<TimetableBlockColors> = platformTimetablePalette(
+        MaterialTheme.colorScheme.background.luminance() < DARK_SURFACE_LUMINANCE_THRESHOLD,
+    ),
 ) {
+    require(palette.isNotEmpty()) { "A timetable palette must contain at least one color pair" }
+    val neutralColors = TimetableBlockColors(
+        MaterialTheme.colorScheme.surfaceVariant,
+        MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    var savedSlots by rememberSaveable(plan.semester, stateSaver = TimetableColorSlotsSaver) {
+        mutableStateOf<Map<String, Int>>(emptyMap())
+    }
+    val slots = assignTimetableColorSlots(savedSlots, plan.selectedCourses.keys.map { it.value }, palette.size)
+    SideEffect { if (savedSlots != slots) savedSlots = slots }
+    val shuffledIndices = remember(plan.semester, palette.size) {
+        shuffledTimetablePaletteIndices(plan.semester, palette.size)
+    }
     val rows = CoursePeriod.entries.size
     val timetableBlocks = plan.toTimetableBlocks()
     val columns = timetableBlocks.maxOfOrNull { it.time.day.order }?.coerceAtLeast(5) ?: 5
@@ -73,6 +112,14 @@ fun CoursePlanningTimetableSuccessView(
                 )
             }
 
+            if (colorMode == TimetableColorMode.CATEGORY && plan.selectedCourses.isNotEmpty()) {
+                TimetableCategoryLegend(
+                    categories = plan.selectedCourses.values.map { it.timetableCategory() }.distinct().sortedBy { it.ordinal },
+                    palette = palette,
+                    neutralColors = neutralColors,
+                )
+            }
+
             Row {
                 Spacer(modifier = Modifier.width(16.dp))
                 Row(
@@ -92,6 +139,7 @@ fun CoursePlanningTimetableSuccessView(
                             ) {
                                 Text(
                                     text = it.description,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     style = MaterialTheme.typography.labelMedium,
                                 )
                             }
@@ -124,6 +172,7 @@ fun CoursePlanningTimetableSuccessView(
                             ) {
                                 Text(
                                     text = it.description,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     style = MaterialTheme.typography.labelSmall,
                                     textAlign = TextAlign.Center,
                                 )
@@ -148,8 +197,17 @@ fun CoursePlanningTimetableSuccessView(
 
                     timetableBlocks.forEach { block ->
                         val course = plan.selectedCourses[block.serialNo]
+                        val (colors, categoryLabel) = timetableCourseAppearance(
+                            course = course,
+                            colorMode = colorMode,
+                            palette = palette,
+                            neutralColors = neutralColors,
+                            shuffledPaletteIndex = shuffledIndices[(slots[block.serialNo.value] ?: 0) % palette.size],
+                        )
                         TimetableForegroundCell(
                             block = block,
+                            colors = colors,
+                            categoryLabel = categoryLabel,
                             onClick = course?.let { selectedCourse ->
                                 { onCourseClick(plan.semester, selectedCourse) }
                             },
@@ -177,6 +235,68 @@ fun CoursePlanningTimetableSuccessView(
     }
 }
 
+private const val DARK_SURFACE_LUMINANCE_THRESHOLD = 0.5f
+
+private fun timetableCourseAppearance(
+    course: CourseSummary?,
+    colorMode: TimetableColorMode,
+    palette: List<TimetableBlockColors>,
+    neutralColors: TimetableBlockColors,
+    shuffledPaletteIndex: Int,
+): Pair<TimetableBlockColors, String?> = when (colorMode) {
+    TimetableColorMode.CATEGORY -> {
+        val category = course?.timetableCategory() ?: TimetableCourseCategory.UNKNOWN
+        categoryColors(category, palette, neutralColors) to category.label
+    }
+
+    TimetableColorMode.SHUFFLED -> palette[shuffledPaletteIndex] to null
+}
+
+private val TimetableColorSlotsSaver = mapSaver<Map<String, Int>>(
+    save = { it },
+    restore = { saved -> saved.mapValues { (_, value) -> value as Int } },
+)
+
+private fun categoryColors(
+    category: TimetableCourseCategory,
+    palette: List<TimetableBlockColors>,
+    neutralColors: TimetableBlockColors,
+): TimetableBlockColors = if (category == TimetableCourseCategory.UNKNOWN) {
+    neutralColors
+} else {
+    palette[category.ordinal % palette.size]
+}
+
+@Composable
+private fun TimetableCategoryLegend(
+    categories: List<TimetableCourseCategory>,
+    palette: List<TimetableBlockColors>,
+    neutralColors: TimetableBlockColors,
+) {
+    LazyRow(
+        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        items(categories, key = { it.name }) { category ->
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Surface(
+                    color = categoryColors(category, palette, neutralColors).container,
+                    shape = RoundedCornerShape(3.dp),
+                    modifier = Modifier.width(12.dp).height(12.dp),
+                ) {}
+                Text(
+                    text = category.label,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.labelSmall,
+                )
+            }
+        }
+    }
+}
+
 @Composable
 fun TimetableBackground(
     columns: Int,
@@ -184,8 +304,19 @@ fun TimetableBackground(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
+    val gridColor = MaterialTheme.colorScheme.outlineVariant
     Layout(
-        modifier = modifier,
+        modifier = modifier.drawBehind {
+            val strokeWidth = 0.5.dp.toPx()
+            for (column in 0..columns) {
+                val x = size.width * column / columns
+                drawLine(gridColor, Offset(x, 0f), Offset(x, size.height), strokeWidth)
+            }
+            for (row in 0..rows) {
+                val y = size.height * row / rows
+                drawLine(gridColor, Offset(0f, y), Offset(size.width, y), strokeWidth)
+            }
+        },
         content = content,
     ) { measurables, constraints ->
         val cellWidth = constraints.maxWidth / columns
@@ -219,15 +350,7 @@ fun TimetableBackground(
 
 @Composable
 fun TimetableBackgroundCell() {
-    Surface(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(2.dp),
-        shape = RoundedCornerShape(4.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant,
-    ) {
-        Box(modifier = Modifier.fillMaxSize())
-    }
+    Box(modifier = Modifier.fillMaxSize())
 }
 
 @Composable
@@ -235,23 +358,16 @@ fun TimetableForegroundCell(
     block: CourseTimetableBlock,
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
+    colors: TimetableBlockColors = TimetableBlockColors(
+        MaterialTheme.colorScheme.primaryContainer,
+        MaterialTheme.colorScheme.onPrimaryContainer,
+    ),
+    categoryLabel: String? = null,
 ) {
-    val containerColor =
-        when (block.type) {
-            CourseType.REQUIRED -> MaterialTheme.colorScheme.primaryContainer
-            CourseType.ELECTIVE -> MaterialTheme.colorScheme.secondaryContainer
-            CourseType.UNKNOWN -> MaterialTheme.colorScheme.tertiaryContainer
-        }
-    val contentColor =
-        when (block.type) {
-            CourseType.REQUIRED -> MaterialTheme.colorScheme.onPrimaryContainer
-            CourseType.ELECTIVE -> MaterialTheme.colorScheme.onSecondaryContainer
-            CourseType.UNKNOWN -> MaterialTheme.colorScheme.onTertiaryContainer
-        }
-
     Surface(
         modifier =
         modifier
+            .semantics { categoryLabel?.let { stateDescription = it } }
             .then(
                 onClick?.let { click ->
                     Modifier.clickable(
@@ -261,25 +377,38 @@ fun TimetableForegroundCell(
                     )
                 } ?: Modifier,
             )
-            .padding(2.dp),
+            .padding(1.dp),
         shape = RoundedCornerShape(4.dp),
-        color = containerColor,
+        color = colors.container,
     ) {
         Box(
-            contentAlignment = Alignment.Center,
-            modifier =
-            Modifier
-                .fillMaxSize()
-                .padding(2.dp),
+            contentAlignment = Alignment.TopStart,
+            modifier = Modifier.fillMaxSize(),
         ) {
+            colors.leadingAccent?.let { accent ->
+                Surface(
+                    color = accent,
+                    shape = RoundedCornerShape(2.dp),
+                    modifier = Modifier
+                        .padding(start = 2.dp, top = 3.dp, bottom = 3.dp)
+                        .width(3.dp)
+                        .fillMaxHeight(),
+                ) {}
+            }
             Text(
+                modifier = Modifier.padding(
+                    start = if (colors.leadingAccent != null) 8.dp else 4.dp,
+                    end = 4.dp,
+                    top = 3.dp,
+                    bottom = 3.dp,
+                ),
                 text = block.title,
-                color = contentColor,
+                color = colors.content,
                 fontWeight = FontWeight.Medium,
                 maxLines = block.span.coerceAtLeast(1),
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.labelSmall,
-                textAlign = TextAlign.Center,
+                textAlign = TextAlign.Start,
             )
         }
     }

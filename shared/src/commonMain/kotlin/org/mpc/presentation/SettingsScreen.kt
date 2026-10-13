@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import org.mpc.domain.model.AppSettings
 import org.mpc.domain.model.AppThemeMode
 import org.mpc.domain.model.PortalAuthenticationMode
+import org.mpc.domain.model.TimetableColorMode
 
 @Composable
 fun SettingsScreen(
@@ -30,6 +31,7 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
     onThemeModeSelected: (AppThemeMode) -> Unit,
     onPortalAuthenticationModeSelected: (PortalAuthenticationMode) -> Unit,
+    onTimetableColorModeSelected: (TimetableColorMode) -> Unit,
 ) {
     Column(
         modifier = modifier
@@ -71,6 +73,25 @@ fun SettingsScreen(
         HorizontalDivider()
 
         SettingsSectionTitle(
+            title = "課表配色",
+            description = "選擇課表中課程的配色方式。",
+        )
+        SettingsChoiceRow(
+            title = "依課程類別",
+            description = "依課程類別使用對應的配色。",
+            selected = settings.timetableColorMode == TimetableColorMode.CATEGORY,
+            onClick = { onTimetableColorModeSelected(TimetableColorMode.CATEGORY) },
+        )
+        SettingsChoiceRow(
+            title = "隨機配色",
+            description = "隨機為每門課程指定固定顏色；同一門課每次上課及畫面重繪都維持相同顏色。",
+            selected = settings.timetableColorMode == TimetableColorMode.SHUFFLED,
+            onClick = { onTimetableColorModeSelected(TimetableColorMode.SHUFFLED) },
+        )
+
+        HorizontalDivider()
+
+        SettingsSectionTitle(
             title = "Portal 登入方式",
             description = "目前可在 App 內手動登入 Portal。安全儲存登入資訊尚未開放。",
         )
@@ -103,6 +124,7 @@ private fun SettingsSectionTitle(
         Text(
             text = title,
             style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
         )
         Text(
             text = description,
@@ -138,7 +160,10 @@ private fun SettingsChoiceRow(
         )
         Spacer(Modifier.width(6.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = title)
+            Text(
+                text = title,
+                color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             Text(
                 text = description,
                 style = MaterialTheme.typography.bodySmall,

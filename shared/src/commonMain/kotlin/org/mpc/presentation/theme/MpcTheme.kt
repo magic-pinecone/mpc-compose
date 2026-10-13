@@ -5,8 +5,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import org.mpc.domain.model.AppThemeMode
+import org.mpc.domain.model.TimetableColorMode
 
 /**
  * A small shadcn-inspired neutral palette shared by Material and adaptive Calf content.
@@ -17,6 +19,7 @@ import org.mpc.domain.model.AppThemeMode
 @Composable
 fun MpcTheme(
     themeMode: AppThemeMode = AppThemeMode.SYSTEM,
+    timetableColorMode: TimetableColorMode = TimetableColorMode.CATEGORY,
     content: @Composable () -> Unit,
 ) {
     val darkTheme = when (themeMode) {
@@ -27,7 +30,9 @@ fun MpcTheme(
 
     MaterialTheme(
         colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,
-        content = content,
+        content = {
+            CompositionLocalProvider(LocalTimetableColorMode provides timetableColorMode, content = content)
+        },
     )
 }
 

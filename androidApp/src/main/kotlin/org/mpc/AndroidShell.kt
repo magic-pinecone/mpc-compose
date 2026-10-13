@@ -133,7 +133,7 @@ private fun AndroidAppContent(appGraph: AppGraph) {
             }
         }
 
-    AndroidMpcTheme(themeMode = settings.themeMode) {
+    AndroidMpcTheme(themeMode = settings.themeMode, timetableColorMode = settings.timetableColorMode) {
         NavDisplay(
             backStack = appBackStack,
             onBack = { appBackStack.removeLastOrNull() },
@@ -451,6 +451,7 @@ private fun SettingsDialog(
                 settings = settings,
                 settingsWriteFailed = settingsWriteFailed,
                 modifier = Modifier.fillMaxSize(),
+                onTimetableColorModeSelected = settingsViewModel::setTimetableColorMode,
                 onThemeModeSelected = settingsViewModel::setThemeMode,
                 onPortalAuthenticationModeSelected = settingsViewModel::setPortalAuthenticationMode,
             )

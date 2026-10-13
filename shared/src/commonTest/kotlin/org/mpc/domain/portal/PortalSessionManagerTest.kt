@@ -11,6 +11,7 @@ import org.mpc.domain.model.AppSettings
 import org.mpc.domain.model.AppThemeMode
 import org.mpc.domain.model.PortalAuthenticationMode
 import org.mpc.domain.model.PortalSession
+import org.mpc.domain.model.TimetableColorMode
 import org.mpc.domain.repository.AppSettingsRepository
 import kotlin.test.assertEquals
 
@@ -27,6 +28,10 @@ private class FakeAppSettingsRepository(
 
     override suspend fun setPortalAuthenticationMode(authenticationMode: PortalAuthenticationMode) {
         state.value = state.value.copy(portalAuthenticationMode = authenticationMode)
+    }
+
+    override suspend fun setTimetableColorMode(colorMode: TimetableColorMode) {
+        state.value = state.value.copy(timetableColorMode = colorMode)
     }
 }
 

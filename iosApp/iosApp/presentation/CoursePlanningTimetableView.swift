@@ -10,6 +10,5 @@ struct CoursePlanningTimetableView: View {
             sharedHost: sharedHost,
             planBridge: planBridge
         )
-        .ignoresSafeArea(.container, edges: .bottom)
     }
 }

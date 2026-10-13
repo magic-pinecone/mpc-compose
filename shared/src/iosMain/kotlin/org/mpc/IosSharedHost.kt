@@ -103,6 +103,7 @@ class IosSharedHost internal constructor(
                 SettingsScreen(
                     settings = settings,
                     settingsWriteFailed = settingsWriteFailed,
+                    onTimetableColorModeSelected = settingsViewModel::setTimetableColorMode,
                     onThemeModeSelected = settingsViewModel::setThemeMode,
                     onPortalAuthenticationModeSelected = settingsViewModel::setPortalAuthenticationMode,
                 )
@@ -119,7 +120,11 @@ class IosSharedHost internal constructor(
             themeModeObserver?.invoke(latestThemeMode)
         }
 
-        MpcTheme(themeMode = settings.themeMode, content = content)
+        MpcTheme(
+            themeMode = settings.themeMode,
+            timetableColorMode = settings.timetableColorMode,
+            content = content,
+        )
     }
 }
 
