@@ -29,7 +29,7 @@ Sources: the supplied course-search screenshot, [NCU course map](https://course.
 
 The iOS palette resolves UIColor system hues and background against the host view's traits. A zero-size accessibility-hidden UIKit observer refreshes the Compose palette on trait changes, including Increase Contrast; the selected app light/dark mode overrides only interface style. The block background remains softly tinted, while the resolved system hue supplies a leading marker and initial text color. Text shifts toward black or white only as much as needed to meet the WCAG sRGB contrast ratio of 4.5:1.
 
-Android uses eleven Google Calendar event swatches in the stable timetable slot order: Blueberry, Basil, Tangerine, Grape, Graphite, Lavender, Flamingo, Sage, Tomato, Peacock, and Banana. The Teal slot uses Graphite for the MN category’s neutral mapping. Light mode uses the deeper member of each current Google Calendar Android event-color pair with white text; dark mode uses its lighter member with black text. Google’s [Apps Script EventColor enum](https://developers.google.com/apps-script/reference/calendar/event-color) names the standard event hues. The [Calendar Colors API](https://developers.google.com/workspace/calendar/api/v3/reference/colors) exposes one event background and foreground, not theme pairs; the exact darker/lighter pairs here were read from the installed Google Calendar Android app (2026.38.0-989268529), not presented as a public API guarantee. The requested white/black foregrounds are fixed to preserve those fills: white-on-deep-fill contrast ranges from 1.69:1 to 7.04:1, and black-on-light-fill contrast ranges from 4.29:1 to 16.06:1, so some combinations fall below 4.5:1.
+Android uses eleven hues from the [standard Material Design palette](https://m2.material.io/design/color/the-color-system.html#tools-for-picking-colors), in the stable timetable slot order: Blue, Green, Orange, Purple, Teal, Indigo, Pink, Light Green (the Mint slot), Red, Cyan, and Yellow. Light mode uses shade 200; dark mode uses shade 700. These are explicit Material swatches, rather than wallpaper-derived Material 3 theme roles. For each opaque fill, the foreground is whichever of black or white gives the higher WCAG sRGB contrast ratio. All 22 light/dark pairs meet 4.5:1; the minimum is 4.60:1 (white on Blue 700). Category mapping and shuffled assignments retain the same slot order.
 
 The shared timetable draws a continuous grid behind its cells, uses tighter 1 dp block insets, and places course titles at the top-left of each block.
 
@@ -53,10 +53,10 @@ These captures show the populated timetable on an iPhone 15 simulator running iO
 | --- | --- |
 | ![iOS light timetable](screenshots/ios-light.png) | ![iOS dark timetable](screenshots/ios-dark.png) |
 
-The Android captures show the same LN0025-A/B sections in a draft on a Pixel 9 emulator running Android 17 (API 37), using shuffled colors. They show Google Calendar's Banana and Sage fills with white course text in light mode and black course text in dark mode. Weekday/period labels and system bar icons follow the selected appearance; all periods through D fit above the navigation bar.
+The Android captures show the same LN0025-A/B sections in a draft on a Pixel 9 emulator running Android 17 (API 37), using shuffled colors. These historical captures show the previous Google Calendar palette; they do not represent the current Material swatches. Weekday/period labels and system bar icons follow the selected appearance; all periods through D fit above the navigation bar.
 
 | Light | Dark |
 | --- | --- |
 | ![Android light timetable](screenshots/android-light.png) | ![Android dark timetable](screenshots/android-dark.png) |
 
-The supplied Apple Calendar and Google Calendar images informed the block and grid styling. Runtime screenshots cover both iOS and Android in light and dark appearances.
+The supplied Apple Calendar and Google Calendar images informed the block and grid styling. Runtime screenshots cover both iOS and the previous Android palette in light and dark appearances; updated Android Material palette captures are pending.
