@@ -3,6 +3,7 @@ import SwiftUI
 
 struct ContentView: View {
     let sharedHost: IosSharedHost
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var themeMode = AppThemeMode.system
 
     var body: some View {
@@ -40,7 +41,7 @@ struct ContentView: View {
 
     // Floating tab bars overlay content on iOS 26 and later.
     private var bottomSafeAreaEdges: Edge.Set {
-        if #available(iOS 26, *) {
+        if #available(iOS 26, *), horizontalSizeClass == .compact {
             return .bottom
         }
         return []
