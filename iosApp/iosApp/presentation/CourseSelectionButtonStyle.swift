@@ -8,11 +8,11 @@ struct CourseSelectionButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .fontWeight(.semibold)
-            .foregroundStyle(isSelected ? Color.red : Color.accentColor)
+            .foregroundStyle(isSelected ? Color.white : Color.accentColor)
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
             .frame(minHeight: 44)
-            .background(Color(uiColor: .tertiarySystemFill), in: Capsule())
+            .background(isSelected ? Color.red : Color(uiColor: .tertiarySystemFill), in: Capsule())
             .contentShape(Capsule())
             .opacity(isEnabled ? (configuration.isPressed ? 0.65 : 1) : 0.4)
     }
