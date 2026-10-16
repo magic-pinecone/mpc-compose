@@ -18,9 +18,6 @@ sealed interface TopLevelRoute : AndroidRoute
 data object HomeRoot : TopLevelRoute
 
 @Serializable
-data object NewsRoot : TopLevelRoute
-
-@Serializable
 data object PortalRoot : TopLevelRoute
 
 @Serializable
@@ -35,7 +32,6 @@ data object CoursePlanningRoot : TopLevelRoute
 val topLevelRoutes: Set<TopLevelRoute> =
     linkedSetOf(
         HomeRoot,
-        NewsRoot,
-        PortalRoot,
         CoursePlanningRoot,
+        PortalRoot,
     )

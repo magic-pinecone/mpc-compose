@@ -3,6 +3,7 @@ import SwiftUI
 
 struct PortalView: View {
     let sharedHost: IosSharedHost
+    let onOpenSettings: () -> Void
     @State private var webDestination: PortalDestination?
     @Environment(\.openURL) private var openURL
 
@@ -21,6 +22,14 @@ struct PortalView: View {
                 PortalWebComposeView(sharedHost: sharedHost, destination: destination)
                     .navigationTitle(destination.title)
                     .navigationBarTitleDisplayMode(.inline)
+            }
+            .toolbar {
+                if webDestination == nil {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("設定", systemImage: "gear", action: onOpenSettings)
+                            .labelStyle(.iconOnly)
+                    }
+                }
             }
     }
 }
