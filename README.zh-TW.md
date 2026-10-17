@@ -28,7 +28,7 @@
 
 ### 前置需求
 
-- JDK 17
+- Amazon Corretto 21
 - Android Studio，以及支援 API 37 的 Android SDK
 - Xcode（用於執行 iOS App）
 

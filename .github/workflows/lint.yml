@@ -26,12 +26,11 @@ jobs:
         with:
           persist-credentials: false
 
-      # required for gradle 9.5.0 and android gradle plugin 9.3.0
       - name: Set up Java
         uses: actions/setup-java@v5
         with:
-          distribution: temurin
-          java-version: "17"
+          distribution: corretto
+          java-version: "21"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
