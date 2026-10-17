@@ -98,16 +98,18 @@ jobs:
           --stacktrace
 
       - name: Build iOS app
-        run: >-
-          xcodebuild
-          -project iosApp/iosApp.xcodeproj
-          -scheme iosApp
-          -configuration Debug
-          -sdk iphonesimulator
-          -destination "generic/platform=iOS Simulator"
-          -derivedDataPath "$RUNNER_TEMP/DerivedData"
-          CODE_SIGNING_ALLOWED=NO
-          build
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project iosApp/iosApp.xcodeproj \
+            -scheme iosApp \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination "generic/platform=iOS Simulator" \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            -resultBundlePath "$RUNNER_TEMP/Build-iOS.xcresult" \
+            CODE_SIGNING_ALLOWED=NO \
+            build 2>&1 | tee "$RUNNER_TEMP/Build-iOS.log"
 
       - name: Upload iOS reports
         if: ${{ failure() }}
@@ -117,5 +119,7 @@ jobs:
           path: |
             shared/build/test-results/iosSimulatorArm64Test/**/*.xml
             shared/build/reports/tests/iosSimulatorArm64Test/**
+            ${{ runner.temp }}/Build-iOS.log
+            ${{ runner.temp }}/Build-iOS.xcresult
           if-no-files-found: ignore
           retention-days: 7
