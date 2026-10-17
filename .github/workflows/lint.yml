@@ -51,12 +51,19 @@ jobs:
     name: SwiftLint
     runs-on: xcode-27
     timeout-minutes: 15
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_27.1.app/Contents/Developer
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
         with:
           persist-credentials: false
+
+      - name: Verify Xcode version
+        run: |
+          xcodebuild -version
+          test "$(xcodebuild -version | head -n 1)" = "Xcode 27.1"
 
       - name: Install SwiftLint
         run: brew install swiftlint

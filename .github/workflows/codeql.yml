@@ -56,12 +56,19 @@ jobs:
   analyze-swift:
     name: Analyze Swift
     runs-on: xcode-27
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_27.1.app/Contents/Developer
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
         with:
           persist-credentials: false
+
+      - name: Verify Xcode version
+        run: |
+          xcodebuild -version
+          test "$(xcodebuild -version | head -n 1)" = "Xcode 27.1"
 
       - name: Set up Java
         uses: actions/setup-java@v5
