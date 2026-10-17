@@ -3,6 +3,7 @@ import SwiftUI
 
 struct ContentView: View {
     let sharedHost: IosSharedHost
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var themeMode = AppThemeMode.system
     @State private var isShowingSettings = false
 
@@ -12,6 +13,7 @@ struct ContentView: View {
                 NavigationStack {
                     HomeView(onOpenSettings: openSettings)
                 }
+                .ignoresSafeArea(.container, edges: bottomSafeAreaEdges)
             }
             Tab("選課", systemImage: "calendar") {
                 NavigationStack {
@@ -20,6 +22,7 @@ struct ContentView: View {
                         onOpenSettings: openSettings
                     )
                 }
+                .ignoresSafeArea(.container, edges: bottomSafeAreaEdges)
             }
             Tab("Portal", systemImage: "building.columns") {
                 NavigationStack {
@@ -28,6 +31,7 @@ struct ContentView: View {
                         onOpenSettings: openSettings
                     )
                 }
+                .ignoresSafeArea(.container, edges: bottomSafeAreaEdges)
             }
         }
         .sheet(isPresented: $isShowingSettings) {
@@ -37,6 +41,7 @@ struct ContentView: View {
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
         }
+        .ignoresSafeArea(.container, edges: bottomSafeAreaEdges)
         .preferredColorScheme(preferredColorScheme)
         .onAppear {
             sharedHost.observeThemeMode(observer: { selectedMode in
@@ -46,6 +51,14 @@ struct ContentView: View {
         .onDisappear {
             sharedHost.observeThemeMode(observer: nil)
         }
+    }
+
+    // Floating tab bars overlay content on iOS 26 and later.
+    private var bottomSafeAreaEdges: Edge.Set {
+        if #available(iOS 26, *), horizontalSizeClass == .compact {
+            return .bottom
+        }
+        return []
     }
 
     private var preferredColorScheme: ColorScheme? {
