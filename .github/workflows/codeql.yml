@@ -68,10 +68,10 @@ jobs:
 
   analyze-swift:
     name: Analyze Swift
-    runs-on: xcode-27
+    runs-on: macos-26
     timeout-minutes: 60
     env:
-      DEVELOPER_DIR: /Applications/Xcode_27.1.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
 
     steps:
       - name: Check out repository
@@ -82,7 +82,7 @@ jobs:
       - name: Verify Xcode version
         run: |
           xcodebuild -version
-          test "$(xcodebuild -version | head -n 1)" = "Xcode 27.1"
+          test "$(xcodebuild -version | head -n 1)" = "Xcode 26.6"
 
       - name: Set up Java
         uses: actions/setup-java@v5
