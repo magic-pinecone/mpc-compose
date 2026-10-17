@@ -26,7 +26,12 @@ struct SelectedCoursesSheet: View {
                             Text("已選課程")
                                 .font(.headline)
                                 .accessibilityAddTraits(.isHeader)
-                            Text("\(courses.count) 門課 · \(totalCredits, format: .number.precision(.fractionLength(0...2))) 學分")
+                            Text(
+                                """
+                                \(courses.count) 門課 · \
+                                \(totalCredits, format: .number.precision(.fractionLength(0...2))) 學分
+                                """
+                            )
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }

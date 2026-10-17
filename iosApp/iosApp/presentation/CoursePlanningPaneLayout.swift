@@ -81,8 +81,12 @@ struct CoursePlanningPaneFrames {
 
 extension GeometryProxy {
     var coursePlanningDivision: CGRect? {
+        #if compiler(>=6.4)
         guard #available(iOS 27.1, *) else { return nil }
         // The frame already includes the system's margins for interactive content.
         return reservedRegions(kind: .division).first?.frame
+        #else
+        return nil
+        #endif
     }
 }
