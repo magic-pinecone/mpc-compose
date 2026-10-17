@@ -12,6 +12,7 @@ struct CoursePlanningView: View {
     }
 
     @State private var activeSection: Section = .catalog
+    @GestureState private var swipeTranslation: CGFloat = 0
     @State private var planBridge = CoursePlanBridge()
     @State private var selectedCourses: [CourseSummary] = []
     @State private var canEditPlan = false
@@ -21,6 +22,8 @@ struct CoursePlanningView: View {
     @State private var catalogQuery = ""
     @State private var catalogBridge = CourseSearchBridge()
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.layoutDirection) private var layoutDirection
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private let semester = "115-1"
 
     var body: some View {
@@ -58,7 +61,7 @@ struct CoursePlanningView: View {
                     )
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .clipped()
-                    .opacity(isWide || activeSection == .catalog ? 1 : 0)
+                    .offset(x: isWide ? 0 : pageOffset(for: .catalog, width: geometry.size.width))
                     .disabled(!isWide && activeSection != .catalog)
                     .allowsHitTesting(isWide || activeSection == .catalog)
                     .accessibilityHidden(!isWide && activeSection != .catalog)
@@ -73,11 +76,16 @@ struct CoursePlanningView: View {
                     )
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .clipped()
-                    .opacity(isWide || activeSection == .timetable ? 1 : 0)
+                    .offset(x: isWide ? 0 : pageOffset(for: .timetable, width: geometry.size.width))
                     .allowsHitTesting(isWide || activeSection == .timetable)
                     .accessibilityHidden(!isWide && activeSection != .timetable)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .clipped()
+                .contentShape(Rectangle())
+                .simultaneousGesture(sectionSwipe, including: isWide ? .subviews : .all)
+                .animation(reduceMotion ? nil : .snappy, value: activeSection)
+                .animation(reduceMotion ? nil : .snappy, value: swipeTranslation)
             }
             .navigationTitle(isWide ? "選課" : (activeSection == .catalog ? "課程搜尋" : "我的課表"))
             .toolbar {
@@ -158,6 +166,34 @@ struct CoursePlanningView: View {
                     .labelStyle(.iconOnly)
             }
         }
+    }
+
+    private func pageOffset(for section: Section, width: CGFloat) -> CGFloat {
+        let index = section == .catalog ? 0 : 1
+        let activeIndex = activeSection == .catalog ? 0 : 1
+        let direction: CGFloat = layoutDirection == .rightToLeft ? -1 : 1
+        return CGFloat(index - activeIndex) * width * direction + swipeTranslation
+    }
+
+    private var sectionSwipe: some Gesture {
+        DragGesture(minimumDistance: 30)
+            .updating($swipeTranslation) { value, translation, transaction in
+                transaction.animation = nil
+                let horizontal = value.translation.width
+                guard abs(horizontal) > abs(value.translation.height) * 1.5 else { return }
+                let logicalTranslation = layoutDirection == .rightToLeft ? -horizontal : horizontal
+                // Keep the first and last page from being dragged into an empty region.
+                guard (activeSection == .catalog && logicalTranslation < 0)
+                    || (activeSection == .timetable && logicalTranslation > 0) else { return }
+                translation = horizontal
+            }
+            .onEnded { value in
+                let horizontal = value.translation.width
+                guard abs(horizontal) >= 60,
+                      abs(horizontal) > abs(value.translation.height) * 1.5 else { return }
+                let logicalTranslation = layoutDirection == .rightToLeft ? -horizontal : horizontal
+                activeSection = logicalTranslation < 0 ? .timetable : .catalog
+            }
     }
 }
 

@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Search
@@ -22,19 +24,25 @@ import androidx.compose.material3.adaptive.layout.ThreePaneScaffoldDestinationIt
 import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirectiveWithTwoPanesOnMediumWidth
 import androidx.compose.material3.adaptive.layout.calculateThreePaneScaffoldValue
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.SaveableStateHolder
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.zacsweers.metrox.viewmodel.metroViewModel
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import org.mpc.domain.model.CourseSummary
 import org.mpc.domain.repository.CourseRepository
 import org.mpc.presentation.state.CoursePlanUiState
@@ -109,32 +117,57 @@ fun CoursePlanningScreen(
         if (!showsBothPanes) {
             CoursePlanningSectionPicker(selectedView, onSelectedViewChange)
         }
-        SupportingPaneScaffold(
-            modifier = Modifier.fillMaxWidth().weight(1f),
-            directive = directive,
-            value = scaffoldValue,
-            mainPane = {
-                AnimatedPane {
-                    CourseCatalogPane(
+        if (showsBothPanes) {
+            SupportingPaneScaffold(
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                directive = directive,
+                value = scaffoldValue,
+                mainPane = {
+                    AnimatedPane {
+                        CourseCatalogPane(
+                            modifier = Modifier.fillMaxSize(),
+                            stateHolder = stateHolder,
+                            isCompactCatalog = isCompactCatalog,
+                            planViewModel = planViewModel,
+                            onCourseClick = onCourseClick,
+                        )
+                    }
+                },
+                supportingPane = {
+                    AnimatedPane {
+                        CourseTimetablePane(
+                            modifier = Modifier.fillMaxSize(),
+                            stateHolder = stateHolder,
+                            planUiState = planUiState,
+                            onCourseClick = onCourseClick,
+                        )
+                    }
+                },
+            )
+        } else {
+            CoursePlanningCompactPager(
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                selectedView = selectedView,
+                onSelectedViewChange = onSelectedViewChange,
+            ) { view ->
+                when (view) {
+                    CoursePlanningView.CATALOG -> CourseCatalogPane(
                         modifier = Modifier.fillMaxSize(),
                         stateHolder = stateHolder,
                         isCompactCatalog = isCompactCatalog,
                         planViewModel = planViewModel,
                         onCourseClick = onCourseClick,
                     )
-                }
-            },
-            supportingPane = {
-                AnimatedPane {
-                    CourseTimetablePane(
+
+                    CoursePlanningView.TIMETABLE -> CourseTimetablePane(
                         modifier = Modifier.fillMaxSize(),
                         stateHolder = stateHolder,
                         planUiState = planUiState,
                         onCourseClick = onCourseClick,
                     )
                 }
-            },
-        )
+            }
+        }
     }
 
     selectedCourseDetails?.let { selection ->
@@ -153,6 +186,48 @@ fun CoursePlanningScreen(
             onRemoveCourse = planViewModel::toggleCourse,
             canEditPlan = planUiState is CoursePlanUiState.Success,
         )
+    }
+}
+
+@Composable
+private fun CoursePlanningCompactPager(
+    modifier: Modifier,
+    selectedView: CoursePlanningView,
+    onSelectedViewChange: (CoursePlanningView) -> Unit,
+    content: @Composable (CoursePlanningView) -> Unit,
+) {
+    val pages = CoursePlanningView.entries
+    val pagerState = rememberPagerState(
+        initialPage = pages.indexOf(selectedView),
+        pageCount = { pages.size },
+    )
+    val currentSelectedView by rememberUpdatedState(selectedView)
+    val currentOnSelectedViewChange by rememberUpdatedState(onSelectedViewChange)
+
+    LaunchedEffect(selectedView, pagerState) {
+        val targetPage = pages.indexOf(selectedView)
+        if (pagerState.currentPage != targetPage || pagerState.currentPageOffsetFraction != 0f) {
+            pagerState.animateScrollToPage(targetPage)
+        }
+    }
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.settledPage }
+            .drop(1)
+            .distinctUntilChanged()
+            .collect { page ->
+                val settledView = pages[page]
+                if (settledView != currentSelectedView) {
+                    currentOnSelectedViewChange(settledView)
+                }
+            }
+    }
+
+    HorizontalPager(
+        state = pagerState,
+        modifier = modifier,
+        key = { page -> pages[page] },
+    ) { page ->
+        content(pages[page])
     }
 }
 

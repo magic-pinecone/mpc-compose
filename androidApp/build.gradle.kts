@@ -31,6 +31,7 @@ dependencies {
     implementation(libs.androidx.sqlite.bundled)
 
     implementation(libs.compose.materialIconsCore)
+    implementation(libs.compose.foundation)
     implementation(libs.compose.material3)
     implementation(libs.compose.material3AdaptiveNavigationSuite)
     implementation(libs.androidx.material3AdaptiveLayout)
