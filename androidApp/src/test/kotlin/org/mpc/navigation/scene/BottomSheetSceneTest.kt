@@ -6,6 +6,7 @@ import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import de.infix.testBalloon.framework.core.testSuite
 import org.mpc.navigation.HomeRoot
+import org.mpc.navigation.PortalRoot
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 
@@ -38,7 +39,7 @@ val bottomSheetSceneTests by testSuite {
 
     test("logical scene changes change scene identity") {
         val first = bottomSheetScene()
-        val second = bottomSheetScene(key = org.mpc.navigation.NewsRoot)
+        val second = bottomSheetScene(key = PortalRoot)
 
         assertNotEquals(first, second)
     }

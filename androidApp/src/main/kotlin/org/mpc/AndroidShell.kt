@@ -12,7 +12,6 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -72,7 +71,6 @@ import org.mpc.navigation.AndroidNavigator
 import org.mpc.navigation.AppRoot
 import org.mpc.navigation.CoursePlanningRoot
 import org.mpc.navigation.HomeRoot
-import org.mpc.navigation.NewsRoot
 import org.mpc.navigation.PortalRoot
 import org.mpc.navigation.PortalWebRoute
 import org.mpc.navigation.SettingsRoute
@@ -188,9 +186,6 @@ private fun AndroidPrimaryNavigation(
         entryProvider<NavKey> {
             entry<HomeRoot> {
                 TopLevelPlaceholder(title = "首頁")
-            }
-            entry<NewsRoot> {
-                TopLevelPlaceholder(title = "新聞")
             }
             entry<PortalRoot> {
                 PortalScreen(
@@ -402,7 +397,6 @@ private data class PrimaryTopBarState(
                 selectedTopLevelRoute == CoursePlanningRoot && isExpanded -> "選課"
                 selectedTopLevelRoute == CoursePlanningRoot -> selectedCoursePlanningView.title
                 selectedTopLevelRoute == HomeRoot -> "首頁"
-                selectedTopLevelRoute == NewsRoot -> "新聞"
                 selectedTopLevelRoute == PortalRoot -> "Portal"
                 else -> "Magic Pinecone"
             }
@@ -478,7 +472,6 @@ private data class TopLevelNavigationItem(
 private val topLevelNavigationItems =
     listOf(
         TopLevelNavigationItem(HomeRoot, "首頁", Icons.Default.Home),
-        TopLevelNavigationItem(NewsRoot, "新聞", Icons.Default.Info),
-        TopLevelNavigationItem(PortalRoot, "Portal", Icons.Default.AccountCircle),
         TopLevelNavigationItem(CoursePlanningRoot, "選課", Icons.Default.DateRange),
+        TopLevelNavigationItem(PortalRoot, "Portal", Icons.Default.AccountCircle),
     )

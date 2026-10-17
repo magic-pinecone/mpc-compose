@@ -37,7 +37,7 @@ val androidNavigatorTests by testSuite {
         test("switching top-level routes preserves their stacks") {
             navigator.navigate(CoursePlanningRoot)
             navigator.navigate(TestDetail)
-            navigator.navigate(NewsRoot)
+            navigator.navigate(PortalRoot)
             navigator.navigate(CoursePlanningRoot)
 
             assertEquals(listOf<NavKey>(CoursePlanningRoot, TestDetail), state.currentBackStack.toList())

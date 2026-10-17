@@ -4,6 +4,7 @@ import UIKit
 
 struct CoursePlanningView: View {
     let sharedHost: IosSharedHost
+    let onOpenSettings: () -> Void
 
     enum Section {
         case catalog
@@ -150,6 +151,11 @@ struct CoursePlanningView: View {
                 .accessibilityLabel("已選課程")
                 .accessibilityValue("\(selectedCourses.count) 門課")
                 .accessibilityHint("顯示目前已加入的課程")
+            }
+
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("設定", systemImage: "gear", action: onOpenSettings)
+                    .labelStyle(.iconOnly)
             }
         }
     }

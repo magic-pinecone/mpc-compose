@@ -5,27 +5,41 @@ struct ContentView: View {
     let sharedHost: IosSharedHost
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var themeMode = AppThemeMode.system
+    @State private var isShowingSettings = false
 
     var body: some View {
         TabView {
+            Tab("首頁", systemImage: "house") {
+                NavigationStack {
+                    HomeView(onOpenSettings: openSettings)
+                }
+                .ignoresSafeArea(.container, edges: bottomSafeAreaEdges)
+            }
             Tab("選課", systemImage: "calendar") {
                 NavigationStack {
-                    CoursePlanningView(sharedHost: sharedHost)
+                    CoursePlanningView(
+                        sharedHost: sharedHost,
+                        onOpenSettings: openSettings
+                    )
                 }
                 .ignoresSafeArea(.container, edges: bottomSafeAreaEdges)
             }
             Tab("Portal", systemImage: "building.columns") {
                 NavigationStack {
-                    PortalView(sharedHost: sharedHost)
+                    PortalView(
+                        sharedHost: sharedHost,
+                        onOpenSettings: openSettings
+                    )
                 }
                 .ignoresSafeArea(.container, edges: bottomSafeAreaEdges)
             }
-            Tab("設定", systemImage: "gear") {
-                NavigationStack {
-                    SettingsView(sharedHost: sharedHost)
-                }
-                .ignoresSafeArea(.container, edges: bottomSafeAreaEdges)
+        }
+        .sheet(isPresented: $isShowingSettings) {
+            NavigationStack {
+                SettingsView(sharedHost: sharedHost)
             }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
         }
         .ignoresSafeArea(.container, edges: bottomSafeAreaEdges)
         .preferredColorScheme(preferredColorScheme)
@@ -55,5 +69,9 @@ struct ContentView: View {
             return .dark
         }
         return nil
+    }
+
+    private func openSettings() {
+        isShowingSettings = true
     }
 }
