@@ -49,8 +49,8 @@ jobs:
 
   swift:
     name: SwiftLint
-    runs-on: macos-latest
-    timeout-minutes: 10
+    runs-on: xcode-27
+    timeout-minutes: 15
 
     steps:
       - name: Check out repository
