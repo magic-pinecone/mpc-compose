@@ -28,7 +28,7 @@ Portal pages support manual sign-in in the embedded web view. Automatic sign-in,
 
 ### Prerequisites
 
-- JDK 17
+- Amazon Corretto 21
 - Android Studio with an Android SDK for API 37
 - Xcode for the iOS app
 

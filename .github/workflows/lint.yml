@@ -26,12 +26,11 @@ jobs:
         with:
           persist-credentials: false
 
-      # required for gradle 9.5.0 and android gradle plugin 9.3.0
       - name: Set up Java
         uses: actions/setup-java@v5
         with:
-          distribution: temurin
-          java-version: "17"
+          distribution: corretto
+          java-version: "21"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
@@ -49,14 +48,21 @@ jobs:
 
   swift:
     name: SwiftLint
-    runs-on: macos-latest
-    timeout-minutes: 10
+    runs-on: xcode-27
+    timeout-minutes: 15
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_27.1.app/Contents/Developer
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
         with:
           persist-credentials: false
+
+      - name: Verify Xcode version
+        run: |
+          xcodebuild -version
+          test "$(xcodebuild -version | head -n 1)" = "Xcode 27.1"
 
       - name: Install SwiftLint
         run: brew install swiftlint

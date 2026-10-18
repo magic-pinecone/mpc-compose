@@ -152,7 +152,12 @@ private struct CourseCatalogHeading: View {
                 Spacer(minLength: 8)
                 CourseCatalogTypeBadge(title: course.courseType.description_)
             }
-            Text("\(course.classNo) · \(course.credit, format: .number.precision(.fractionLength(0...2))) 學分\(teacherSuffix)")
+            Text(
+                """
+                \(course.classNo) · \
+                \(course.credit, format: .number.precision(.fractionLength(0...2))) 學分\(teacherSuffix)
+                """
+            )
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.leading)
@@ -214,7 +219,11 @@ private struct CourseCatalogSelectionControl: View {
         .buttonStyle(CourseSelectionButtonStyle(isSelected: isSelected))
         .disabled(!canEditPlan)
         .accessibilityIdentifier("course-toggle-\(course.serialNumber)")
-        .accessibilityLabel(isSelected ? "從課表移除 \(course.title)，\(course.classNo)" : "加入課表 \(course.title)，\(course.classNo)")
+        .accessibilityLabel(
+            isSelected
+                ? "從課表移除 \(course.title)，\(course.classNo)"
+                : "加入課表 \(course.title)，\(course.classNo)"
+        )
     }
 }
 
