@@ -43,13 +43,10 @@ struct ContentView: View {
         }
         .ignoresSafeArea(.container, edges: bottomSafeAreaEdges)
         .preferredColorScheme(preferredColorScheme)
-        .onAppear {
-            sharedHost.observeThemeMode(observer: { selectedMode in
+        .task(id: ObjectIdentifier(sharedHost)) {
+            for await selectedMode in sharedHost.themeMode {
                 themeMode = selectedMode
-            })
-        }
-        .onDisappear {
-            sharedHost.observeThemeMode(observer: nil)
+            }
         }
     }
 

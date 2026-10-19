@@ -2,16 +2,20 @@ package org.mpc
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.uikit.OnFocusBehavior
 import androidx.compose.ui.window.ComposeUIViewController
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.zacsweers.metrox.viewmodel.metroViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import org.mpc.bridge.CoursePlanBridge
 import org.mpc.bridge.CourseSearchBridge
@@ -35,27 +39,23 @@ import platform.UIKit.UIViewController
 
 class IosSharedHost internal constructor(
     private val appGraph: AppGraph,
+    settingsScope: CoroutineScope = MainScope(),
 ) {
-    // The app owns this host for its lifetime; every controller shares the loaded preferences.
-    private val settingsScope = MainScope()
     private val loadedSettings: StateFlow<AppSettings?> = appGraph.appSettingsRepository.settings.stateIn(
         scope = settingsScope,
         started = SharingStarted.Eagerly,
         initialValue = null,
     )
+    val themeMode: Flow<AppThemeMode> = loadedSettings
+        .filterNotNull()
+        .map { it.themeMode }
+        .distinctUntilChanged()
 
     @Throws(Exception::class)
     suspend fun loadCourseDetail(
         semester: String,
         serialNumber: String,
     ): CourseDetail = appGraph.courseRepository.fetchCourseDetail(semester, serialNumber)
-
-    private var themeModeObserver: ((AppThemeMode) -> Unit)? = null
-
-    fun observeThemeMode(observer: ((AppThemeMode) -> Unit)?) {
-        themeModeObserver = observer
-        loadedSettings.value?.let { observer?.invoke(it.themeMode) }
-    }
 
     fun courseCatalogScreenController(
         bridge: CourseSearchBridge,
@@ -126,10 +126,6 @@ class IosSharedHost internal constructor(
     private fun ThemedContent(content: @Composable (AppSettings) -> Unit) {
         val settingsState by loadedSettings.collectAsStateWithLifecycle()
         val settings = settingsState ?: return
-        SideEffect {
-            themeModeObserver?.invoke(settings.themeMode)
-        }
-
         MpcTheme(
             themeMode = settings.themeMode,
             timetableColorMode = settings.timetableColorMode,

@@ -32,6 +32,9 @@ skie {
         group("org.mpc.bridge") {
             FlowInterop.Enabled(true)
         }
+        group("org.mpc.IosSharedHost") {
+            FlowInterop.Enabled(true)
+        }
     }
 }
 
