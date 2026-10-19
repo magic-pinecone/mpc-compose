@@ -96,6 +96,24 @@ struct CoursePlanningView: View {
             }
             .navigationTitle(isWide ? "選課" : (activeSection == .catalog ? "課程搜尋" : "我的課表"))
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("儲存", systemImage: "square.and.arrow.down") {
+                        planBridge.requestSave()
+                    }
+                }
+
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        isShowingSelectedCourses = true
+                    } label: {
+                        Label("已選課程", systemImage: "cart")
+                    }
+                    .badge(selectedCourses.count)
+                    .accessibilityLabel("已選課程")
+                    .accessibilityValue("\(selectedCourses.count) 門課")
+                    .accessibilityHint("顯示目前已加入的課程")
+                }
+
                 if isWide || activeSection == .catalog {
                     ToolbarItem(placement: .topBarTrailing) {
                         Menu {
@@ -109,6 +127,14 @@ struct CoursePlanningView: View {
                         .accessibilityIdentifier("course-display-options")
                     }
                 }
+                
+
+
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("設定", systemImage: "gear", action: onOpenSettings)
+                        .labelStyle(.iconOnly)
+                }
+            
             }
         }
         // Expand the layout itself so pane clipping does not discard content below the tab bar.
@@ -148,30 +174,6 @@ struct CoursePlanningView: View {
             )
             .presentationDetents([.medium, .large])
             .presentationDragIndicator(.visible)
-        }
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button("儲存", systemImage: "square.and.arrow.down") {
-                    planBridge.requestSave()
-                }
-            }
-
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    isShowingSelectedCourses = true
-                } label: {
-                    Label("已選課程", systemImage: "cart")
-                }
-                .badge(selectedCourses.count)
-                .accessibilityLabel("已選課程")
-                .accessibilityValue("\(selectedCourses.count) 門課")
-                .accessibilityHint("顯示目前已加入的課程")
-            }
-
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("設定", systemImage: "gear", action: onOpenSettings)
-                    .labelStyle(.iconOnly)
-            }
         }
     }
 
