@@ -82,7 +82,14 @@ struct CoursePlanningView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .clipped()
                 .contentShape(Rectangle())
-                .simultaneousGesture(sectionSwipe, including: isWide ? .subviews : .all)
+                .gesture(
+                    sectionSwipe,
+                    including: !isWide && activeSection == .catalog ? .all : .subviews
+                )
+                .simultaneousGesture(
+                    sectionSwipe,
+                    including: !isWide && activeSection == .timetable ? .all : .subviews
+                )
                 .animation(reduceMotion ? nil : .snappy, value: activeSection)
                 .animation(reduceMotion ? nil : .snappy, value: swipeTranslation)
             }
