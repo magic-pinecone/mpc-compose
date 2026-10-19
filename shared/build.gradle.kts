@@ -29,7 +29,7 @@ skie {
             SuspendInterop.Enabled(false)
             FlowInterop.Enabled(false)
         }
-        group("org.mpc.bridge.CourseSearchBridge") {
+        group("org.mpc.bridge") {
             FlowInterop.Enabled(true)
         }
     }

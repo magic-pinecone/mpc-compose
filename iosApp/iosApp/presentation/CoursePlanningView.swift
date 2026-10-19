@@ -14,8 +14,7 @@ struct CoursePlanningView: View {
     @State private var activeSection: Section = .catalog
     @GestureState private var swipeTranslation: CGFloat = 0
     @State private var planBridge = CoursePlanBridge()
-    @State private var selectedCourses: [CourseSummary] = []
-    @State private var canEditPlan = false
+    @State private var planSnapshot = CoursePlanSnapshot(selectedCourses: [], canEditPlan: false)
     @State private var isShowingSelectedCourses = false
     @State private var courseDetailSelection: CourseDetailSelection?
     @AppStorage("courseCatalogCompactMode") private var isCompactCatalog = false
@@ -25,6 +24,14 @@ struct CoursePlanningView: View {
     @Environment(\.layoutDirection) private var layoutDirection
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private let semester = "115-1"
+
+    private var selectedCourses: [CourseSummary] {
+        planSnapshot.selectedCourses
+    }
+
+    private var canEditPlan: Bool {
+        planSnapshot.canEditPlan
+    }
 
     var body: some View {
         GeometryReader { geometry in
@@ -139,17 +146,17 @@ struct CoursePlanningView: View {
         .ignoresSafeArea(.container, edges: .bottom)
         .ignoresSafeArea(.keyboard, edges: .bottom)
         .onAppear {
-            planBridge.observeSelectedCourses(observer: { courses in
-                selectedCourses = courses
-                canEditPlan = planBridge.canEditPlan
-            })
             planBridge.observeCourseDetailsRequest(observer: { semester, course in
                 courseDetailSelection = CourseDetailSelection(semester: semester, course: course)
             })
         }
         .onDisappear {
-            planBridge.observeSelectedCourses(observer: nil)
             planBridge.observeCourseDetailsRequest(observer: nil)
+        }
+        .task(id: ObjectIdentifier(planBridge)) {
+            for await snapshot in planBridge.planSnapshot {
+                planSnapshot = snapshot
+            }
         }
         .sheet(isPresented: $isShowingSelectedCourses) {
             SelectedCoursesSheet(
