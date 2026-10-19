@@ -127,14 +127,12 @@ struct CoursePlanningView: View {
                         .accessibilityIdentifier("course-display-options")
                     }
                 }
-                
-
 
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("設定", systemImage: "gear", action: onOpenSettings)
                         .labelStyle(.iconOnly)
                 }
-            
+
             }
         }
         // Expand the layout itself so pane clipping does not discard content below the tab bar.
