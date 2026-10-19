@@ -56,7 +56,7 @@ struct CourseCatalogCard: View {
             }
             .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
-        .buttonStyle(.plain)
+        .buttonStyle(CourseCatalogDetailsButtonStyle())
         .accessibilityIdentifier("course-details-\(course.serialNumber)")
         .accessibilityValue(isSelected ? "已加入課表" : "尚未加入課表")
         .accessibilityHint("查看課程詳細資料")
@@ -76,6 +76,21 @@ struct CourseCatalogCard: View {
             .padding(isCompact ? 10 : 14)
         }
         .animation(.easeInOut(duration: 0.18), value: isSelected)
+    }
+}
+
+// A card opens only after a completed tap; paging drags must cancel activation.
+private struct CourseCatalogDetailsButtonStyle: PrimitiveButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .onTapGesture {
+                if isEnabled { configuration.trigger() }
+            }
+            .accessibilityAction {
+                if isEnabled { configuration.trigger() }
+            }
     }
 }
 

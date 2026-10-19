@@ -9,6 +9,10 @@ import androidx.compose.ui.uikit.OnFocusBehavior
 import androidx.compose.ui.window.ComposeUIViewController
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.zacsweers.metrox.viewmodel.metroViewModel
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import org.mpc.bridge.CoursePlanBridge
 import org.mpc.bridge.CourseSearchBridge
 import org.mpc.core.createDataStore
@@ -16,6 +20,7 @@ import org.mpc.core.createDatabase
 import org.mpc.core.createDatabaseBuilder
 import org.mpc.di.AppGraph
 import org.mpc.di.createAppGraph
+import org.mpc.domain.model.AppSettings
 import org.mpc.domain.model.AppThemeMode
 import org.mpc.domain.model.CourseDetail
 import org.mpc.domain.model.PortalShortcutDestination
@@ -31,18 +36,25 @@ import platform.UIKit.UIViewController
 class IosSharedHost internal constructor(
     private val appGraph: AppGraph,
 ) {
+    // The app owns this host for its lifetime; every controller shares the loaded preferences.
+    private val settingsScope = MainScope()
+    private val loadedSettings: StateFlow<AppSettings?> = appGraph.appSettingsRepository.settings.stateIn(
+        scope = settingsScope,
+        started = SharingStarted.Eagerly,
+        initialValue = null,
+    )
+
     @Throws(Exception::class)
     suspend fun loadCourseDetail(
         semester: String,
         serialNumber: String,
     ): CourseDetail = appGraph.courseRepository.fetchCourseDetail(semester, serialNumber)
 
-    private var latestThemeMode = AppThemeMode.SYSTEM
     private var themeModeObserver: ((AppThemeMode) -> Unit)? = null
 
     fun observeThemeMode(observer: ((AppThemeMode) -> Unit)?) {
         themeModeObserver = observer
-        observer?.invoke(latestThemeMode)
+        loadedSettings.value?.let { observer?.invoke(it.themeMode) }
     }
 
     fun courseCatalogScreenController(
@@ -95,9 +107,8 @@ class IosSharedHost internal constructor(
 
     fun settingsScreenController(): UIViewController = ComposeUIViewController {
         ProvideAppDependencies(appGraph) {
-            ThemedContent {
+            ThemedContent { settings ->
                 val settingsViewModel: AppSettingsViewModel = metroViewModel()
-                val settings by settingsViewModel.settings.collectAsStateWithLifecycle()
                 val settingsWriteFailed by settingsViewModel.settingsWriteFailed.collectAsStateWithLifecycle()
 
                 SettingsScreen(
@@ -112,18 +123,17 @@ class IosSharedHost internal constructor(
     }
 
     @Composable
-    private fun ThemedContent(content: @Composable () -> Unit) {
-        val settingsViewModel: AppSettingsViewModel = metroViewModel()
-        val settings by settingsViewModel.settings.collectAsStateWithLifecycle()
+    private fun ThemedContent(content: @Composable (AppSettings) -> Unit) {
+        val settingsState by loadedSettings.collectAsStateWithLifecycle()
+        val settings = settingsState ?: return
         SideEffect {
-            latestThemeMode = settings.themeMode
-            themeModeObserver?.invoke(latestThemeMode)
+            themeModeObserver?.invoke(settings.themeMode)
         }
 
         MpcTheme(
             themeMode = settings.themeMode,
             timetableColorMode = settings.timetableColorMode,
-            content = content,
+            content = { content(settings) },
         )
     }
 }
