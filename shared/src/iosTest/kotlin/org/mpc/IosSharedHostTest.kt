@@ -4,8 +4,11 @@ import androidx.lifecycle.ViewModel
 import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactory
 import dev.zacsweers.metrox.viewmodel.MetroViewModelFactory
 import dev.zacsweers.metrox.viewmodel.ViewModelAssistedFactory
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -13,6 +16,9 @@ import kotlinx.coroutines.test.runTest
 import org.mpc.di.AppGraph
 import org.mpc.domain.model.AppSettings
 import org.mpc.domain.model.AppThemeMode
+import org.mpc.domain.model.CourseDetail
+import org.mpc.domain.model.CourseResult
+import org.mpc.domain.model.CourseSerialNo
 import org.mpc.domain.model.PortalAuthenticationMode
 import org.mpc.domain.model.TimetableColorMode
 import org.mpc.domain.repository.AppSettingsRepository
@@ -21,9 +27,34 @@ import org.mpc.presentation.state.CoursePlanDraftStore
 import kotlin.reflect.KClass
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class IosSharedHostTest {
+    @Test
+    fun cancellingCourseDetailsCancelsTheRepositoryRequest() = runTest {
+        val request = CompletableDeferred<Pair<String, String>>()
+        val cancelled = CompletableDeferred<Unit>()
+        val repository = SuspendedDetailRepository { semester, serialNumber ->
+            request.complete(semester to serialNumber)
+            try {
+                awaitCancellation()
+            } finally {
+                cancelled.complete(Unit)
+            }
+        }
+        val host = IosSharedHost(HostTestGraph(HostSettingsRepository(), repository), settingsScope = backgroundScope)
+        val operation = launch(start = CoroutineStart.UNDISPATCHED) {
+            host.loadCourseDetail("115-1", "01001")
+        }
+
+        assertEquals("115-1" to "01001", request.await())
+        assertFalse(cancelled.isCompleted)
+        operation.cancelAndJoin()
+        assertTrue(operation.isCancelled)
+        assertTrue(cancelled.isCompleted)
+    }
+
     @Test
     fun themeWaitsForPreferencesAndUpdatesWithoutAComposeController() = runTest {
         val repository = HostSettingsRepository()
@@ -81,11 +112,28 @@ private class HostSettingsRepository : AppSettingsRepository {
 
 private class HostTestGraph(
     override val appSettingsRepository: AppSettingsRepository,
+    private val detailRepository: CourseRepository? = null,
 ) : AppGraph {
-    override val courseRepository: CourseRepository get() = error("No course request expected")
+    override val courseRepository: CourseRepository get() = detailRepository ?: error("No course request expected")
     override val coursePlanDraftStore: CoursePlanDraftStore get() = error("No Compose controller expected")
     override val metroViewModelFactory: MetroViewModelFactory get() = error("No Compose controller expected")
     override val viewModelProviders: Map<KClass<out ViewModel>, () -> ViewModel> = emptyMap()
     override val assistedFactoryProviders: Map<KClass<out ViewModel>, () -> ViewModelAssistedFactory> = emptyMap()
     override val manualAssistedFactoryProviders: Map<KClass<out ManualViewModelAssistedFactory>, () -> ManualViewModelAssistedFactory> = emptyMap()
+}
+
+private class SuspendedDetailRepository(
+    private val fetchDetail: suspend (String, String) -> CourseDetail,
+) : CourseRepository {
+    override suspend fun fetchCourseDetail(semester: String, serialNo: String): CourseDetail = fetchDetail(semester, serialNo)
+
+    override suspend fun fetchAllCourses(semester: String): CourseResult = error("No catalog request expected")
+
+    override suspend fun fetchCourses(semester: String, query: String): CourseResult = error("No catalog request expected")
+
+    override suspend fun fetchCoursesBySerialNo(semester: String, serialNos: List<CourseSerialNo>): CourseResult = error("No catalog request expected")
+
+    override fun observeCatalog(semester: String): Flow<CourseResult?> = error("No catalog request expected")
+
+    override suspend fun refreshCatalog(semester: String): CourseResult = error("No catalog request expected")
 }

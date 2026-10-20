@@ -34,6 +34,7 @@ skie {
         }
         group("org.mpc.IosSharedHost") {
             FlowInterop.Enabled(true)
+            SuspendInterop.Enabled(true)
         }
     }
 }
