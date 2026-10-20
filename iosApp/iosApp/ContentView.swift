@@ -38,6 +38,7 @@ struct ContentView: View {
             NavigationStack {
                 SettingsView(sharedHost: sharedHost)
             }
+            .preferredColorScheme(preferredColorScheme)
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
         }
