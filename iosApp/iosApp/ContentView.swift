@@ -59,13 +59,14 @@ struct ContentView: View {
     }
 
     private var preferredColorScheme: ColorScheme? {
-        if themeMode == .light {
+        switch themeMode {
+        case .system:
+            return nil
+        case .light:
             return .light
-        }
-        if themeMode == .dark {
+        case .dark:
             return .dark
         }
-        return nil
     }
 
     private func openSettings() {

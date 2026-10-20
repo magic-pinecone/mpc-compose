@@ -29,6 +29,9 @@ skie {
             SuspendInterop.Enabled(false)
             FlowInterop.Enabled(false)
         }
+        group("org.mpc.domain.model") {
+            EnumInterop.Enabled(true)
+        }
         group("org.mpc.bridge") {
             FlowInterop.Enabled(true)
         }
