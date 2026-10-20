@@ -1,6 +1,7 @@
 package org.mpc
 
 import androidx.lifecycle.ViewModel
+import de.infix.testBalloon.framework.core.testSuite
 import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactory
 import dev.zacsweers.metrox.viewmodel.MetroViewModelFactory
 import dev.zacsweers.metrox.viewmodel.ViewModelAssistedFactory
@@ -25,78 +26,80 @@ import org.mpc.domain.repository.AppSettingsRepository
 import org.mpc.domain.repository.CourseRepository
 import org.mpc.presentation.state.CoursePlanDraftStore
 import kotlin.reflect.KClass
-import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-class IosSharedHostTest {
-    @Test
-    fun cancellingCourseDetailsCancelsTheRepositoryRequest() = runTest {
-        val request = CompletableDeferred<Pair<String, String>>()
-        val cancelled = CompletableDeferred<Unit>()
-        val repository = SuspendedDetailRepository { semester, serialNumber ->
-            request.complete(semester to serialNumber)
-            try {
-                awaitCancellation()
-            } finally {
-                cancelled.complete(Unit)
+val iosSharedHostTests by testSuite {
+    test("cancelling course details cancels the repository request") {
+        runTest {
+            val request = CompletableDeferred<Pair<String, String>>()
+            val cancelled = CompletableDeferred<Unit>()
+            val repository = SuspendedDetailRepository { semester, serialNumber ->
+                request.complete(semester to serialNumber)
+                try {
+                    awaitCancellation()
+                } finally {
+                    cancelled.complete(Unit)
+                }
             }
-        }
-        val host = IosSharedHost(HostTestGraph(HostSettingsRepository(), repository), settingsScope = backgroundScope)
-        val operation = launch(start = CoroutineStart.UNDISPATCHED) {
-            host.loadCourseDetail("115-1", "01001")
-        }
+            val host = IosSharedHost(HostTestGraph(HostSettingsRepository(), repository), settingsScope = backgroundScope)
+            val operation = launch(start = CoroutineStart.UNDISPATCHED) {
+                host.loadCourseDetail("115-1", "01001")
+            }
 
-        assertEquals("115-1" to "01001", request.await())
-        assertFalse(cancelled.isCompleted)
-        operation.cancelAndJoin()
-        assertTrue(operation.isCancelled)
-        assertTrue(cancelled.isCompleted)
+            assertEquals("115-1" to "01001", request.await())
+            assertFalse(cancelled.isCompleted)
+            operation.cancelAndJoin()
+            assertTrue(operation.isCancelled)
+            assertTrue(cancelled.isCompleted)
+        }
     }
 
-    @Test
-    fun themeWaitsForPreferencesAndUpdatesWithoutAComposeController() = runTest {
-        val repository = HostSettingsRepository()
-        val host = IosSharedHost(HostTestGraph(repository), settingsScope = backgroundScope)
-        val received = mutableListOf<AppThemeMode>()
-        val collector = launch(start = CoroutineStart.UNDISPATCHED) {
-            host.themeMode.collect { received.add(it) }
+    test("theme waits for preferences and updates without a Compose controller") {
+        runTest {
+            val repository = HostSettingsRepository()
+            val host = IosSharedHost(HostTestGraph(repository), settingsScope = backgroundScope)
+            val received = mutableListOf<AppThemeMode>()
+            val collector = launch(start = CoroutineStart.UNDISPATCHED) {
+                host.themeMode.collect { received.add(it) }
+            }
+            testScheduler.runCurrent()
+            assertTrue(received.isEmpty())
+
+            repository.settings.emit(AppSettings(themeMode = AppThemeMode.DARK))
+            testScheduler.runCurrent()
+            repository.settings.emit(AppSettings(themeMode = AppThemeMode.DARK, timetableColorMode = TimetableColorMode.SHUFFLED))
+            testScheduler.runCurrent()
+            repository.settings.emit(AppSettings(themeMode = AppThemeMode.LIGHT))
+            testScheduler.runCurrent()
+
+            assertEquals(listOf(AppThemeMode.DARK, AppThemeMode.LIGHT), received)
+            collector.cancelAndJoin()
         }
-        testScheduler.runCurrent()
-        assertTrue(received.isEmpty())
-
-        repository.settings.emit(AppSettings(themeMode = AppThemeMode.DARK))
-        testScheduler.runCurrent()
-        repository.settings.emit(AppSettings(themeMode = AppThemeMode.DARK, timetableColorMode = TimetableColorMode.SHUFFLED))
-        testScheduler.runCurrent()
-        repository.settings.emit(AppSettings(themeMode = AppThemeMode.LIGHT))
-        testScheduler.runCurrent()
-
-        assertEquals(listOf(AppThemeMode.DARK, AppThemeMode.LIGHT), received)
-        collector.cancelAndJoin()
     }
 
-    @Test
-    fun themeReplaysLatestPreferencesAfterCollectionRestarts() = runTest {
-        val repository = HostSettingsRepository()
-        val host = IosSharedHost(HostTestGraph(repository), settingsScope = backgroundScope)
-        val received = mutableListOf<AppThemeMode>()
-        val collector = launch(start = CoroutineStart.UNDISPATCHED) {
-            host.themeMode.collect { received.add(it) }
-        }
-        repository.settings.emit(AppSettings(themeMode = AppThemeMode.DARK))
-        testScheduler.runCurrent()
-        collector.cancelAndJoin()
-        repository.settings.emit(AppSettings(themeMode = AppThemeMode.LIGHT))
-        testScheduler.runCurrent()
-        assertEquals(listOf(AppThemeMode.DARK), received)
+    test("theme replays the latest preferences after collection restarts") {
+        runTest {
+            val repository = HostSettingsRepository()
+            val host = IosSharedHost(HostTestGraph(repository), settingsScope = backgroundScope)
+            val received = mutableListOf<AppThemeMode>()
+            val collector = launch(start = CoroutineStart.UNDISPATCHED) {
+                host.themeMode.collect { received.add(it) }
+            }
+            repository.settings.emit(AppSettings(themeMode = AppThemeMode.DARK))
+            testScheduler.runCurrent()
+            collector.cancelAndJoin()
+            repository.settings.emit(AppSettings(themeMode = AppThemeMode.LIGHT))
+            testScheduler.runCurrent()
+            assertEquals(listOf(AppThemeMode.DARK), received)
 
-        val restartedCollector = launch(start = CoroutineStart.UNDISPATCHED) {
-            host.themeMode.collect { received.add(it) }
+            val restartedCollector = launch(start = CoroutineStart.UNDISPATCHED) {
+                host.themeMode.collect { received.add(it) }
+            }
+            assertEquals(listOf(AppThemeMode.DARK, AppThemeMode.LIGHT), received)
+            restartedCollector.cancelAndJoin()
         }
-        assertEquals(listOf(AppThemeMode.DARK, AppThemeMode.LIGHT), received)
-        restartedCollector.cancelAndJoin()
     }
 }
 
