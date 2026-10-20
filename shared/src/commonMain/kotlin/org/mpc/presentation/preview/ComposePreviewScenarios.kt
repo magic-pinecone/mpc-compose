@@ -126,7 +126,7 @@ internal fun ComposePreviewScenarioContent(scenario: ComposePreviewScenario) {
     }
 }
 
-private object ComposePreviewFixtures {
+internal object ComposePreviewFixtures {
     private const val SEMESTER = "1151"
 
     val courses = listOf(

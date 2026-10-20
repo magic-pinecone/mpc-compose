@@ -12,22 +12,6 @@ private func composePreview(
     )
 }
 
-#Preview("Catalog results · populated") {
-    composePreview(.catalogPopulated)
-}
-
-#Preview("Catalog results · empty") {
-    composePreview(.catalogEmpty)
-}
-
-#Preview("Catalog results · loading") {
-    composePreview(.catalogLoading)
-}
-
-#Preview("Catalog results · failure") {
-    composePreview(.catalogFailure)
-}
-
 #Preview("Timetable · populated") {
     composePreview(.timetablePopulated)
 }
@@ -54,8 +38,4 @@ private func composePreview(
 
 #Preview("Settings") {
     composePreview(.settings)
-}
-
-#Preview("Catalog results · populated · dark") {
-    composePreview(.catalogPopulated, isDarkTheme: true)
 }

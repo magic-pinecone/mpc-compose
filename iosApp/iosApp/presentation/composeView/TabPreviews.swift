@@ -131,11 +131,12 @@ private struct CatalogFixturePane: View {
     var body: some View {
         VStack(spacing: 0) {
             CoursePlanningSearchField(query: $query, onSubmit: { _ in })
-                .frame(height: 44)
-                .padding(.horizontal, 12)
-            ComposeFixtureController(scenario: .catalogPopulated)
+                .padding(.horizontal, 8)
+                .padding(.top, 8)
+            CourseCatalogStaticPreview()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+        .background(Color(uiColor: .systemGroupedBackground).ignoresSafeArea())
     }
 }
 
