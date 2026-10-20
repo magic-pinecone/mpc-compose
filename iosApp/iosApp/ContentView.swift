@@ -38,18 +38,16 @@ struct ContentView: View {
             NavigationStack {
                 SettingsView(sharedHost: sharedHost)
             }
+            .preferredColorScheme(preferredColorScheme)
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
         }
         .ignoresSafeArea(.container, edges: bottomSafeAreaEdges)
         .preferredColorScheme(preferredColorScheme)
-        .onAppear {
-            sharedHost.observeThemeMode(observer: { selectedMode in
+        .task(id: ObjectIdentifier(sharedHost)) {
+            for await selectedMode in sharedHost.themeMode {
                 themeMode = selectedMode
-            })
-        }
-        .onDisappear {
-            sharedHost.observeThemeMode(observer: nil)
+            }
         }
     }
 
@@ -62,13 +60,14 @@ struct ContentView: View {
     }
 
     private var preferredColorScheme: ColorScheme? {
-        if themeMode == .light {
+        switch themeMode {
+        case .system:
+            return nil
+        case .light:
             return .light
-        }
-        if themeMode == .dark {
+        case .dark:
             return .dark
         }
-        return nil
     }
 
     private func openSettings() {

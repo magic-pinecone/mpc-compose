@@ -16,6 +16,7 @@ composeMultiplatform = "1.12.0"
 calf = "0.14.0"
 junit = "4.13.2"
 kotlin = "2.4.20"
+skie = "0.10.15"
 material3 = "1.12.0-alpha03"
 material3-adaptive = "1.2.0"
 materialIcons = "1.7.3"
@@ -91,6 +92,7 @@ testBalloon-frameworkCore = { module = "de.infix.testBalloon:testBalloon-framewo
 
 
 [plugins]
+skie = { id = "co.touchlab.skie", version.ref = "skie" }
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidMultiplatformLibrary = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }

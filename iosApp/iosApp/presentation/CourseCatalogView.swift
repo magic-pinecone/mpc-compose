@@ -60,13 +60,10 @@ struct CourseCatalogView: View {
                 submitSearch()
             }
         }
-        .onAppear {
-            bridge.observeCatalogSnapshot(observer: { snapshot in
+        .task(id: ObjectIdentifier(bridge)) {
+            for await snapshot in bridge.catalogSnapshot {
                 catalogSnapshot = snapshot
-            })
-        }
-        .onDisappear {
-            bridge.observeCatalogSnapshot(observer: nil)
+            }
         }
     }
 

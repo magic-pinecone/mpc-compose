@@ -1,3 +1,7 @@
+import co.touchlab.skie.configuration.EnumInterop
+import co.touchlab.skie.configuration.FlowInterop
+import co.touchlab.skie.configuration.SealedInterop
+import co.touchlab.skie.configuration.SuspendInterop
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -12,9 +16,31 @@ plugins {
     alias(libs.plugins.detekt)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.testBalloon)
+    alias(libs.plugins.skie)
 }
 
 val ktorVersion: String by project
+
+skie {
+    features {
+        group {
+            EnumInterop.Enabled(false)
+            SealedInterop.Enabled(false)
+            SuspendInterop.Enabled(false)
+            FlowInterop.Enabled(false)
+        }
+        group("org.mpc.domain.model") {
+            EnumInterop.Enabled(true)
+        }
+        group("org.mpc.bridge") {
+            FlowInterop.Enabled(true)
+        }
+        group("org.mpc.IosSharedHost") {
+            FlowInterop.Enabled(true)
+            SuspendInterop.Enabled(true)
+        }
+    }
+}
 
 kotlin {
     listOf(

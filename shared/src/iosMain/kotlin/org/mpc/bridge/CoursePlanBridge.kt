@@ -1,6 +1,9 @@
 package org.mpc.bridge
 
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import org.mpc.domain.model.CourseSummary
 
@@ -9,10 +12,8 @@ class CoursePlanBridge {
     internal val saveRequests = requests.receiveAsFlow()
     private val courseToggleRequests = Channel<CourseSummary>(Channel.BUFFERED)
     internal val toggleRequests = courseToggleRequests.receiveAsFlow()
-    private var latestSelectedCourses: List<CourseSummary> = emptyList()
-    private var latestCanEditPlan = false
-    val canEditPlan: Boolean get() = latestCanEditPlan
-    private var selectedCoursesObserver: ((List<CourseSummary>) -> Unit)? = null
+    private val mutablePlanSnapshot = MutableStateFlow(CoursePlanSnapshot())
+    val planSnapshot: StateFlow<CoursePlanSnapshot> = mutablePlanSnapshot.asStateFlow()
     private var courseDetailsObserver: ((String, CourseSummary) -> Unit)? = null
 
     fun requestToggleCourse(course: CourseSummary) {
@@ -27,20 +28,19 @@ class CoursePlanBridge {
         courseDetailsObserver?.invoke(semester, course)
     }
 
-    fun observeSelectedCourses(observer: ((List<CourseSummary>) -> Unit)?) {
-        selectedCoursesObserver = observer
-        observer?.invoke(latestSelectedCourses)
-    }
-
     fun updateSelectedCourses(courses: List<CourseSummary>, canEditPlan: Boolean) {
-        if (latestSelectedCourses == courses && latestCanEditPlan == canEditPlan) return
-
-        latestSelectedCourses = courses
-        latestCanEditPlan = canEditPlan
-        selectedCoursesObserver?.invoke(courses)
+        mutablePlanSnapshot.value = CoursePlanSnapshot(
+            selectedCourses = courses,
+            canEditPlan = canEditPlan,
+        )
     }
 
     fun requestSave() {
         requests.trySend(Unit)
     }
 }
+
+data class CoursePlanSnapshot(
+    val selectedCourses: List<CourseSummary> = emptyList(),
+    val canEditPlan: Boolean = false,
+)
