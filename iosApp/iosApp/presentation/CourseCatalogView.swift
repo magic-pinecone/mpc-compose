@@ -72,7 +72,7 @@ struct CourseCatalogView: View {
     }
 }
 
-private struct CourseCatalogResultsView: View {
+struct CourseCatalogResultsView: View {
     let snapshot: CourseCatalogSnapshot?
     let selectedSerialNumbers: Set<String>
     let canEditPlan: Bool
