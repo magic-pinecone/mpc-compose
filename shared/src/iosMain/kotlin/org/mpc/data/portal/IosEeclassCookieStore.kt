@@ -1,0 +1,63 @@
+package org.mpc.data.portal
+
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
+import platform.Foundation.NSDate
+import platform.Foundation.NSHTTPCookie
+import platform.Foundation.NSURL
+import platform.Foundation.timeIntervalSince1970
+import platform.WebKit.WKHTTPCookieStore
+import platform.WebKit.WKWebsiteDataStore
+import kotlin.coroutines.resume
+
+internal actual fun createEeclassNativeCookieStore(): EeclassNativeCookieStore = IosEeclassCookieStore()
+
+private class IosEeclassCookieStore : EeclassNativeCookieStore {
+    private val cookieStore: WKHTTPCookieStore
+        get() = WKWebsiteDataStore.defaultDataStore().httpCookieStore
+
+    override suspend fun cookieHeader(url: String): String? = withContext(Dispatchers.Main.immediate) {
+        val requestUrl = NSURL(string = url)
+        val host = requestUrl.host?.lowercase() ?: return@withContext null
+        val path = requestUrl.path?.ifEmpty { "/" } ?: "/"
+        val currentTime = NSDate().timeIntervalSince1970
+        val cookies = suspendCancellableCoroutine { continuation ->
+            cookieStore.getAllCookies { values ->
+                @Suppress("UNCHECKED_CAST")
+                continuation.resume((values as? List<NSHTTPCookie>).orEmpty())
+            }
+        }
+        val matchingCookies = cookies.filter { cookie ->
+            val domain = cookie.domain.removePrefix(".").lowercase()
+            val domainMatches = host == domain || host.endsWith(".$domain")
+            val cookiePath = cookie.path.ifEmpty { "/" }
+            val pathMatches = path == cookiePath || isCookiePathPrefix(path, cookiePath)
+            val isUnexpired = cookie.expiresDate?.timeIntervalSince1970?.let { it > currentTime } ?: true
+            domainMatches && pathMatches && isUnexpired && (!cookie.isSecure() || requestUrl.scheme == "https")
+        }.sortedByDescending { it.path.length }
+        matchingCookies.takeIf { it.isNotEmpty() }
+            ?.joinToString("; ") { "${it.name}=${it.value}" }
+    }
+
+    override suspend fun storeSetCookies(url: String, values: List<String>) = withContext(Dispatchers.Main.immediate) {
+        val requestUrl = NSURL(string = url)
+        values.forEach { value ->
+            @Suppress("UNCHECKED_CAST")
+            val cookies = NSHTTPCookie.cookiesWithResponseHeaderFields(
+                mapOf("Set-Cookie" to value),
+                forURL = requestUrl,
+            ) as? List<NSHTTPCookie>
+            cookies.orEmpty().forEach { cookie ->
+                suspendCancellableCoroutine { continuation ->
+                    cookieStore.setCookie(cookie) { continuation.resume(Unit) }
+                }
+            }
+        }
+    }
+}
+
+private fun isCookiePathPrefix(path: String, cookiePath: String): Boolean {
+    if (!path.startsWith(cookiePath)) return false
+    return cookiePath.endsWith("/") || path.getOrNull(cookiePath.length) == '/'
+}

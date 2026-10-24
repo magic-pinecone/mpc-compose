@@ -7,12 +7,13 @@ import org.mpc.domain.model.PortalShortcutIcon
 import org.mpc.domain.model.PortalShortcutItem
 import org.mpc.domain.model.PortalShortcutSection
 import org.mpc.domain.model.portalUrl
+import org.mpc.domain.portal.EECLASS_DASHBOARD_URL
 
 val defaultPortalShortcutSections: List<PortalShortcutSection> = listOf(
     PortalShortcutSection(
         title = "常用服務",
         items = listOf(
-            externalShortcut("新ee-class", PortalShortcutIcon.BOOK, "https://ncueeclass.ncu.edu.tw/"),
+            portalShortcut("新ee-class", PortalShortcutIcon.BOOK, "/system/ncueeclass"),
             externalShortcut("選課系統", PortalShortcutIcon.EVENT, "https://cis.ncu.edu.tw/Course/"),
             portalShortcut("服務櫃台", PortalShortcutIcon.SUPPORT_AGENT, "/system/incu"),
             portalShortcut("NCU Mail", PortalShortcutIcon.MAIL, "/system/129"),
@@ -25,7 +26,7 @@ val defaultPortalShortcutSections: List<PortalShortcutSection> = listOf(
     PortalShortcutSection(
         title = "課務相關",
         items = listOf(
-            externalShortcut("新ee-class", PortalShortcutIcon.BOOK, "https://ncueeclass.ncu.edu.tw/"),
+            portalShortcut("新ee-class", PortalShortcutIcon.BOOK, "/system/ncueeclass"),
             externalShortcut("選課系統", PortalShortcutIcon.EVENT, "https://cis.ncu.edu.tw/Course/"),
             portalShortcut("成績查詢", PortalShortcutIcon.GRADE, "/system/incu-studentscore"),
             portalShortcut("期中預警查詢", PortalShortcutIcon.WARNING, "/system/incu-ewarningstudent"),
@@ -87,6 +88,24 @@ fun filterPortalShortcutSections(
 fun portalLoginDestination(): PortalShortcutDestination = PortalShortcutDestination(
     title = "Portal 登入",
     url = PORTAL_HOME_URL,
+    launchMode = PortalLaunchMode.IN_APP,
+)
+
+fun eeclassPortalLaunchDestination(): PortalShortcutDestination = PortalShortcutDestination(
+    title = "登入 ee-class",
+    url = portalUrl("system/ncueeclass"),
+    launchMode = PortalLaunchMode.IN_APP,
+)
+
+fun eeclassDashboardDestination(): PortalShortcutDestination = PortalShortcutDestination(
+    title = "新 ee-class",
+    url = EECLASS_DASHBOARD_URL,
+    launchMode = PortalLaunchMode.IN_APP,
+)
+
+fun eeclassTaskDestination(url: String): PortalShortcutDestination = PortalShortcutDestination(
+    title = "ee-class 課表",
+    url = url,
     launchMode = PortalLaunchMode.IN_APP,
 )
 
