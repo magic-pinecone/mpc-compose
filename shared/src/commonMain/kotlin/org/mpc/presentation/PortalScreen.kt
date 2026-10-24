@@ -73,6 +73,9 @@ fun PortalScreen(
         verticalArrangement = Arrangement.spacedBy(MpcSpacing.space4),
     ) {
         item {
+            EeclassSessionPanel(onOpenDestination = onOpenDestination)
+        }
+        item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,

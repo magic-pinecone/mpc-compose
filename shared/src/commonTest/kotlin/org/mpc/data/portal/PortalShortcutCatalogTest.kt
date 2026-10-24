@@ -35,13 +35,23 @@ val portalShortcutCatalogTests by testSuite {
         )
     }
 
-    test("direct services remain external destinations") {
+    test("ee-class opens through the official Portal handoff") {
         val item = defaultPortalShortcutSections
             .first()
             .items
             .first { it.label == "新ee-class" }
 
+        assertEquals(PortalLaunchMode.IN_APP, item.destination.launchMode)
+        assertEquals("https://portal.ncu.edu.tw/system/ncueeclass", item.destination.url)
+    }
+
+    test("other direct services remain external destinations") {
+        val item = defaultPortalShortcutSections
+            .first()
+            .items
+            .first { it.label == "選課系統" }
+
         assertTrue(item.destination.launchMode == PortalLaunchMode.EXTERNAL)
-        assertEquals("https://ncueeclass.ncu.edu.tw/", item.destination.url)
+        assertEquals("https://cis.ncu.edu.tw/Course/", item.destination.url)
     }
 }
