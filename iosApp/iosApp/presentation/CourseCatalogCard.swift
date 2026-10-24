@@ -42,15 +42,13 @@ struct CourseCatalogCard: View {
             .padding(isCompact ? 10 : 14)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
-                isSelected
-                    ? Color.accentColor.opacity(0.06)
-                    : Color(uiColor: .secondarySystemGroupedBackground),
+                Color(uiColor: .secondarySystemGroupedBackground),
                 in: RoundedRectangle(cornerRadius: 16, style: .continuous)
             )
             .overlay {
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
                     .strokeBorder(
-                        isSelected ? Color.accentColor.opacity(0.45) : Color.primary.opacity(0.08),
+                        Color.primary.opacity(isSelected ? 0.14 : 0.08),
                         lineWidth: 1
                     )
             }
@@ -136,10 +134,10 @@ private struct CourseCatalogTypeBadge: View {
     var body: some View {
         Text(title)
             .font(.caption.weight(.medium))
-            .foregroundStyle(Color.accentColor)
+            .foregroundStyle(.secondary)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
-            .background(Color.accentColor.opacity(0.08), in: Capsule())
+            .background(Color.primary.opacity(0.06), in: Capsule())
             .fixedSize(horizontal: true, vertical: false)
     }
 }
@@ -186,7 +184,7 @@ private struct CourseCatalogInfoRail: View {
 
     var body: some View {
         ScrollView(.horizontal) {
-            HStack(spacing: 6) {
+            HStack(spacing: 12) {
                 CourseCatalogInfoBadge(symbol: "building.2", text: "\(course.collegeName)／\(course.departmentName)")
                 CourseCatalogInfoBadge(symbol: "person.3", text: "\(course.admitCnt)／\(course.limitCnt) 人")
                 CourseCatalogInfoBadge(symbol: "key", text: course.passwordCard.description_)
@@ -210,9 +208,6 @@ private struct CourseCatalogInfoBadge: View {
             Label(text, systemImage: symbol)
                 .font(.caption)
                 .foregroundStyle(.secondary)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(Color.primary.opacity(0.04), in: Capsule())
                 .fixedSize(horizontal: true, vertical: false)
         }
     }
