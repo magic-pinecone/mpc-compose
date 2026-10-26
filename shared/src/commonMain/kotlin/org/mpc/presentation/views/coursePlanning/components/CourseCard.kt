@@ -85,7 +85,7 @@ fun CourseCard(
         border =
         BorderStroke(
             1.dp,
-            if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+            if (isSelected) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.outlineVariant,
         ),
     ) {
         if (isCompact) {
@@ -243,7 +243,7 @@ private fun CourseInfoRail(courseSummary: CourseSummary) {
         Modifier
             .fillMaxWidth()
             .horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         CourseInfoBadge(
             imageVector = apartment,
@@ -268,10 +268,7 @@ private fun CourseInfoBadge(
     Row(
         modifier =
         Modifier
-            .background(
-                color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                shape = MaterialTheme.shapes.extraSmall,
-            ).padding(horizontal = 8.dp, vertical = 5.dp),
+            .padding(vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
