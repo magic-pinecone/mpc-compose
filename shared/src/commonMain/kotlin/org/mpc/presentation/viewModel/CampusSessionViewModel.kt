@@ -10,10 +10,8 @@ import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.mpc.domain.session.CampusSessions
-import org.mpc.domain.session.CampusSite
+import org.mpc.domain.session.PortalSignIn
 import org.mpc.domain.session.PortalStatus
-import org.mpc.domain.session.SitePath
-import org.mpc.domain.session.SiteStatus
 
 @Inject
 @ViewModelKey
@@ -26,18 +24,16 @@ class CampusSessionViewModel(
 ) : ViewModel() {
     val portal: StateFlow<PortalStatus> = sessions.portal
 
-    fun status(site: CampusSite): StateFlow<SiteStatus> = sessions.status(site)
-
-    fun refresh(site: CampusSite) {
-        viewModelScope.launch { sessions.refresh(site) }
+    fun refreshPortal() {
+        viewModelScope.launch { sessions.refreshPortal() }
     }
 
-    /** Hands off again from a live Portal session, without signing anyone out. */
-    fun reconnect(site: CampusSite) {
-        viewModelScope.launch { sessions.fetch(site, site.probePath) {} }
-    }
+    /** A user tap: lifts any block on Portal sign-in. Opens the returned page in the WebView. */
+    suspend fun signIn(): PortalSignIn = sessions.signInToPortal()
 
-    fun browserEntry(site: CampusSite, path: SitePath): String = sessions.browserEntry(site, path)
+    fun signOut() {
+        viewModelScope.launch { sessions.signOutEverywhere() }
+    }
 
     suspend fun browserPage(url: String, loading: Boolean) {
         sessions.browserPage(url, loading)

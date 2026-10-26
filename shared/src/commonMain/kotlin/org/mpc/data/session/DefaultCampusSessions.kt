@@ -73,6 +73,20 @@ internal class DefaultCampusSessions(
 
     override fun status(site: CampusSite): StateFlow<SiteStatus> = state(site).status
 
+    override suspend fun refreshPortal() {
+        portalState.load()
+        when (val check = transport.checkPortal()) {
+            // A live session after a block means the user signed in again in the WebView.
+            PortalCheck.Live -> portalState.lift(live = true)
+
+            PortalCheck.SignedOut -> portalState.markSignedOut()
+
+            PortalCheck.Displaced -> portalState.block(PortalBlock.DISPLACED)
+
+            is PortalCheck.Failed -> portalState.markUnavailable(check.reason)
+        }
+    }
+
     override suspend fun <T> fetch(site: CampusSite, path: SitePath, parse: (String) -> T): SiteResult<T> {
         val state = state(site)
         return state.lock.withLock {

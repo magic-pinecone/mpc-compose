@@ -37,6 +37,8 @@ sealed interface PortalStatus {
 
     /** The app will not sign in to Portal by itself until the user does; see [PortalNeed]. */
     data class Blocked(val need: PortalNeed) : PortalStatus
+
+    data class Unavailable(val reason: Unavailability) : PortalStatus
 }
 
 sealed interface SiteResult<out T> {
@@ -66,6 +68,9 @@ interface CampusSessions {
     val portal: StateFlow<PortalStatus>
 
     fun status(site: CampusSite): StateFlow<SiteStatus>
+
+    /** Checks Portal's session without signing in. */
+    suspend fun refreshPortal()
 
     /**
      * Loads [path] on [site] and parses its HTML. A signed-out site is handed off again from a live Portal session
