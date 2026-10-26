@@ -26,13 +26,13 @@ private class AndroidPlatformCookieJar : PlatformCookieJar {
     // CookieManager cannot list or delete by host, and getCookie returns names without their attributes. Expire
     // each visible name for both host-only and Domain=host scopes; a Max-Age=0 write only replaces a cookie whose
     // domain and path match, so parent-domain cookies are left alone.
-    override suspend fun clear(url: String) {
+    override suspend fun clear(url: String, keep: Set<String>) {
         withContext(Dispatchers.Main.immediate) {
             val host = Url(url).host
             val names = cookieManager.getCookie(url).orEmpty()
                 .split(';')
                 .map { it.substringBefore('=').trim() }
-                .filter { it.isNotEmpty() }
+                .filter { it.isNotEmpty() && it !in keep }
                 .distinct()
             names.forEach { name ->
                 setCookie(url, "$name=; Max-Age=0; Path=/")

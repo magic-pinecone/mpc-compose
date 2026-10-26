@@ -14,6 +14,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -25,25 +28,31 @@ import org.mpc.data.portal.eeclassDashboardDestination
 import org.mpc.data.portal.eeclassPortalLaunchDestination
 import org.mpc.data.portal.eeclassTaskDestination
 import org.mpc.domain.model.PortalShortcutDestination
-import org.mpc.domain.portal.EECLASS_TIMETABLE_PATH
-import org.mpc.domain.portal.EeclassSessionState
-import org.mpc.presentation.viewModel.EeclassSessionViewModel
+import org.mpc.domain.session.CampusSites
+import org.mpc.domain.session.Renewal
+import org.mpc.domain.session.SitePath
+import org.mpc.domain.session.SiteStatus
+import org.mpc.presentation.viewModel.CampusSessionViewModel
+
+private val TIMETABLE_PATH = SitePath.of("/dashboard/myTimeTable")
 
 @Composable
 internal fun EeclassSessionPanel(
     onOpenDestination: (PortalShortcutDestination) -> Unit,
-    viewModel: EeclassSessionViewModel = metroViewModel(),
+    viewModel: CampusSessionViewModel = metroViewModel(),
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    val pendingTaskPath by viewModel.pendingTaskPath.collectAsStateWithLifecycle()
+    val site = CampusSites.Eeclass
+    val state by viewModel.status(site).collectAsStateWithLifecycle()
+    // The page the user asked for before signing in; opened once they are back.
+    var pendingTaskPath by rememberSaveable { mutableStateOf<String?>(null) }
     val lifecycleOwner = LocalLifecycleOwner.current
 
     LaunchedEffect(viewModel) {
-        viewModel.restore()
+        viewModel.refresh(site)
     }
     DisposableEffect(lifecycleOwner, viewModel) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) viewModel.restore()
+            if (event == Lifecycle.Event.ON_RESUME) viewModel.refresh(site)
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
@@ -54,59 +63,58 @@ internal fun EeclassSessionPanel(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text("新 ee-class")
+            Text(site.displayName)
             Text(state.statusLabel())
-            if (state == EeclassSessionState.Checking) {
+            if (state == SiteStatus.Checking) {
                 CircularProgressIndicator()
             }
-            if (state == EeclassSessionState.Authenticated && pendingTaskPath != null) {
+            val pendingPath = pendingTaskPath?.let(SitePath::parse)
+            if (state == SiteStatus.SignedIn && pendingPath != null) {
                 Button(
                     onClick = {
-                        viewModel.pendingTaskUrlIfAuthenticated()?.let { url ->
-                            onOpenDestination(eeclassTaskDestination(url))
-                        }
+                        pendingTaskPath = null
+                        onOpenDestination(eeclassTaskDestination(site.url(pendingPath)))
                     },
                 ) {
                     Text("繼續查看課表")
                 }
             }
-            if (state == EeclassSessionState.Authenticated) {
+            if (state == SiteStatus.SignedIn) {
                 Text("登出請使用網站帳號選單")
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(
                     onClick = {
-                        viewModel.requestTask(EECLASS_TIMETABLE_PATH)
-                        val taskUrl = viewModel.pendingTaskUrlIfAuthenticated()
-                        if (taskUrl == null) {
-                            onOpenDestination(eeclassPortalLaunchDestination())
+                        if (state == SiteStatus.SignedIn) {
+                            onOpenDestination(eeclassTaskDestination(viewModel.browserEntry(site, TIMETABLE_PATH)))
                         } else {
-                            onOpenDestination(eeclassTaskDestination(taskUrl))
+                            pendingTaskPath = TIMETABLE_PATH.value
+                            onOpenDestination(eeclassPortalLaunchDestination())
                         }
                     },
                 ) {
                     Text("查看課表")
                 }
-                when (state) {
-                    EeclassSessionState.Authenticated -> TextButton(
+                when (val current = state) {
+                    SiteStatus.SignedIn -> TextButton(
                         onClick = { onOpenDestination(eeclassDashboardDestination()) },
                     ) {
                         Text("開啟 ee-class")
                     }
 
-                    EeclassSessionState.SignedOut -> TextButton(
-                        onClick = { onOpenDestination(eeclassPortalLaunchDestination()) },
-                    ) {
-                        Text("登入")
-                    }
-
-                    is EeclassSessionState.Unavailable -> {
-                        TextButton(onClick = viewModel::restore) { Text("重試") }
+                    is SiteStatus.SignedOut -> if (current.renewal == Renewal.HANDOFF) {
+                        TextButton(onClick = { viewModel.reconnect(site) }) { Text("重新連線") }
+                    } else {
                         TextButton(onClick = { onOpenDestination(eeclassPortalLaunchDestination()) }) { Text("登入") }
                     }
 
-                    EeclassSessionState.Unknown,
-                    EeclassSessionState.Checking,
+                    is SiteStatus.Unavailable -> {
+                        TextButton(onClick = { viewModel.refresh(site) }) { Text("重試") }
+                        TextButton(onClick = { onOpenDestination(eeclassPortalLaunchDestination()) }) { Text("登入") }
+                    }
+
+                    SiteStatus.Unknown,
+                    SiteStatus.Checking,
                     -> Unit
                 }
             }
@@ -114,10 +122,20 @@ internal fun EeclassSessionPanel(
     }
 }
 
-private fun EeclassSessionState.statusLabel(): String = when (this) {
-    EeclassSessionState.Unknown -> "尚未確認登入狀態"
-    EeclassSessionState.Checking -> "正在確認登入狀態"
-    EeclassSessionState.SignedOut -> "尚未登入 ee-class"
-    EeclassSessionState.Authenticated -> "已登入 ee-class"
-    is EeclassSessionState.Unavailable -> "目前無法確認登入狀態"
+private fun SiteStatus.statusLabel(): String = when (this) {
+    SiteStatus.Unknown -> "尚未確認登入狀態"
+
+    SiteStatus.Checking -> "正在確認登入狀態"
+
+    is SiteStatus.SignedOut -> when (renewal) {
+        Renewal.HANDOFF -> "ee-class 已登出，可透過 Portal 重新連線"
+
+        Renewal.PORTAL_SIGN_IN_UNATTENDED,
+        Renewal.PORTAL_SIGN_IN_BY_USER,
+        -> "尚未登入 ee-class"
+    }
+
+    SiteStatus.SignedIn -> "已登入 ee-class"
+
+    is SiteStatus.Unavailable -> "目前無法確認登入狀態"
 }
