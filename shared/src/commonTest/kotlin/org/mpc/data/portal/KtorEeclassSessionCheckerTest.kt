@@ -1,6 +1,8 @@
 package org.mpc.data.portal
 
 import de.infix.testBalloon.framework.core.testSuite
+import org.mpc.data.session.CookieHeader
+import org.mpc.data.session.PlatformCookieJar
 import org.mpc.domain.portal.EECLASS_DASHBOARD_URL
 import org.mpc.domain.portal.EeclassSessionCheck
 import org.mpc.domain.portal.EeclassUnavailableReason
@@ -8,19 +10,21 @@ import kotlin.test.assertEquals
 
 private class FakeEeclassCookieStore(
     var header: String? = null,
-) : EeclassNativeCookieStore {
+) : PlatformCookieJar {
     var storedValues: List<String> = emptyList()
         private set
 
-    override suspend fun cookieHeader(url: String): String? {
+    override suspend fun cookieHeader(url: String): CookieHeader? {
         assertEquals(EECLASS_DASHBOARD_URL, url)
-        return header
+        return header?.let(::CookieHeader)
     }
 
     override suspend fun storeSetCookies(url: String, values: List<String>) {
         assertEquals(EECLASS_DASHBOARD_URL, url)
         storedValues = values
     }
+
+    override suspend fun clear(url: String) = error("not used by the checker")
 }
 
 private class FakeEeclassDashboardClient(

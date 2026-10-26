@@ -13,19 +13,14 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.Url
 import kotlinx.coroutines.CancellationException
+import org.mpc.data.session.PlatformCookieJar
+import org.mpc.data.session.createPlatformCookieJar
 import org.mpc.domain.portal.EECLASS_BASE_URL
 import org.mpc.domain.portal.EECLASS_DASHBOARD_URL
 import org.mpc.domain.portal.EeclassSessionCheck
 import org.mpc.domain.portal.EeclassSessionChecker
 import org.mpc.domain.portal.EeclassUnavailableReason
 import org.mpc.domain.portal.HTTPS_DEFAULT_PORT
-
-internal interface EeclassNativeCookieStore {
-    suspend fun cookieHeader(url: String): String?
-    suspend fun storeSetCookies(url: String, values: List<String>)
-}
-
-internal expect fun createEeclassNativeCookieStore(): EeclassNativeCookieStore
 
 private const val REQUEST_TIMEOUT_MILLIS = 15_000L
 private const val CONNECT_TIMEOUT_MILLIS = 10_000L
@@ -71,7 +66,7 @@ internal class EeclassSessionProvider {
                 }
             },
         ),
-        cookieStore = createEeclassNativeCookieStore(),
+        cookieStore = createPlatformCookieJar(),
     )
 }
 
@@ -93,11 +88,11 @@ internal class KtorEeclassDashboardClient(
 
 internal class KtorEeclassSessionChecker(
     private val dashboardClient: EeclassDashboardClient,
-    private val cookieStore: EeclassNativeCookieStore,
+    private val cookieStore: PlatformCookieJar,
 ) : EeclassSessionChecker {
     override suspend fun check(): EeclassSessionCheck = try {
         val cookiesBeforeRequest = cookieStore.cookieHeader(EECLASS_DASHBOARD_URL)
-        val response = dashboardClient.getDashboard(cookiesBeforeRequest)
+        val response = dashboardClient.getDashboard(cookiesBeforeRequest?.value)
         val cookiesAfterResponse = cookieStore.cookieHeader(EECLASS_DASHBOARD_URL)
         if (cookiesBeforeRequest != cookiesAfterResponse) {
             EeclassSessionCheck.Unavailable(EeclassUnavailableReason.UNEXPECTED_RESPONSE)
