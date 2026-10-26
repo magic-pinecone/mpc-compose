@@ -16,4 +16,9 @@ iPhone 15 simulator, a course in the Draft Course Plan. The catalog card is Swif
 | ![iOS light catalog](screenshots/ios-light-selected.png) | ![iOS dark catalog](screenshots/ios-dark-selected.png) |
 | ![iOS light timetable](screenshots/ios-light-timetable.png) | ![iOS dark timetable](screenshots/ios-dark-timetable.png) |
 
-Android captures are pending.
+Pixel 9 emulator (Android 17), dynamic color, shuffled timetable colors. The catalog card and timetable are shared Compose.
+
+| Light | Dark |
+| --- | --- |
+| ![Android light catalog](screenshots/android-light-selected.png) | ![Android dark catalog](screenshots/android-dark-selected.png) |
+| ![Android light timetable](screenshots/android-light-timetable.png) | ![Android dark timetable](screenshots/android-dark-timetable.png) |
