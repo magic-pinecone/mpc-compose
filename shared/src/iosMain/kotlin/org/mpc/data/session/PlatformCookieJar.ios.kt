@@ -51,10 +51,10 @@ private class IosPlatformCookieJar : PlatformCookieJar {
         }
     }
 
-    override suspend fun clear(url: String) = withContext(Dispatchers.Main.immediate) {
+    override suspend fun clear(url: String, keep: Set<String>) = withContext(Dispatchers.Main.immediate) {
         val host = NSURL(string = url).host?.lowercase() ?: return@withContext
         allCookies()
-            .filter { cookie -> cookie.domain.removePrefix(".").lowercase() == host }
+            .filter { cookie -> cookie.domain.removePrefix(".").lowercase() == host && cookie.name !in keep }
             .forEach { cookie ->
                 suspendCancellableCoroutine { continuation ->
                     cookieStore.deleteCookie(cookie) { continuation.resume(Unit) }

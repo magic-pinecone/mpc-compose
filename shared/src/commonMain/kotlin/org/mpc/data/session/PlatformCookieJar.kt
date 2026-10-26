@@ -22,9 +22,10 @@ internal interface PlatformCookieJar {
 
     /**
      * Removes the cookies scoped to [url]'s host, both host-only and `Domain=host` cookies. Cookies shared through a
-     * parent domain are kept, because other campus sites use them. Removing an absent cookie does nothing.
+     * parent domain are kept, because other campus sites use them, and so are cookies named in [keep]. Removing an
+     * absent cookie does nothing.
      */
-    suspend fun clear(url: String)
+    suspend fun clear(url: String, keep: Set<String> = emptySet())
 }
 
 internal expect fun createPlatformCookieJar(): PlatformCookieJar

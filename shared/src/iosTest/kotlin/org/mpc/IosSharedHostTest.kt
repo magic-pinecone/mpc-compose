@@ -22,9 +22,9 @@ import org.mpc.domain.model.CourseResult
 import org.mpc.domain.model.CourseSerialNo
 import org.mpc.domain.model.PortalAuthenticationMode
 import org.mpc.domain.model.TimetableColorMode
-import org.mpc.domain.portal.EeclassSessionManager
 import org.mpc.domain.repository.AppSettingsRepository
 import org.mpc.domain.repository.CourseRepository
+import org.mpc.domain.session.CampusSessions
 import org.mpc.presentation.state.CoursePlanDraftStore
 import kotlin.reflect.KClass
 import kotlin.test.assertEquals
@@ -120,7 +120,7 @@ private class HostTestGraph(
 ) : AppGraph {
     override val courseRepository: CourseRepository get() = detailRepository ?: error("No course request expected")
     override val coursePlanDraftStore: CoursePlanDraftStore get() = error("No Compose controller expected")
-    override val eeclassSessionManager: EeclassSessionManager get() = error("No ee-class session expected")
+    override val campusSessions: CampusSessions get() = error("No campus session expected")
     override val metroViewModelFactory: MetroViewModelFactory get() = error("No Compose controller expected")
     override val viewModelProviders: Map<KClass<out ViewModel>, () -> ViewModel> = emptyMap()
     override val assistedFactoryProviders: Map<KClass<out ViewModel>, () -> ViewModelAssistedFactory> = emptyMap()
