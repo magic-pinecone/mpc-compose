@@ -7,7 +7,6 @@ import org.mpc.domain.model.PortalShortcutIcon
 import org.mpc.domain.model.PortalShortcutItem
 import org.mpc.domain.model.PortalShortcutSection
 import org.mpc.domain.model.portalUrl
-import org.mpc.domain.session.CampusSites
 
 val defaultPortalShortcutSections: List<PortalShortcutSection> = listOf(
     PortalShortcutSection(
@@ -85,26 +84,8 @@ fun filterPortalShortcutSections(
     }
 }
 
-fun portalLoginDestination(): PortalShortcutDestination = PortalShortcutDestination(
+fun portalLoginDestination(url: String = PORTAL_HOME_URL): PortalShortcutDestination = PortalShortcutDestination(
     title = "Portal 登入",
-    url = PORTAL_HOME_URL,
-    launchMode = PortalLaunchMode.IN_APP,
-)
-
-fun eeclassPortalLaunchDestination(): PortalShortcutDestination = PortalShortcutDestination(
-    title = "登入 ee-class",
-    url = CampusSites.Eeclass.portalEntryUrl,
-    launchMode = PortalLaunchMode.IN_APP,
-)
-
-fun eeclassDashboardDestination(): PortalShortcutDestination = PortalShortcutDestination(
-    title = "新 ee-class",
-    url = CampusSites.Eeclass.url(CampusSites.Eeclass.probePath),
-    launchMode = PortalLaunchMode.IN_APP,
-)
-
-fun eeclassTaskDestination(url: String): PortalShortcutDestination = PortalShortcutDestination(
-    title = "ee-class 課表",
     url = url,
     launchMode = PortalLaunchMode.IN_APP,
 )

@@ -12,6 +12,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.mpc.domain.session.CampusSite
+import org.mpc.domain.session.PORTAL_BASE_URL
 import org.mpc.domain.session.PortalPage
 import org.mpc.domain.session.SiteResponse
 import org.mpc.domain.session.Unavailability
@@ -37,9 +38,23 @@ internal sealed interface HandoffResult {
     data class Failed(val reason: Unavailability) : HandoffResult
 }
 
+internal sealed interface PortalCheck {
+    data object Live : PortalCheck
+
+    data object SignedOut : PortalCheck
+
+    /** Another sign-in replaced this one. */
+    data object Displaced : PortalCheck
+
+    data class Failed(val reason: Unavailability) : PortalCheck
+}
+
 /** HTTP for campus sessions over the shared [PlatformCookieJar]. The only client that carries campus cookies. */
 internal interface SessionTransport {
     suspend fun get(url: String): TransportResult
+
+    /** Reads Portal's home page without following redirects. Checking never signs anyone in or out. */
+    suspend fun checkPortal(): PortalCheck
 
     /** Runs [site]'s Portal handoff, following each redirect by hand so the one-time sign-in URL never leaves. */
     suspend fun handoff(site: CampusSite): HandoffResult
@@ -110,6 +125,11 @@ internal class KtorSessionTransport(
         return (hop as? Hop.End)?.result ?: HandoffResult.Failed(Unavailability.UNEXPECTED_RESPONSE)
     }
 
+    override suspend fun checkPortal(): PortalCheck = when (val result = get(PORTAL_HOME.toString())) {
+        is TransportResult.Failed -> PortalCheck.Failed(result.reason)
+        is TransportResult.Response -> portalCheck(result.response)
+    }
+
     override suspend fun clearCookies(url: String, keep: Set<String>) {
         cookieJar.clear(url, keep)
     }
@@ -117,6 +137,23 @@ internal class KtorSessionTransport(
     private suspend fun hop(site: CampusSite, url: Url): Hop = when (val result = get(url.toString())) {
         is TransportResult.Failed -> Hop.End(HandoffResult.Failed(result.reason))
         is TransportResult.Response -> nextHop(site, url, result.response)
+    }
+}
+
+private val PORTAL_HOME = Url("$PORTAL_BASE_URL/")
+
+private fun portalCheck(response: SiteResponse): PortalCheck {
+    val redirect = if (response.status in REDIRECT_STATUS_CODES) resolve(PORTAL_HOME, response.location) else null
+    return when {
+        response.status == HTTP_STATUS_OK -> PortalCheck.Live
+
+        redirect == null || !isPortalUrl(redirect) -> PortalCheck.Failed(Unavailability.UNEXPECTED_RESPONSE)
+
+        else -> when (portalPage(redirect)) {
+            PortalPage.SIGN_IN -> PortalCheck.SignedOut
+            PortalPage.EXPIRED -> PortalCheck.Displaced
+            PortalPage.OTHER -> PortalCheck.Failed(Unavailability.UNEXPECTED_RESPONSE)
+        }
     }
 }
 

@@ -33,7 +33,6 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,7 +47,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.mpc.data.portal.defaultPortalShortcutSections
 import org.mpc.data.portal.filterPortalShortcutSections
-import org.mpc.data.portal.portalLoginDestination
 import org.mpc.domain.model.PortalShortcutDestination
 import org.mpc.domain.model.PortalShortcutIcon
 import org.mpc.domain.model.PortalShortcutItem
@@ -73,17 +71,7 @@ fun PortalScreen(
         verticalArrangement = Arrangement.spacedBy(MpcSpacing.space4),
     ) {
         item {
-            EeclassSessionPanel(onOpenDestination = onOpenDestination)
-        }
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                TextButton(onClick = { onOpenDestination(portalLoginDestination()) }) {
-                    Text("Portal 登入")
-                }
-            }
+            PortalSessionPanel(onOpenDestination = onOpenDestination)
         }
         item {
             OutlinedTextField(

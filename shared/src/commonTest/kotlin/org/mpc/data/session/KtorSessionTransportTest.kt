@@ -150,4 +150,19 @@ val ktorSessionTransportTests by testSuite {
             assertEquals(listOf(true, true), results.map { it is TransportResult.Response })
         }
     }
+
+    test("a Portal check reads its home page as live, signed out, or displaced") {
+        runTest {
+            val (live, liveRequests) = transport(InMemoryCookieJar()) { respond("home") }
+            val (signedOut, _) = transport(InMemoryCookieJar()) { redirect("/login") }
+            val (displaced, _) = transport(InMemoryCookieJar()) { redirect("$PORTAL/expired") }
+            val (elsewhere, _) = transport(InMemoryCookieJar()) { redirect("https://evil.example/") }
+
+            assertEquals(PortalCheck.Live, live.checkPortal())
+            assertEquals("$PORTAL/", liveRequests.single().url.toString())
+            assertEquals(PortalCheck.SignedOut, signedOut.checkPortal())
+            assertEquals(PortalCheck.Displaced, displaced.checkPortal())
+            assertEquals(PortalCheck.Failed(Unavailability.UNEXPECTED_RESPONSE), elsewhere.checkPortal())
+        }
+    }
 }

@@ -7,6 +7,7 @@ import kotlinx.coroutines.sync.withLock
 import org.mpc.domain.model.PortalAuthenticationMode
 import org.mpc.domain.session.PortalStatus
 import org.mpc.domain.session.Renewal
+import org.mpc.domain.session.Unavailability
 import kotlin.time.Instant
 
 /**
@@ -44,6 +45,11 @@ internal class PortalState(private val guardStore: PortalGuardStore) {
     /** Portal showed its sign-in page. A block stays visible, because it explains why the app will not sign in. */
     suspend fun markSignedOut() = lock.withLock {
         if (_status.value !is PortalStatus.Blocked) _status.value = PortalStatus.SignedOut
+    }
+
+    /** Portal could not be reached. A block stays visible for the same reason as in [markSignedOut]. */
+    suspend fun markUnavailable(reason: Unavailability) = lock.withLock {
+        if (_status.value !is PortalStatus.Blocked) _status.value = PortalStatus.Unavailable(reason)
     }
 
     suspend fun automaticSignIn(mode: PortalAuthenticationMode, now: Instant): AutomaticSignIn = automaticSignIn(mode, guardStore.read(), now)

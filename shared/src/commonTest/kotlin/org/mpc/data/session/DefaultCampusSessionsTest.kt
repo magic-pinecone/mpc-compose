@@ -16,6 +16,7 @@ import org.mpc.domain.session.SitePath
 import org.mpc.domain.session.SiteResponse
 import org.mpc.domain.session.SiteResult
 import org.mpc.domain.session.SiteStatus
+import org.mpc.domain.session.Unavailability
 import kotlin.test.assertEquals
 
 private val SIGNED_IN_DASHBOARD = SiteResponse(
@@ -33,6 +34,7 @@ private class ScriptedTransport(
     /** Requests from this one on wait for [gate]. */
     private val gatedFromRequest: Int = Int.MAX_VALUE,
     private val gate: CompletableDeferred<Unit> = CompletableDeferred(Unit),
+    private val portalChecks: ArrayDeque<PortalCheck> = ArrayDeque(),
 ) : SessionTransport {
     val events = mutableListOf<String>()
     private var requests = 0
@@ -41,6 +43,11 @@ private class ScriptedTransport(
         events += "get $url"
         if (++requests >= gatedFromRequest) gate.await()
         return pages.removeFirst()
+    }
+
+    override suspend fun checkPortal(): PortalCheck {
+        events += "check portal"
+        return portalChecks.removeFirst()
     }
 
     override suspend fun handoff(site: CampusSite): HandoffResult {
@@ -170,6 +177,35 @@ val defaultCampusSessionsTests by testSuite {
             job.cancelAndJoin()
 
             assertEquals(SiteStatus.SignedIn, sessions.status(CampusSites.Eeclass).value)
+        }
+    }
+
+    test("checking Portal reports its status and a live session lifts a block") {
+        runTest {
+            val guardStore = InMemoryPortalGuardStore(PortalGuard(block = PortalBlock.DISPLACED))
+            val transport = ScriptedTransport(
+                portalChecks = ArrayDeque(
+                    listOf(
+                        PortalCheck.SignedOut,
+                        PortalCheck.Failed(Unavailability.NETWORK),
+                        PortalCheck.Live,
+                        PortalCheck.Failed(Unavailability.NETWORK),
+                    ),
+                ),
+            )
+            val sessions = sessions(transport, guardStore)
+
+            sessions.refreshPortal()
+            assertEquals(PortalStatus.Blocked(PortalNeed.DISPLACED), sessions.portal.value)
+            sessions.refreshPortal()
+            assertEquals(PortalStatus.Blocked(PortalNeed.DISPLACED), sessions.portal.value)
+
+            sessions.refreshPortal()
+            assertEquals(PortalStatus.Live, sessions.portal.value)
+            assertEquals(null, guardStore.guard.block)
+
+            sessions.refreshPortal()
+            assertEquals(PortalStatus.Unavailable(Unavailability.NETWORK), sessions.portal.value)
         }
     }
 }
