@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -18,6 +17,8 @@ import androidx.compose.ui.unit.dp
 import org.mpc.domain.model.CourseSummary
 import org.mpc.presentation.formatting.creditLabel
 import org.mpc.presentation.formatting.scheduleDescription
+import org.mpc.presentation.theme.MpcSpacing
+import org.mpc.presentation.theme.MpcTheme
 
 @Composable
 internal fun CompactCourseCardContent(
@@ -29,7 +30,7 @@ internal fun CompactCourseCardContent(
     val accessibilityTextSize = LocalDensity.current.fontScale >= 1.3f
     Row(
         modifier = Modifier.fillMaxWidth().padding(10.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(MpcSpacing.space2),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(
@@ -46,7 +47,7 @@ internal fun CompactCourseCardContent(
                     modifier = Modifier.weight(1f),
                     maxLines = if (accessibilityTextSize) Int.MAX_VALUE else 1,
                     overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MpcTheme.typography.supporting,
                     fontWeight = FontWeight.Medium,
                 )
             }
@@ -69,12 +70,12 @@ private fun CompactCourseMetadata(course: CourseSummary, accessibilityTextSize: 
             modifier = modifier,
             maxLines = if (accessibilityTextSize) Int.MAX_VALUE else 1,
             overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MpcTheme.typography.caption,
+            color = MpcTheme.colors.labelSecondary,
         )
     }
     if (accessibilityTextSize) {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(MpcSpacing.space1)) {
             metadata(course.scheduleDescription(), Modifier)
             metadata(teachers, Modifier)
             metadata(credits, Modifier)
@@ -82,7 +83,7 @@ private fun CompactCourseMetadata(course: CourseSummary, accessibilityTextSize: 
     } else {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(MpcSpacing.space2),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             metadata(course.scheduleDescription(), Modifier.weight(1f, fill = false))

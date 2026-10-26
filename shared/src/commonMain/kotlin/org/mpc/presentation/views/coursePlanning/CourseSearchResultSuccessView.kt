@@ -8,16 +8,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import org.mpc.domain.model.CourseResult
 import org.mpc.domain.model.CourseSerialNo
 import org.mpc.domain.model.CourseSummary
+import org.mpc.presentation.theme.MpcSpacing
+import org.mpc.presentation.theme.MpcTheme
 import org.mpc.presentation.views.coursePlanning.components.CourseCard
 
 @Composable
@@ -32,18 +32,18 @@ fun CourseSearchResultSuccessView(
 ) {
     if (courseResult.courses.isEmpty()) {
         Box(
-            modifier = modifier.padding(24.dp),
+            modifier = modifier.padding(MpcSpacing.space6),
             contentAlignment = Alignment.Center,
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(MpcSpacing.space2),
             ) {
-                Text("找不到符合的課程", style = MaterialTheme.typography.titleMedium)
+                Text("找不到符合的課程", style = MpcTheme.typography.headline)
                 Text(
                     "試試其他關鍵字，或清除搜尋條件查看全部課程。",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MpcTheme.typography.supporting,
+                    color = MpcTheme.colors.labelSecondary,
                     textAlign = TextAlign.Center,
                 )
             }
@@ -53,14 +53,14 @@ fun CourseSearchResultSuccessView(
 
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(MpcSpacing.space4),
+        verticalArrangement = Arrangement.spacedBy(MpcSpacing.space3),
     ) {
         item(key = "result-count") {
             Text(
                 text = "共 ${courseResult.courses.size} 門課程",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MpcTheme.typography.supporting,
+                color = MpcTheme.colors.labelSecondary,
             )
         }
         items(

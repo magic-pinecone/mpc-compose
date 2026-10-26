@@ -18,7 +18,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -61,6 +60,8 @@ import org.mpc.presentation.model.shuffledTimetablePaletteIndices
 import org.mpc.presentation.model.timetableCategory
 import org.mpc.presentation.model.toTimetableBlocks
 import org.mpc.presentation.theme.LocalTimetableColorMode
+import org.mpc.presentation.theme.MpcShapes
+import org.mpc.presentation.theme.MpcSpacing
 import org.mpc.presentation.theme.MpcTheme
 import org.mpc.presentation.theme.TimetableBlockColors
 import org.mpc.presentation.theme.platformTimetablePalette
@@ -72,13 +73,13 @@ fun CoursePlanningTimetableSuccessView(
     onCourseClick: (semester: String, course: CourseSummary) -> Unit = { _, _ -> },
     colorMode: TimetableColorMode = LocalTimetableColorMode.current,
     palette: List<TimetableBlockColors> = platformTimetablePalette(
-        MaterialTheme.colorScheme.background.luminance() < DARK_SURFACE_LUMINANCE_THRESHOLD,
+        MpcTheme.colors.background.luminance() < DARK_SURFACE_LUMINANCE_THRESHOLD,
     ),
 ) {
     require(palette.isNotEmpty()) { "A timetable palette must contain at least one color pair" }
     val neutralColors = TimetableBlockColors(
-        MaterialTheme.colorScheme.surfaceVariant,
-        MaterialTheme.colorScheme.onSurfaceVariant,
+        MpcTheme.colors.fillQuiet,
+        MpcTheme.colors.onFillQuiet,
     )
     var savedSlots by rememberSaveable(plan.semester, stateSaver = TimetableColorSlotsSaver) {
         mutableStateOf<Map<String, Int>>(emptyMap())
@@ -98,7 +99,7 @@ fun CoursePlanningTimetableSuccessView(
     Box(
         modifier =
         modifier
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = MpcSpacing.space4, vertical = MpcSpacing.space2),
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -106,9 +107,9 @@ fun CoursePlanningTimetableSuccessView(
             if (coursesWithoutTime > 0) {
                 Text(
                     text = "$coursesWithoutTime 門課程尚無上課時間，可在已選課程中查看。",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = 8.dp),
+                    style = MpcTheme.typography.caption,
+                    color = MpcTheme.colors.labelSecondary,
+                    modifier = Modifier.padding(bottom = MpcSpacing.space2),
                 )
             }
 
@@ -121,7 +122,7 @@ fun CoursePlanningTimetableSuccessView(
             }
 
             Row {
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(MpcSpacing.space4))
                 Row(
                     horizontalArrangement = Arrangement.SpaceAround,
                     modifier = Modifier
@@ -139,15 +140,15 @@ fun CoursePlanningTimetableSuccessView(
                             ) {
                                 Text(
                                     text = it.description,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MpcTheme.colors.labelSecondary,
+                                    style = MpcTheme.typography.label,
                                 )
                             }
                         }
                 }
             }
 
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(MpcSpacing.space1))
 
             Row(
                 modifier =
@@ -172,8 +173,8 @@ fun CoursePlanningTimetableSuccessView(
                             ) {
                                 Text(
                                     text = it.description,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MpcTheme.colors.labelSecondary,
+                                    style = MpcTheme.typography.micro,
                                     textAlign = TextAlign.Center,
                                 )
                             }
@@ -224,8 +225,8 @@ fun CoursePlanningTimetableSuccessView(
                     if (plan.selectedCourses.isEmpty()) {
                         Text(
                             text = "搜尋課程並加入，開始安排課表",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = MaterialTheme.typography.bodyMedium,
+                            color = MpcTheme.colors.labelSecondary,
+                            style = MpcTheme.typography.supporting,
                             modifier = Modifier.align(Alignment.Center),
                         )
                     }
@@ -274,23 +275,23 @@ private fun TimetableCategoryLegend(
     neutralColors: TimetableBlockColors,
 ) {
     LazyRow(
-        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier.fillMaxWidth().padding(bottom = MpcSpacing.space2),
+        horizontalArrangement = Arrangement.spacedBy(MpcSpacing.space3),
     ) {
         items(categories, key = { it.name }) { category ->
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(MpcSpacing.space1),
             ) {
                 Surface(
                     color = categoryColors(category, palette, neutralColors).container,
-                    shape = RoundedCornerShape(3.dp),
+                    shape = MpcShapes.swatch,
                     modifier = Modifier.width(12.dp).height(12.dp),
                 ) {}
                 Text(
                     text = category.label,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.labelSmall,
+                    color = MpcTheme.colors.labelSecondary,
+                    style = MpcTheme.typography.micro,
                 )
             }
         }
@@ -304,7 +305,7 @@ fun TimetableBackground(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
-    val gridColor = MaterialTheme.colorScheme.outlineVariant
+    val gridColor = MpcTheme.colors.separator
     Layout(
         modifier = modifier.drawBehind {
             val strokeWidth = 0.5.dp.toPx()
@@ -359,8 +360,8 @@ fun TimetableForegroundCell(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
     colors: TimetableBlockColors = TimetableBlockColors(
-        MaterialTheme.colorScheme.primaryContainer,
-        MaterialTheme.colorScheme.onPrimaryContainer,
+        MpcTheme.colors.accentContainer,
+        MpcTheme.colors.onAccentContainer,
     ),
     categoryLabel: String? = null,
 ) {
@@ -377,8 +378,8 @@ fun TimetableForegroundCell(
                     )
                 } ?: Modifier,
             )
-            .padding(1.dp),
-        shape = RoundedCornerShape(4.dp),
+            .padding(MpcSpacing.hairline),
+        shape = MpcShapes.block,
         color = colors.container,
     ) {
         Box(
@@ -397,8 +398,8 @@ fun TimetableForegroundCell(
             }
             Text(
                 modifier = Modifier.padding(
-                    start = if (colors.leadingAccent != null) 8.dp else 4.dp,
-                    end = 4.dp,
+                    start = if (colors.leadingAccent != null) MpcSpacing.space2 else MpcSpacing.space1,
+                    end = MpcSpacing.space1,
                     top = 3.dp,
                     bottom = 3.dp,
                 ),
@@ -407,7 +408,7 @@ fun TimetableForegroundCell(
                 fontWeight = FontWeight.Medium,
                 maxLines = block.span.coerceAtLeast(1),
                 overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.labelSmall,
+                style = MpcTheme.typography.micro,
                 textAlign = TextAlign.Start,
             )
         }

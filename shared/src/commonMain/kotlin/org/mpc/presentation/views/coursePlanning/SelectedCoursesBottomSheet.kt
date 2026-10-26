@@ -14,7 +14,6 @@ import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -30,6 +29,8 @@ import org.mpc.presentation.components.AdaptiveList
 import org.mpc.presentation.components.AdaptiveListItem
 import org.mpc.presentation.formatting.creditLabel
 import org.mpc.presentation.formatting.scheduleDescription
+import org.mpc.presentation.theme.MpcSpacing
+import org.mpc.presentation.theme.MpcTheme
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -60,7 +61,7 @@ fun SelectedCoursesSheetContent(
     onDismissRequest: () -> Unit,
     onRemoveCourse: (CourseSummary) -> Unit,
     modifier: Modifier = Modifier,
-    listHorizontalPadding: Dp = 24.dp,
+    listHorizontalPadding: Dp = MpcSpacing.space6,
     canEditPlan: Boolean = true,
 ) {
     val totalCredits = courses.sumOf { it.credit }.creditLabel()
@@ -69,7 +70,7 @@ fun SelectedCoursesSheetContent(
         modifier = modifier.fillMaxWidth(),
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(start = 24.dp, top = 8.dp, end = 16.dp, bottom = 8.dp),
+            modifier = Modifier.fillMaxWidth().padding(start = MpcSpacing.space6, top = MpcSpacing.space2, end = MpcSpacing.space4, bottom = MpcSpacing.space2),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(
@@ -79,24 +80,24 @@ fun SelectedCoursesSheetContent(
                 Text(
                     text = "已選課程",
                     modifier = Modifier.semantics { heading() },
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MpcTheme.typography.sectionTitle,
                 )
                 Text(
                     text = "${courses.size} 門課 · $totalCredits 學分",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodyMedium,
+                    color = MpcTheme.colors.labelSecondary,
+                    style = MpcTheme.typography.supporting,
                 )
             }
             IconButton(onClick = onDismissRequest) {
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "關閉已選課程",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = MpcTheme.colors.labelSecondary,
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(MpcSpacing.space2))
 
         if (courses.isEmpty()) {
             EmptySelectedCoursesState()
@@ -119,23 +120,23 @@ fun SelectedCoursesSheetContent(
 @Composable
 private fun EmptySelectedCoursesState() {
     Column(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 28.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = MpcSpacing.space6, vertical = 28.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(MpcSpacing.space2),
     ) {
         Icon(
             imageVector = Icons.Default.ShoppingCart,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            tint = MpcTheme.colors.labelSecondary,
         )
         Text(
             text = "還沒有已選課程",
-            style = MaterialTheme.typography.titleMedium,
+            style = MpcTheme.typography.headline,
         )
         Text(
             text = "加入的課程會顯示於此。",
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            style = MaterialTheme.typography.bodyMedium,
+            color = MpcTheme.colors.labelSecondary,
+            style = MpcTheme.typography.supporting,
         )
     }
 }

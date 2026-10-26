@@ -22,7 +22,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -40,6 +39,9 @@ import org.mpc.domain.model.CourseSummary
 import org.mpc.domain.model.DistributionCondition
 import org.mpc.presentation.formatting.creditLabel
 import org.mpc.presentation.formatting.scheduleDescription
+import org.mpc.presentation.theme.MpcShapes
+import org.mpc.presentation.theme.MpcSpacing
+import org.mpc.presentation.theme.MpcTheme
 
 @Composable
 fun CourseDetailsView(
@@ -56,23 +58,23 @@ fun CourseDetailsView(
             .heightIn(max = 720.dp),
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(start = 24.dp, top = 8.dp, end = 16.dp, bottom = 8.dp),
+            modifier = Modifier.fillMaxWidth().padding(start = MpcSpacing.space6, top = MpcSpacing.space2, end = MpcSpacing.space4, bottom = MpcSpacing.space2),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                verticalArrangement = Arrangement.spacedBy(MpcSpacing.space1),
             ) {
                 Text(
                     text = state.summary?.title ?: "課程詳細資訊",
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = MpcTheme.typography.screenTitle,
                     fontWeight = FontWeight.SemiBold,
                 )
                 state.summary?.let { course ->
                     Text(
                         text = course.courseType.description,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MpcTheme.typography.supporting,
+                        color = MpcTheme.colors.labelSecondary,
                     )
                 }
             }
@@ -80,7 +82,7 @@ fun CourseDetailsView(
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "關閉課程詳細資訊",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = MpcTheme.colors.labelSecondary,
                 )
             }
         }
@@ -89,7 +91,7 @@ fun CourseDetailsView(
 
         LazyColumn(
             modifier = Modifier.weight(1f, fill = true),
-            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 20.dp),
+            contentPadding = PaddingValues(horizontal = MpcSpacing.space6, vertical = 20.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
             state.summary?.let { summary ->
@@ -122,14 +124,14 @@ fun CourseDetailsView(
                     SheetSection {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            horizontalArrangement = Arrangement.spacedBy(MpcSpacing.space3),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             CircularProgressIndicator()
                             Text(
                                 text = "正在載入課程大綱…",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                style = MpcTheme.typography.supporting,
+                                color = MpcTheme.colors.labelSecondary,
                             )
                         }
                     }
@@ -139,7 +141,7 @@ fun CourseDetailsView(
             state.errorMessage?.let { message ->
                 item(key = "error") {
                     SheetSection {
-                        Text(message, color = MaterialTheme.colorScheme.error)
+                        Text(message, color = MpcTheme.colors.destructive)
                         TextButton(onClick = actions.onRetry) {
                             Text("重試")
                         }
@@ -151,7 +153,7 @@ fun CourseDetailsView(
                 item(key = "syllabus-heading") {
                     Text(
                         text = "課程大綱",
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MpcTheme.typography.sectionTitle,
                         fontWeight = FontWeight.SemiBold,
                     )
                 }
@@ -185,8 +187,8 @@ fun CourseDetailsView(
                     item(key = "empty-syllabus") {
                         Text(
                             text = "目前沒有課程大綱資料。",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = MaterialTheme.typography.bodyMedium,
+                            color = MpcTheme.colors.labelSecondary,
+                            style = MpcTheme.typography.supporting,
                         )
                     }
                 }
@@ -198,10 +200,10 @@ fun CourseDetailsView(
         Button(
             onClick = actions.onToggleCourse,
             enabled = state.summary != null && state.canEditPlan,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 16.dp).heightIn(min = 52.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = MpcSpacing.space6, vertical = MpcSpacing.space4).heightIn(min = 52.dp),
             colors =
             if (state.isSelected) {
-                ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ButtonDefaults.buttonColors(containerColor = MpcTheme.colors.destructive)
             } else {
                 ButtonDefaults.buttonColors()
             },
@@ -232,12 +234,11 @@ private fun CourseFactsSection(course: CourseSummary) {
 
 @Composable
 private fun CourseFactGroup(title: String, facts: List<Pair<String, String>>) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(MpcSpacing.space2)) {
         Text(
             text = title,
             modifier = Modifier.semantics { heading() },
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
+            style = MpcTheme.typography.headline,
         )
         Column(verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)) {
             facts.forEachIndexed { index, (label, value) ->
@@ -246,7 +247,7 @@ private fun CourseFactGroup(title: String, facts: List<Pair<String, String>>) {
                     shape = ListItemDefaults.segmentedShapes(index, facts.size).shape,
                     color = ListItemDefaults.segmentedColors().containerColor,
                 ) {
-                    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+                    Column(modifier = Modifier.padding(horizontal = MpcSpacing.space4, vertical = MpcSpacing.space3)) {
                         CourseFact(label, value)
                     }
                 }
@@ -259,12 +260,12 @@ private fun CourseFactGroup(title: String, facts: List<Pair<String, String>>) {
 private fun SheetSection(content: @Composable ColumnScope.() -> Unit) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
+        shape = MpcShapes.card,
         color = ListItemDefaults.segmentedColors().containerColor,
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(MpcSpacing.space4),
+            verticalArrangement = Arrangement.spacedBy(MpcSpacing.space2),
             content = content,
         )
     }
@@ -277,19 +278,19 @@ private fun CourseFact(
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(MpcSpacing.space4),
         verticalAlignment = Alignment.Top,
     ) {
         Text(
             text = label,
             modifier = Modifier.widthIn(min = 76.dp),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MpcTheme.typography.supporting,
+            color = MpcTheme.colors.labelSecondary,
         )
         Text(
             text = value,
             modifier = Modifier.weight(1f),
-            style = MaterialTheme.typography.bodyMedium,
+            style = MpcTheme.typography.supporting,
         )
     }
 }
@@ -305,13 +306,12 @@ private fun DetailSection(
         Text(
             text = title,
             modifier = Modifier.semantics { heading() },
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
+            style = MpcTheme.typography.headline,
         )
         Text(
             text = content,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MpcTheme.typography.supporting,
+            color = MpcTheme.colors.labelSecondary,
         )
     }
 }
@@ -322,33 +322,32 @@ private fun DistributionConditionsSection(conditions: List<DistributionCondition
         Text(
             text = "分發條件",
             modifier = Modifier.semantics { heading() },
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
+            style = MpcTheme.typography.headline,
         )
         if (conditions.isEmpty()) {
             Text(
                 text = "無",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MpcTheme.typography.supporting,
+                color = MpcTheme.colors.labelSecondary,
             )
         }
         conditions.sortedBy { it.priority }.forEachIndexed { index, condition ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(MpcSpacing.space3),
                 verticalAlignment = Alignment.Top,
             ) {
                 Text(
                     text = "${index + 1}.",
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MpcTheme.typography.supporting,
                     fontFamily = FontFamily.Monospace,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MpcTheme.colors.labelSecondary,
                 )
                 Text(
                     text = condition.rule,
                     modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MpcTheme.typography.supporting,
+                    color = MpcTheme.colors.labelSecondary,
                 )
             }
         }

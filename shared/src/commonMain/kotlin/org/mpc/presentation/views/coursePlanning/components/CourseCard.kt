@@ -20,7 +20,6 @@ import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -52,6 +51,8 @@ import org.mpc.presentation.icon.apartment
 import org.mpc.presentation.icon.groups
 import org.mpc.presentation.icon.key
 import org.mpc.presentation.icon.schedule
+import org.mpc.presentation.theme.MpcShapes
+import org.mpc.presentation.theme.MpcSpacing
 import org.mpc.presentation.theme.MpcTheme
 
 @Composable
@@ -64,7 +65,7 @@ fun CourseCard(
     isCompact: Boolean = false,
     canEditPlan: Boolean = true,
 ) {
-    val cardShape = MaterialTheme.shapes.large
+    val cardShape = MpcShapes.card
 
     Surface(
         modifier =
@@ -78,14 +79,14 @@ fun CourseCard(
         shape = cardShape,
         color =
         if (isSelected) {
-            MaterialTheme.colorScheme.surfaceContainerHigh
+            MpcTheme.colors.surfaceSelected
         } else {
-            MaterialTheme.colorScheme.surfaceContainerLow
+            MpcTheme.colors.surface
         },
         border =
         BorderStroke(
-            1.dp,
-            if (isSelected) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.outlineVariant,
+            MpcSpacing.hairline,
+            if (isSelected) MpcTheme.colors.borderStrong else MpcTheme.colors.separator,
         ),
     ) {
         if (isCompact) {
@@ -97,8 +98,8 @@ fun CourseCard(
             )
         } else {
             Column(
-                modifier = Modifier.padding(14.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(MpcSpacing.card),
+                verticalArrangement = Arrangement.spacedBy(MpcSpacing.space2),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -109,18 +110,17 @@ fun CourseCard(
                         modifier = Modifier.weight(1f),
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
+                        style = MpcTheme.typography.headline,
                     )
-                    Spacer(Modifier.width(8.dp))
+                    Spacer(Modifier.width(MpcSpacing.space2))
                     CourseTypeBadge(courseSummary.courseType, isCompact = false)
                 }
                 Text(
                     text = courseSummary.primaryMetadataText(),
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MpcTheme.typography.supporting,
+                    color = MpcTheme.colors.labelSecondary,
                 )
 
                 CourseInfoRail(courseSummary)
@@ -133,7 +133,7 @@ fun CourseCard(
                         imageVector = schedule,
                         contentDescription = null,
                         modifier = Modifier.size(18.dp),
-                        tint = MaterialTheme.colorScheme.primary,
+                        tint = MpcTheme.colors.accent,
                     )
                     Spacer(Modifier.width(6.dp))
                     Text(
@@ -141,9 +141,9 @@ fun CourseCard(
                         modifier = Modifier.weight(1f),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MpcTheme.typography.supporting,
                     )
-                    Spacer(Modifier.width(8.dp))
+                    Spacer(Modifier.width(MpcSpacing.space2))
                     AdaptiveButton(
                         onClick = onButtonClick,
                         enabled = canEditPlan,
@@ -158,10 +158,10 @@ fun CourseCard(
                         },
                         liquidGlassColors = if (isSelected) {
                             LiquidGlassButtonColors(
-                                tintColor = MaterialTheme.colorScheme.secondaryContainer,
-                                surfaceColor = MaterialTheme.colorScheme.secondaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                                disabledContentColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.4f),
+                                tintColor = MpcTheme.colors.fillQuiet,
+                                surfaceColor = MpcTheme.colors.fillQuiet,
+                                contentColor = MpcTheme.colors.onFillQuiet,
+                                disabledContentColor = MpcTheme.colors.onFillQuiet.copy(alpha = 0.4f),
                             )
                         } else {
                             null
@@ -185,16 +185,16 @@ internal fun CourseTypeBadge(
         modifier =
         Modifier
             .background(
-                color = MaterialTheme.colorScheme.secondaryContainer,
-                shape = MaterialTheme.shapes.small,
-            ).padding(horizontal = if (isCompact) 8.dp else 10.dp, vertical = if (isCompact) 3.dp else 5.dp),
+                color = MpcTheme.colors.fillQuiet,
+                shape = MpcShapes.badge,
+            ).padding(horizontal = if (isCompact) MpcSpacing.space2 else 10.dp, vertical = if (isCompact) 3.dp else 5.dp),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = courseType.description,
             maxLines = if (isCompact) 1 else 2,
-            style = if (isCompact) MaterialTheme.typography.labelSmall else MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSecondaryContainer,
+            style = if (isCompact) MpcTheme.typography.micro else MpcTheme.typography.label,
+            color = MpcTheme.colors.onFillQuiet,
             fontWeight = FontWeight.Medium,
         )
     }
@@ -220,10 +220,10 @@ internal fun CompactCourseSelectionControl(
         },
         liquidGlassColors = if (isSelected) {
             LiquidGlassButtonColors(
-                tintColor = MaterialTheme.colorScheme.secondaryContainer,
-                surfaceColor = MaterialTheme.colorScheme.secondaryContainer,
-                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                disabledContentColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.4f),
+                tintColor = MpcTheme.colors.fillQuiet,
+                surfaceColor = MpcTheme.colors.fillQuiet,
+                contentColor = MpcTheme.colors.onFillQuiet,
+                disabledContentColor = MpcTheme.colors.onFillQuiet.copy(alpha = 0.4f),
             )
         } else {
             null
@@ -243,7 +243,7 @@ private fun CourseInfoRail(courseSummary: CourseSummary) {
         Modifier
             .fillMaxWidth()
             .horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(MpcSpacing.space3),
     ) {
         CourseInfoBadge(
             imageVector = apartment,
@@ -275,15 +275,15 @@ private fun CourseInfoBadge(
             imageVector = imageVector,
             contentDescription = null,
             modifier = Modifier.size(15.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            tint = MpcTheme.colors.labelSecondary,
         )
-        Spacer(Modifier.width(4.dp))
+        Spacer(Modifier.width(MpcSpacing.space1))
         Text(
             text = infoText,
             maxLines = 1,
             softWrap = false,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MpcTheme.typography.label,
+            color = MpcTheme.colors.labelSecondary,
         )
     }
 }

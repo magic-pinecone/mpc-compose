@@ -1,7 +1,6 @@
 package org.mpc
 
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -134,7 +133,7 @@ class IosSharedHost internal constructor(
         ) {
             Surface(
                 modifier = Modifier.fillMaxSize(),
-                color = MaterialTheme.colorScheme.background,
+                color = MpcTheme.colors.background,
             ) {
                 content(settings)
             }
