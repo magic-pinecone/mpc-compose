@@ -85,6 +85,7 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.ktor.client.okhttp)
             implementation(libs.kotlinx.coroutines.android)
+            implementation(libs.jsoup)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
