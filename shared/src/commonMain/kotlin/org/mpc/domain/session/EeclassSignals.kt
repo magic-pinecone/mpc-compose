@@ -1,6 +1,8 @@
 package org.mpc.domain.session
 
 import io.ktor.http.Url
+import org.mpc.domain.html.HtmlElement
+import org.mpc.domain.html.HtmlParser
 
 private const val EECLASS_BASE_URL = "https://ncueeclass.ncu.edu.tw"
 private const val HTTP_STATUS_OK = 200
@@ -12,16 +14,16 @@ private val LOGIN_REDIRECT_STATUS_CODES = setOf(301, 302, 303, 307, 308)
  * with same-origin links to the timetable and latest events means signed in.
  */
 internal object EeclassSignals : SiteSignals {
-    override fun classify(response: SiteResponse): SiteVerdict {
+    override fun classify(response: SiteResponse, parser: HtmlParser): SiteVerdict {
         if (response.status in LOGIN_REDIRECT_STATUS_CODES && isLoginLocation(response.location)) {
             return SiteVerdict.SIGNED_OUT
         }
         if (response.status == HTTP_STATUS_UNAUTHORIZED) return SiteVerdict.SIGNED_OUT
         if (response.status != HTTP_STATUS_OK) return SiteVerdict.UNRECOGNIZED
 
-        val visibleHtml = NON_CONTENT_REGEX.replace(response.html, "")
-        if (hasLoginForm(visibleHtml)) return SiteVerdict.SIGNED_OUT
-        val links = dashboardLinks(visibleHtml)
+        val root = parser.parse(response.html, "$EECLASS_BASE_URL/")
+        if (hasLoginForm(root)) return SiteVerdict.SIGNED_OUT
+        val links = dashboardLinks(root)
         return if ("/dashboard/myTimeTable" in links && "/dashboard/latestEvent" in links) {
             SiteVerdict.SIGNED_IN
         } else {
@@ -38,31 +40,13 @@ private fun isLoginLocation(location: String?): Boolean {
         url.encodedPath == "/index/login"
 }
 
-private fun hasLoginForm(html: String): Boolean = FORM_TAG_REGEX.findAll(html).any { tag ->
-    attributeValue(tag.value, "id") == "login_form"
-}
+private fun hasLoginForm(root: HtmlElement): Boolean = root.select("form#login_form").isNotEmpty()
 
-private fun dashboardLinks(html: String): Set<String> = ANCHOR_TAG_REGEX.findAll(html).mapNotNull { tag ->
-    val href = attributeValue(tag.value, "href") ?: return@mapNotNull null
-    val url = resolve(href) ?: return@mapNotNull null
-    if (url.protocol.name != "https" || url.port != HTTPS_DEFAULT_PORT ||
-        !url.host.equals(CampusSites.Eeclass.host, ignoreCase = true)
-    ) {
-        return@mapNotNull null
-    }
-    url.encodedPath
+private fun dashboardLinks(root: HtmlElement): Set<String> = root.select("a[href]").mapNotNull { anchor ->
+    val url = anchor.absUrl("href")?.let(::parseHttpsUrl) ?: return@mapNotNull null
+    url.encodedPath.takeIf { url.host.equals(CampusSites.Eeclass.host, ignoreCase = true) }
 }.toSet()
 
 private fun resolve(reference: String): Url? = runCatching {
     if (reference.startsWith("/")) Url("$EECLASS_BASE_URL$reference") else Url(reference)
 }.getOrNull()
-
-private fun attributeValue(tag: String, name: String): String? {
-    val match = ATTRIBUTE_REGEX.findAll(tag).firstOrNull { it.groupValues[1].equals(name, ignoreCase = true) } ?: return null
-    return match.groupValues.drop(2).firstOrNull { it.isNotEmpty() }
-}
-
-private val NON_CONTENT_REGEX = Regex("(?is)<!--.*?-->|<script\\b[^>]*>.*?</script>|<style\\b[^>]*>.*?</style>")
-private val FORM_TAG_REGEX = Regex("(?is)<form\\b[^>]*>")
-private val ANCHOR_TAG_REGEX = Regex("(?is)<a\\b[^>]*>")
-private val ATTRIBUTE_REGEX = Regex("(?is)\\b([a-z_:][-a-z0-9_:.]*)\\s*=\\s*(?:\"([^\"]*)\"|'([^']*)'|([^\\s>]+))")

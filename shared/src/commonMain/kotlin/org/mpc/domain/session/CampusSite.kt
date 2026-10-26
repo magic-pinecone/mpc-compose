@@ -1,6 +1,7 @@
 package org.mpc.domain.session
 
 import io.ktor.http.Url
+import org.mpc.domain.html.HtmlParser
 import kotlin.jvm.JvmInline
 
 const val PORTAL_HOST = "portal.ncu.edu.tw"
@@ -36,7 +37,7 @@ enum class SiteVerdict {
 
 /** Reads a site's own signed-in and signed-out signals. The only code a new site writes. */
 fun interface SiteSignals {
-    fun classify(response: SiteResponse): SiteVerdict
+    fun classify(response: SiteResponse, parser: HtmlParser): SiteVerdict
 }
 
 /**
