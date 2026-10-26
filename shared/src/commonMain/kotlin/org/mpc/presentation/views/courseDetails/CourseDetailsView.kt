@@ -203,7 +203,10 @@ fun CourseDetailsView(
             modifier = Modifier.fillMaxWidth().padding(horizontal = MpcSpacing.space6, vertical = MpcSpacing.space4).heightIn(min = 52.dp),
             colors =
             if (state.isSelected) {
-                ButtonDefaults.buttonColors(containerColor = MpcTheme.colors.destructive)
+                ButtonDefaults.buttonColors(
+                    containerColor = MpcTheme.colors.destructiveContainer,
+                    contentColor = MpcTheme.colors.onDestructiveContainer,
+                )
             } else {
                 ButtonDefaults.buttonColors()
             },

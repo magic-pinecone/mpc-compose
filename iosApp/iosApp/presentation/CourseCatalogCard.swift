@@ -103,7 +103,7 @@ private struct CourseCatalogCompactContent: View {
 
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 6) {
-                CourseCatalogTypeBadge(title: course.courseType.description_)
+                CourseCatalogTypeBadge(courseType: course.courseType)
                 Text(course.title)
                     .font(.subheadline.weight(.medium))
                     .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
@@ -129,16 +129,18 @@ private struct CourseCatalogCompactContent: View {
 }
 
 private struct CourseCatalogTypeBadge: View {
-    let title: String
+    let courseType: CourseType
 
     var body: some View {
-        Text(title)
-            .font(.caption.weight(.medium))
-            .foregroundStyle(.secondary)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(Color.primary.opacity(0.06), in: Capsule())
-            .fixedSize(horizontal: true, vertical: false)
+        if courseType != .unknown {
+            Text(courseType.description_)
+                .font(.caption.weight(.medium))
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.primary.opacity(0.06), in: Capsule())
+                .fixedSize(horizontal: true, vertical: false)
+        }
     }
 }
 
@@ -163,7 +165,7 @@ private struct CourseCatalogHeading: View {
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
                 Spacer(minLength: 8)
-                CourseCatalogTypeBadge(title: course.courseType.description_)
+                CourseCatalogTypeBadge(courseType: course.courseType)
             }
             Text(
                 """

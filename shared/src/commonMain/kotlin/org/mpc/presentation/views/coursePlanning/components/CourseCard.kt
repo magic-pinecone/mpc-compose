@@ -103,6 +103,7 @@ fun CourseCard(
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(MpcSpacing.space2),
                     verticalAlignment = Alignment.Top,
                 ) {
                     Text(
@@ -112,7 +113,6 @@ fun CourseCard(
                         overflow = TextOverflow.Ellipsis,
                         style = MpcTheme.typography.headline,
                     )
-                    Spacer(Modifier.width(MpcSpacing.space2))
                     CourseTypeBadge(courseSummary.courseType, isCompact = false)
                 }
                 Text(
@@ -152,17 +152,15 @@ fun CourseCard(
                         },
                         colors =
                         if (isSelected) {
-                            ButtonDefaults.filledTonalButtonColors()
+                            ButtonDefaults.filledTonalButtonColors(
+                                containerColor = MpcTheme.colors.destructiveContainer,
+                                contentColor = MpcTheme.colors.onDestructiveContainer,
+                            )
                         } else {
                             ButtonDefaults.buttonColors()
                         },
                         liquidGlassColors = if (isSelected) {
-                            LiquidGlassButtonColors(
-                                tintColor = MpcTheme.colors.fillQuiet,
-                                surfaceColor = MpcTheme.colors.fillQuiet,
-                                contentColor = MpcTheme.colors.onFillQuiet,
-                                disabledContentColor = MpcTheme.colors.onFillQuiet.copy(alpha = 0.4f),
-                            )
+                            removeLiquidGlassColors()
                         } else {
                             null
                         },
@@ -181,6 +179,7 @@ internal fun CourseTypeBadge(
     courseType: CourseType,
     isCompact: Boolean,
 ) {
+    if (courseType == CourseType.UNKNOWN) return
     Box(
         modifier =
         Modifier
@@ -214,17 +213,15 @@ internal fun CompactCourseSelectionControl(
             contentDescription = courseSummary.selectionActionDescription(isSelected)
         },
         colors = if (isSelected) {
-            IconButtonDefaults.filledTonalIconButtonColors()
+            IconButtonDefaults.filledTonalIconButtonColors(
+                containerColor = MpcTheme.colors.destructiveContainer,
+                contentColor = MpcTheme.colors.onDestructiveContainer,
+            )
         } else {
             IconButtonDefaults.iconButtonColors()
         },
         liquidGlassColors = if (isSelected) {
-            LiquidGlassButtonColors(
-                tintColor = MpcTheme.colors.fillQuiet,
-                surfaceColor = MpcTheme.colors.fillQuiet,
-                contentColor = MpcTheme.colors.onFillQuiet,
-                disabledContentColor = MpcTheme.colors.onFillQuiet.copy(alpha = 0.4f),
-            )
+            removeLiquidGlassColors()
         } else {
             null
         },
@@ -235,6 +232,15 @@ internal fun CompactCourseSelectionControl(
         )
     }
 }
+
+/** Removing a course is reversible, so 移除 is tonal red rather than a solid warning fill. */
+@Composable
+private fun removeLiquidGlassColors() = LiquidGlassButtonColors(
+    tintColor = MpcTheme.colors.destructiveContainer,
+    surfaceColor = MpcTheme.colors.destructiveContainer,
+    contentColor = MpcTheme.colors.onDestructiveContainer,
+    disabledContentColor = MpcTheme.colors.onDestructiveContainer.copy(alpha = 0.4f),
+)
 
 @Composable
 private fun CourseInfoRail(courseSummary: CourseSummary) {
