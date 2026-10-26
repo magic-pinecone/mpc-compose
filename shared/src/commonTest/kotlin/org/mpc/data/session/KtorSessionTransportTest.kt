@@ -10,7 +10,10 @@ import io.ktor.client.request.HttpResponseData
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.yield
 import org.mpc.domain.session.CampusSites
 import org.mpc.domain.session.Unavailability
 import kotlin.test.assertEquals
@@ -128,6 +131,23 @@ val ktorSessionTransportTests by testSuite {
 
             assertIs<TransportResult.Response>(transport.get("$EECLASS/dashboard"))
             assertNull(requests.single().headers[HttpHeaders.Cookie])
+        }
+    }
+
+    test("overlapping requests do not mistake each other's cookies for a WebView change") {
+        runTest {
+            val jar = InMemoryCookieJar()
+            val (transport, _) = transport(jar) {
+                yield()
+                redirect("/index/login", "PHPSESSID=fresh; Path=/; Secure; HttpOnly")
+            }
+
+            val results = listOf(
+                async { transport.get("$EECLASS/dashboard") },
+                async { transport.get("$EECLASS/dashboard") },
+            ).awaitAll()
+
+            assertEquals(listOf(true, true), results.map { it is TransportResult.Response })
         }
     }
 }

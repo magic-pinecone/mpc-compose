@@ -9,6 +9,8 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.Url
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.mpc.domain.session.CampusSite
 import org.mpc.domain.session.PortalPage
 import org.mpc.domain.session.SiteResponse
@@ -67,32 +69,36 @@ internal class KtorSessionTransport(
     private val httpClient: HttpClient,
     private val cookieJar: PlatformCookieJar,
 ) : SessionTransport {
-    // A WebView navigation can change the jar while a request is in flight. Its cookies are newer, so the response
-    // is stale: report it unavailable and keep its Set-Cookie lines out of the jar.
-    override suspend fun get(url: String): TransportResult = try {
-        val cookiesBeforeRequest = cookieJar.cookieHeader(url)
-        val response = httpClient.get(url) {
-            cookiesBeforeRequest?.let { header(HttpHeaders.Cookie, it.value) }
+    // Requests run one at a time, so only the WebView can change the jar while one is in flight. Its cookies are
+    // newer, so such a response is stale: report it unavailable and keep its Set-Cookie lines out of the jar.
+    private val requestLock = Mutex()
+
+    override suspend fun get(url: String): TransportResult = requestLock.withLock {
+        try {
+            val cookiesBeforeRequest = cookieJar.cookieHeader(url)
+            val response = httpClient.get(url) {
+                cookiesBeforeRequest?.let { header(HttpHeaders.Cookie, it.value) }
+            }
+            val body = response.bodyAsText()
+            if (cookieJar.cookieHeader(url) != cookiesBeforeRequest) {
+                TransportResult.Failed(Unavailability.UNEXPECTED_RESPONSE)
+            } else {
+                val setCookies = response.headers.getAll(HttpHeaders.SetCookie).orEmpty()
+                if (setCookies.isNotEmpty()) cookieJar.storeSetCookies(url, setCookies)
+                TransportResult.Response(
+                    SiteResponse(
+                        status = response.status.value,
+                        location = response.headers[HttpHeaders.Location],
+                        html = body,
+                    ),
+                )
+            }
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (_: Exception) {
+            // Ktor exception messages include URLs; only the reason crosses this boundary.
+            TransportResult.Failed(Unavailability.NETWORK)
         }
-        val body = response.bodyAsText()
-        if (cookieJar.cookieHeader(url) != cookiesBeforeRequest) {
-            TransportResult.Failed(Unavailability.UNEXPECTED_RESPONSE)
-        } else {
-            val setCookies = response.headers.getAll(HttpHeaders.SetCookie).orEmpty()
-            if (setCookies.isNotEmpty()) cookieJar.storeSetCookies(url, setCookies)
-            TransportResult.Response(
-                SiteResponse(
-                    status = response.status.value,
-                    location = response.headers[HttpHeaders.Location],
-                    html = body,
-                ),
-            )
-        }
-    } catch (cancellation: CancellationException) {
-        throw cancellation
-    } catch (_: Exception) {
-        // Ktor exception messages include URLs; only the reason crosses this boundary.
-        TransportResult.Failed(Unavailability.NETWORK)
     }
 
     override suspend fun handoff(site: CampusSite): HandoffResult {
