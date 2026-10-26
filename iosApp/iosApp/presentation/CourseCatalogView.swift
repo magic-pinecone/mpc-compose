@@ -29,29 +29,22 @@ struct CourseCatalogView: View {
             .accessibilityHidden(true)
             .allowsHitTesting(false)
 
-            VStack(spacing: 0) {
-                CoursePlanningSearchField(query: $query) { submittedQuery in
-                    bridge.submitSearch(
-                        request: CourseSearchRequest(semester: semester, query: submittedQuery)
-                    )
+            CourseCatalogSearchPane(
+                semester: semester,
+                query: $query,
+                bridge: bridge,
+                snapshot: catalogSnapshot,
+                selectedSerialNumbers: selectedSerialNumbers,
+                canEditPlan: canEditPlan,
+                isCompact: isCompact,
+                onRetry: submitSearch,
+                onCourseDetails: { course in
+                    planBridge.requestCourseDetails(semester: semester, course: course)
+                },
+                onToggleCourse: { course in
+                    planBridge.requestToggleCourse(course: course)
                 }
-                .padding(.horizontal, 8)
-                .padding(.top, 8)
-
-                CourseCatalogResultsView(
-                    snapshot: catalogSnapshot,
-                    selectedSerialNumbers: selectedSerialNumbers,
-                    canEditPlan: canEditPlan,
-                    isCompact: isCompact,
-                    onRetry: submitSearch,
-                    onCourseDetails: { course in
-                        planBridge.requestCourseDetails(semester: semester, course: course)
-                    },
-                    onToggleCourse: { course in
-                        planBridge.requestToggleCourse(course: course)
-                    }
-                )
-            }
+            )
         }
         .background(Color(uiColor: .systemGroupedBackground).ignoresSafeArea())
         // TODO: optimize user experience when using bopomofo, and maybe add a debounce
@@ -69,6 +62,50 @@ struct CourseCatalogView: View {
 
     private func submitSearch() {
         bridge.submitSearch(request: CourseSearchRequest(semester: semester, query: query))
+    }
+}
+
+private struct CourseCatalogSearchPane: View {
+    let semester: String
+    @Binding var query: String
+    let bridge: CourseSearchBridge
+    let snapshot: CourseCatalogSnapshot?
+    let selectedSerialNumbers: Set<String>
+    let canEditPlan: Bool
+    let isCompact: Bool
+    let onRetry: () -> Void
+    let onCourseDetails: (CourseSummary) -> Void
+    let onToggleCourse: (CourseSummary) -> Void
+
+    var body: some View {
+        let searchField = CoursePlanningSearchField(query: $query) { submittedQuery in
+            bridge.submitSearch(
+                request: CourseSearchRequest(semester: semester, query: submittedQuery)
+            )
+        }
+        .padding(.horizontal, 8)
+        .padding(.top, 8)
+
+        let results = CourseCatalogResultsView(
+            snapshot: snapshot,
+            selectedSerialNumbers: selectedSerialNumbers,
+            canEditPlan: canEditPlan,
+            isCompact: isCompact,
+            onRetry: onRetry,
+            onCourseDetails: onCourseDetails,
+            onToggleCourse: onToggleCourse
+        )
+
+        if #available(iOS 26.0, *) {
+            results.safeAreaBar(edge: .top, spacing: 0) {
+                searchField
+            }
+        } else {
+            results.safeAreaInset(edge: .top, spacing: 0) {
+                searchField
+                    .background(Color(uiColor: .systemGroupedBackground))
+            }
+        }
     }
 }
 
