@@ -53,6 +53,7 @@ import org.mpc.domain.model.PortalShortcutDestination
 import org.mpc.domain.model.PortalShortcutIcon
 import org.mpc.domain.model.PortalShortcutItem
 import org.mpc.domain.model.PortalShortcutSection
+import org.mpc.presentation.theme.MpcSpacing
 
 @Composable
 fun PortalScreen(
@@ -68,8 +69,8 @@ fun PortalScreen(
 
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(MpcSpacing.space4),
+        verticalArrangement = Arrangement.spacedBy(MpcSpacing.space4),
     ) {
         item {
             Row(
@@ -122,11 +123,11 @@ private fun PortalShortcutSectionView(
             text = section.title,
             fontWeight = FontWeight.Bold,
         )
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(MpcSpacing.space2))
         section.items.chunked(PORTAL_GRID_COLUMNS).forEach { rowItems ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(MpcSpacing.space2),
             ) {
                 rowItems.forEach { item ->
                     PortalShortcutButton(
@@ -139,7 +140,7 @@ private fun PortalShortcutSectionView(
                     Spacer(Modifier.weight(1f))
                 }
             }
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(MpcSpacing.space2))
         }
     }
 }
@@ -153,7 +154,7 @@ private fun PortalShortcutButton(
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(MpcSpacing.space1),
     ) {
         FilledTonalButton(
             modifier = Modifier

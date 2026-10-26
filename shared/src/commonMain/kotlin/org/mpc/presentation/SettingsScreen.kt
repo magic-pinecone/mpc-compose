@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,6 +22,8 @@ import org.mpc.domain.model.AppSettings
 import org.mpc.domain.model.AppThemeMode
 import org.mpc.domain.model.PortalAuthenticationMode
 import org.mpc.domain.model.TimetableColorMode
+import org.mpc.presentation.theme.MpcSpacing
+import org.mpc.presentation.theme.MpcTheme
 
 @Composable
 fun SettingsScreen(
@@ -36,14 +37,14 @@ fun SettingsScreen(
     Column(
         modifier = modifier
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp, vertical = 12.dp),
+            .padding(horizontal = 20.dp, vertical = MpcSpacing.space3),
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
         if (settingsWriteFailed) {
             Text(
                 text = "設定無法儲存，請稍後再試。",
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodyMedium,
+                color = MpcTheme.colors.destructive,
+                style = MpcTheme.typography.supporting,
             )
         }
 
@@ -120,16 +121,16 @@ private fun SettingsSectionTitle(
     title: String,
     description: String,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(MpcSpacing.space1)) {
         Text(
             text = title,
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurface,
+            style = MpcTheme.typography.headline,
+            color = MpcTheme.colors.label,
         )
         Text(
             text = description,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MpcTheme.typography.supporting,
+            color = MpcTheme.colors.labelSecondary,
         )
     }
 }
@@ -162,12 +163,12 @@ private fun SettingsChoiceRow(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
-                color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                color = if (enabled) MpcTheme.colors.label else MpcTheme.colors.labelSecondary,
             )
             Text(
                 text = description,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MpcTheme.typography.caption,
+                color = MpcTheme.colors.labelSecondary,
             )
         }
     }

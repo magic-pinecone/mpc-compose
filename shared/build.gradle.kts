@@ -149,3 +149,41 @@ ktlint {
         }
     }
 }
+
+val checkDesignTokens = tasks.register("checkDesignTokens") {
+    group = LifecycleBasePlugin.VERIFICATION_GROUP
+    description = "Fails when shared UI outside presentation/theme reads MaterialTheme values or writes hex colors."
+    val sources =
+        fileTree("src/commonMain/kotlin") {
+            include("**/*.kt")
+            exclude("**/presentation/theme/**")
+        }
+    val rootDirectory = rootDir
+    inputs.files(sources)
+    doLast {
+        val forbidden =
+            Regex("""\bMaterialTheme\s*\.\s*(colorScheme|typography|shapes)\b|\bColor\(\s*(?:color\s*=\s*)?0x""")
+        val whitespace = Regex("""\s+""")
+        val violations =
+            sources.files.sorted().flatMap { file ->
+                val text = file.readText()
+                forbidden.findAll(text).map { match ->
+                    val line = text.substring(0, match.range.first).count { it == '\n' } + 1
+                    "${file.relativeTo(rootDirectory)}:$line: ${match.value.replace(whitespace, " ")}"
+                }.toList()
+            }
+        if (violations.isNotEmpty()) {
+            throw GradleException(
+                violations.joinToString(
+                    separator = "\n",
+                    prefix = "Shared UI must read design tokens, not Material theme values or hex colors:\n",
+                    postfix =
+                    "\nUse MpcTheme.colors, MpcTheme.typography, MpcShapes, or MpcSpacing " +
+                        "(org.mpc.presentation.theme). Platform values belong in presentation/theme.",
+                ),
+            )
+        }
+    }
+}
+
+tasks.named("check") { dependsOn(checkDesignTokens) }

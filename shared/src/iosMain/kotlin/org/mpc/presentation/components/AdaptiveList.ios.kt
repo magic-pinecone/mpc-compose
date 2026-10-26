@@ -1,7 +1,6 @@
 package org.mpc.presentation.components
 
 import androidx.compose.foundation.layout.height
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -18,6 +17,7 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ObjCSignatureOverride
 import kotlinx.cinterop.readValue
 import kotlinx.cinterop.useContents
+import org.mpc.presentation.theme.MpcTheme
 import platform.CoreGraphics.CGRectZero
 import platform.Foundation.NSIndexPath
 import platform.UIKit.UIColor
@@ -53,9 +53,9 @@ actual fun AdaptiveList(
     // Retain the data source: UITableView's reference to it is weak.
     val dataSource = remember { ListDataSource() }
     var contentHeight by remember { mutableStateOf(1.0) }
-    val listBackground = MaterialTheme.colorScheme.surfaceContainer
+    val listBackground = MpcTheme.colors.background
     val interfaceStyle =
-        if (MaterialTheme.colorScheme.surface.luminance() < 0.5f) {
+        if (MpcTheme.colors.background.luminance() < 0.5f) {
             UIUserInterfaceStyleDark
         } else {
             UIUserInterfaceStyleLight
