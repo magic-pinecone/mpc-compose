@@ -161,12 +161,16 @@ val checkDesignTokens = tasks.register("checkDesignTokens") {
     val rootDirectory = rootDir
     inputs.files(sources)
     doLast {
-        val forbidden = Regex("""MaterialTheme\.(colorScheme|typography|shapes)|Color\(0x""")
+        val forbidden =
+            Regex("""\bMaterialTheme\s*\.\s*(colorScheme|typography|shapes)\b|\bColor\(\s*(?:color\s*=\s*)?0x""")
+        val whitespace = Regex("""\s+""")
         val violations =
             sources.files.sorted().flatMap { file ->
-                file.readLines().mapIndexedNotNull { index, line ->
-                    forbidden.find(line)?.let { "${file.relativeTo(rootDirectory)}:${index + 1}: ${it.value}" }
-                }
+                val text = file.readText()
+                forbidden.findAll(text).map { match ->
+                    val line = text.substring(0, match.range.first).count { it == '\n' } + 1
+                    "${file.relativeTo(rootDirectory)}:$line: ${match.value.replace(whitespace, " ")}"
+                }.toList()
             }
         if (violations.isNotEmpty()) {
             throw GradleException(
