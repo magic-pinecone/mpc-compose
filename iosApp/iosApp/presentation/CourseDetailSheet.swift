@@ -133,7 +133,9 @@ private struct CourseDetailFacts: View {
             LabeledContent("學分") {
                 Text(course.credit, format: .number.precision(.fractionLength(0...1)))
             }
-            LabeledContent("課程類別", value: course.courseType.description_)
+            if course.courseType != .unknown {
+                LabeledContent("課程類別", value: course.courseType.description_)
+            }
             LabeledContent(
                 "授課教師",
                 value: course.teachers

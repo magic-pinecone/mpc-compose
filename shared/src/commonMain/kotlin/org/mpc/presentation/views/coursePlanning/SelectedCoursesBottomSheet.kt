@@ -28,6 +28,7 @@ import org.mpc.domain.model.CourseSummary
 import org.mpc.presentation.components.AdaptiveList
 import org.mpc.presentation.components.AdaptiveListItem
 import org.mpc.presentation.formatting.creditLabel
+import org.mpc.presentation.formatting.displayLabel
 import org.mpc.presentation.formatting.scheduleDescription
 import org.mpc.presentation.theme.MpcSpacing
 import org.mpc.presentation.theme.MpcTheme
@@ -146,7 +147,7 @@ private fun CourseSummary.toListItem(canEditPlan: Boolean): AdaptiveListItem = A
     title = title,
     supportingText =
     buildList {
-        add(courseType.description)
+        courseType.displayLabel?.let(::add)
         add(teachers.filter { it.isNotBlank() }.joinToString("、").ifBlank { "未提供授課教師" })
         add(scheduleDescription())
     }.joinToString("\n"),

@@ -46,6 +46,7 @@ import org.mpc.domain.model.CourseTime
 import org.mpc.domain.model.CourseType
 import org.mpc.domain.model.PasswordCardType
 import org.mpc.presentation.formatting.creditLabel
+import org.mpc.presentation.formatting.displayLabel
 import org.mpc.presentation.formatting.scheduleDescription
 import org.mpc.presentation.icon.apartment
 import org.mpc.presentation.icon.groups
@@ -179,7 +180,7 @@ internal fun CourseTypeBadge(
     courseType: CourseType,
     isCompact: Boolean,
 ) {
-    if (courseType == CourseType.UNKNOWN) return
+    val label = courseType.displayLabel ?: return
     Box(
         modifier =
         Modifier
@@ -190,7 +191,7 @@ internal fun CourseTypeBadge(
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = courseType.description,
+            text = label,
             maxLines = if (isCompact) 1 else 2,
             style = if (isCompact) MpcTheme.typography.micro else MpcTheme.typography.label,
             color = MpcTheme.colors.onFillQuiet,

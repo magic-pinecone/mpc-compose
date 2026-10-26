@@ -88,9 +88,11 @@ private struct SelectedCourseRow: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(course.title)
                     .font(.body)
-                Text(course.courseType.description_)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                if course.courseType != .unknown {
+                    Text(course.courseType.description_)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
                 if !course.teachers.isEmpty {
                     Text(course.teachers.joined(separator: "、"))
                         .font(.caption)

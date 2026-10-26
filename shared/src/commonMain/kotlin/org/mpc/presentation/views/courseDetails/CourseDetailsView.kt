@@ -38,6 +38,7 @@ import org.mpc.domain.model.CourseDetail
 import org.mpc.domain.model.CourseSummary
 import org.mpc.domain.model.DistributionCondition
 import org.mpc.presentation.formatting.creditLabel
+import org.mpc.presentation.formatting.displayLabel
 import org.mpc.presentation.formatting.scheduleDescription
 import org.mpc.presentation.theme.MpcShapes
 import org.mpc.presentation.theme.MpcSpacing
@@ -70,9 +71,9 @@ fun CourseDetailsView(
                     style = MpcTheme.typography.screenTitle,
                     fontWeight = FontWeight.SemiBold,
                 )
-                state.summary?.let { course ->
+                state.summary?.courseType?.displayLabel?.let { label ->
                     Text(
-                        text = course.courseType.description,
+                        text = label,
                         style = MpcTheme.typography.supporting,
                         color = MpcTheme.colors.labelSecondary,
                     )
@@ -220,9 +221,9 @@ fun CourseDetailsView(
 private fun CourseFactsSection(course: CourseSummary) {
     CourseFactGroup(
         title = "基本資訊",
-        facts = listOf(
+        facts = listOfNotNull(
             "學分" to "${course.credit.creditLabel()} 學分",
-            "類別" to course.courseType.description,
+            course.courseType.displayLabel?.let { "類別" to it },
             "授課教師" to course.teachers.filter { it.isNotBlank() }.joinToString("、").ifBlank { "未提供" },
             "開課單位" to listOf(course.collegeName, course.departmentName)
                 .filter(String::isNotBlank)
