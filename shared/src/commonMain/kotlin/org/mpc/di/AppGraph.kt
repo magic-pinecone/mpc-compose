@@ -11,6 +11,7 @@ import org.mpc.data.local.database.AppDatabase
 import org.mpc.domain.html.HtmlParser
 import org.mpc.domain.repository.AppSettingsRepository
 import org.mpc.domain.repository.CourseRepository
+import org.mpc.domain.repository.PortalFavoritesRepository
 import org.mpc.domain.session.CampusSessions
 import org.mpc.presentation.state.CoursePlanDraftStore
 
@@ -20,6 +21,7 @@ interface AppGraph : ViewModelGraph {
     val courseRepository: CourseRepository
     val coursePlanDraftStore: CoursePlanDraftStore
     val campusSessions: CampusSessions
+    val portalFavoritesRepository: PortalFavoritesRepository
 
     @DependencyGraph.Factory
     fun interface Factory {

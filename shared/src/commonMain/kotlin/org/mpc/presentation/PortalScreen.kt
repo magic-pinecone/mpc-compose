@@ -1,174 +1,360 @@
 package org.mpc.presentation
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.Book
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CreditCardOff
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Grade
 import androidx.compose.material.icons.filled.HeadsetMic
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.LocalLibrary
 import androidx.compose.material.icons.filled.Mail
+import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material.icons.filled.RequestQuote
-import androidx.compose.material.icons.filled.Router
 import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material.icons.filled.SupportAgent
 import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material.icons.filled.Workspaces
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconToggleButton
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import org.mpc.data.portal.defaultPortalShortcutSections
-import org.mpc.data.portal.filterPortalShortcutSections
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.zacsweers.metrox.viewmodel.metroViewModel
+import org.mpc.data.portal.portalHome
 import org.mpc.domain.model.PortalShortcutDestination
 import org.mpc.domain.model.PortalShortcutIcon
 import org.mpc.domain.model.PortalShortcutItem
 import org.mpc.domain.model.PortalShortcutSection
-import org.mpc.presentation.theme.MpcSpacing
+import org.mpc.presentation.viewModel.PortalViewModel
 
 @Composable
 fun PortalScreen(
-    modifier: Modifier = Modifier,
-    initialSearchQuery: String = "",
-    sections: List<PortalShortcutSection> = defaultPortalShortcutSections,
     onOpenDestination: (PortalShortcutDestination) -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: PortalViewModel = metroViewModel(),
 ) {
-    var query by remember(initialSearchQuery) { mutableStateOf(initialSearchQuery) }
-    val visibleSections = remember(sections, query) {
-        filterPortalShortcutSections(sections, query)
-    }
+    val favoriteIds by viewModel.favoriteIds.collectAsStateWithLifecycle()
+    var query by rememberSaveable { mutableStateOf("") }
+    var isEditing by rememberSaveable { mutableStateOf(false) }
+    val home = remember(favoriteIds, query) { portalHome(favoriteIds.orEmpty(), query) }
+    val favoriteIdSet = remember(favoriteIds) { favoriteIds.orEmpty().toSet() }
+    val isSearching = query.isNotBlank()
 
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(MpcSpacing.space4),
-        verticalArrangement = Arrangement.spacedBy(MpcSpacing.space4),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
     ) {
-        item {
-            PortalSessionPanel(onOpenDestination = onOpenDestination)
+        item(key = "search") {
+            PortalSearchField(query = query, onQueryChange = { query = it })
         }
-        item {
-            OutlinedTextField(
-                value = query,
-                onValueChange = { query = it },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                label = { Text("搜尋 Portal 服務") },
+        item(key = "account") {
+            PortalAccountCard(
+                onOpenDestination = onOpenDestination,
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
             )
         }
-        if (visibleSections.isEmpty()) {
-            item {
+        if (isSearching && home.isEmpty) {
+            item(key = "no-results") {
                 Text(
-                    text = "找不到符合的服務",
-                    modifier = Modifier.fillMaxWidth(),
+                    text = "找不到「${query.trim()}」相關的服務",
+                    modifier = Modifier.fillMaxWidth().padding(top = 32.dp),
                     textAlign = TextAlign.Center,
-                )
-            }
-        } else {
-            items(
-                items = visibleSections,
-                key = { section -> section.title },
-            ) { section ->
-                PortalShortcutSectionView(
-                    section = section,
-                    onOpenDestination = onOpenDestination,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
+        // Wait for the stored favorites so the defaults never flash before a customized list.
+        if (favoriteIds != null && (!isSearching || home.favorites.isNotEmpty())) {
+            favoritesSection(
+                favorites = home.favorites,
+                isEditing = isEditing,
+                onToggleEditing = { isEditing = !isEditing }.takeUnless { isSearching },
+                onOpenDestination = onOpenDestination,
+                viewModel = viewModel,
+            )
+        }
+        catalogSections(
+            sections = home.sections,
+            favoriteIds = favoriteIdSet,
+            isEditing = isEditing,
+            onOpenDestination = onOpenDestination,
+            viewModel = viewModel,
+        )
     }
 }
 
-@Composable
-private fun PortalShortcutSectionView(
-    section: PortalShortcutSection,
+private fun LazyListScope.favoritesSection(
+    favorites: List<PortalShortcutItem>,
+    isEditing: Boolean,
+    // Null while searching, when the favorites shown are only the matches.
+    onToggleEditing: (() -> Unit)?,
     onOpenDestination: (PortalShortcutDestination) -> Unit,
+    viewModel: PortalViewModel,
 ) {
-    Column {
-        Text(
-            text = section.title,
-            fontWeight = FontWeight.Bold,
-        )
-        Spacer(Modifier.height(MpcSpacing.space2))
-        section.items.chunked(PORTAL_GRID_COLUMNS).forEach { rowItems ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(MpcSpacing.space2),
-            ) {
-                rowItems.forEach { item ->
-                    PortalShortcutButton(
-                        modifier = Modifier.weight(1f),
-                        item = item,
-                        onClick = { onOpenDestination(item.destination) },
+    item(key = "favorites-header") {
+        PortalSectionHeader(title = "常用") {
+            if (onToggleEditing != null) {
+                TextButton(onClick = onToggleEditing) {
+                    Text(if (isEditing) "完成" else "編輯")
+                }
+            }
+        }
+    }
+    if (favorites.isEmpty()) {
+        item(key = "favorites-empty") {
+            Text(
+                text = "點「編輯」，再用星號把服務加到這裡",
+                modifier = Modifier.padding(horizontal = 16.dp),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+    itemsIndexed(favorites, key = { _, item -> "favorite/${item.id}" }) { index, item ->
+        PortalShortcutRow(
+            item = item,
+            index = index,
+            count = favorites.size,
+            onClick = { onOpenDestination(item.destination) }.takeUnless { isEditing },
+            trailingContent = if (isEditing) {
+                {
+                    FavoriteEditControls(
+                        label = item.label,
+                        canMoveUp = index > 0,
+                        canMoveDown = index < favorites.lastIndex,
+                        onMove = { offset -> viewModel.moveFavorite(item.id, offset) },
+                        onRemove = { viewModel.removeFavorite(item.id) },
                     )
                 }
-                repeat(PORTAL_GRID_COLUMNS - rowItems.size) {
-                    Spacer(Modifier.weight(1f))
-                }
-            }
-            Spacer(Modifier.height(MpcSpacing.space2))
+            } else {
+                null
+            },
+        )
+    }
+}
+
+private fun LazyListScope.catalogSections(
+    sections: List<PortalShortcutSection>,
+    favoriteIds: Set<String>,
+    isEditing: Boolean,
+    onOpenDestination: (PortalShortcutDestination) -> Unit,
+    viewModel: PortalViewModel,
+) {
+    sections.forEach { section ->
+        item(key = "section/${section.title}") {
+            PortalSectionHeader(title = section.title)
+        }
+        itemsIndexed(section.items, key = { _, item -> "${section.title}/${item.id}" }) { index, item ->
+            val isFavorite = item.id in favoriteIds
+            PortalShortcutRow(
+                item = item,
+                index = index,
+                count = section.items.size,
+                onClick = { onOpenDestination(item.destination) }.takeUnless { isEditing },
+                trailingContent = if (isEditing) {
+                    {
+                        FavoriteToggle(
+                            label = item.label,
+                            isFavorite = isFavorite,
+                            onToggle = { if (isFavorite) viewModel.removeFavorite(item.id) else viewModel.addFavorite(item.id) },
+                        )
+                    }
+                } else {
+                    null
+                },
+            )
         }
     }
 }
 
 @Composable
-private fun PortalShortcutButton(
-    modifier: Modifier,
-    item: PortalShortcutItem,
-    onClick: () -> Unit,
+private fun FavoriteToggle(
+    label: String,
+    isFavorite: Boolean,
+    onToggle: () -> Unit,
 ) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(MpcSpacing.space1),
-    ) {
-        FilledTonalButton(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(64.dp),
-            onClick = onClick,
-            contentPadding = PaddingValues(6.dp),
-        ) {
-            Icon(
-                imageVector = item.icon.toImageVector(),
-                contentDescription = item.label,
-                modifier = Modifier.size(24.dp),
-            )
-        }
-        Text(
-            text = item.label,
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
+    IconToggleButton(checked = isFavorite, onCheckedChange = { onToggle() }) {
+        Icon(
+            imageVector = if (isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
+            contentDescription = if (isFavorite) "從常用移除$label" else "加入常用：$label",
+            tint = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
+
+@Composable
+private fun PortalSearchField(
+    query: String,
+    onQueryChange: (String) -> Unit,
+) {
+    TextField(
+        value = query,
+        onValueChange = onQueryChange,
+        modifier = Modifier.fillMaxWidth(),
+        placeholder = { Text("搜尋服務") },
+        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+        trailingIcon = if (query.isNotEmpty()) {
+            {
+                IconButton(onClick = { onQueryChange("") }) {
+                    Icon(Icons.Default.Close, contentDescription = "清除搜尋")
+                }
+            }
+        } else {
+            null
+        },
+        singleLine = true,
+        shape = CircleShape,
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+        ),
+    )
+}
+
+@Composable
+private fun PortalSectionHeader(
+    title: String,
+    trailingContent: @Composable () -> Unit = {},
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 48.dp)
+            .padding(start = 16.dp, top = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = title,
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.primary,
+        )
+        trailingContent()
+    }
+}
+
+/** One row of a grouped list: rounded at the group's ends, with a small gap between rows. */
+@Composable
+private fun PortalShortcutRow(
+    item: PortalShortcutItem,
+    index: Int,
+    count: Int,
+    onClick: (() -> Unit)?,
+    trailingContent: (@Composable () -> Unit)?,
+) {
+    ListItem(
+        headlineContent = { Text(item.label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+        leadingContent = { PortalShortcutBadge(item.icon) },
+        trailingContent = trailingContent,
+        colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = if (index == 0) 0.dp else SEGMENT_GAP)
+            .clip(segmentShape(index, count))
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
+    )
+}
+
+@Composable
+private fun PortalShortcutBadge(icon: PortalShortcutIcon) {
+    Box(
+        modifier = Modifier
+            .size(40.dp)
+            .background(MaterialTheme.colorScheme.secondaryContainer, CircleShape),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = icon.toImageVector(),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+            modifier = Modifier.size(22.dp),
+        )
+    }
+}
+
+@Composable
+private fun FavoriteEditControls(
+    label: String,
+    canMoveUp: Boolean,
+    canMoveDown: Boolean,
+    onMove: (Int) -> Unit,
+    onRemove: () -> Unit,
+) {
+    Row {
+        IconButton(onClick = { onMove(-1) }, enabled = canMoveUp) {
+            Icon(Icons.Default.KeyboardArrowUp, contentDescription = "上移$label")
+        }
+        IconButton(onClick = { onMove(1) }, enabled = canMoveDown) {
+            Icon(Icons.Default.KeyboardArrowDown, contentDescription = "下移$label")
+        }
+        IconButton(onClick = onRemove) {
+            Icon(
+                imageVector = Icons.Default.RemoveCircleOutline,
+                contentDescription = "從常用移除$label",
+                tint = MaterialTheme.colorScheme.error,
+            )
+        }
+    }
+}
+
+private fun segmentShape(index: Int, count: Int): Shape {
+    val top = if (index == 0) OUTER_CORNER else INNER_CORNER
+    val bottom = if (index == count - 1) OUTER_CORNER else INNER_CORNER
+    return RoundedCornerShape(topStart = top, topEnd = top, bottomStart = bottom, bottomEnd = bottom)
+}
+
+private val OUTER_CORNER = 20.dp
+private val INNER_CORNER = 4.dp
+private val SEGMENT_GAP = 2.dp
 
 private fun PortalShortcutIcon.toImageVector(): ImageVector = portalShortcutIcons.getValue(this)
 
@@ -184,7 +370,6 @@ private val portalShortcutIcons = mapOf(
     PortalShortcutIcon.LOCAL_LIBRARY to Icons.Default.LocalLibrary,
     PortalShortcutIcon.MAIL to Icons.Default.Mail,
     PortalShortcutIcon.REQUEST_QUOTE to Icons.Default.RequestQuote,
-    PortalShortcutIcon.ROUTER to Icons.Default.Router,
     PortalShortcutIcon.SAVINGS to Icons.Default.Savings,
     PortalShortcutIcon.SCHOOL to Icons.Default.School,
     PortalShortcutIcon.SUPPORT_AGENT to Icons.Default.SupportAgent,
@@ -193,5 +378,3 @@ private val portalShortcutIcons = mapOf(
     PortalShortcutIcon.WORKSPACES to Icons.Default.Workspaces,
     PortalShortcutIcon.WORKSPACE_PREMIUM to Icons.Default.WorkspacePremium,
 )
-
-private const val PORTAL_GRID_COLUMNS = 4
