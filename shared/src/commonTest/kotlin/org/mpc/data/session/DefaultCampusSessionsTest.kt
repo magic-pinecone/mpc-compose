@@ -6,8 +6,9 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.yield
+import org.mpc.domain.html.HtmlElement
+import org.mpc.domain.html.HtmlParser
 import org.mpc.domain.session.CampusSite
-import org.mpc.domain.session.CampusSites
 import org.mpc.domain.session.PortalNeed
 import org.mpc.domain.session.PortalSignIn
 import org.mpc.domain.session.PortalStatus
@@ -15,17 +16,42 @@ import org.mpc.domain.session.Renewal
 import org.mpc.domain.session.SitePath
 import org.mpc.domain.session.SiteResponse
 import org.mpc.domain.session.SiteResult
+import org.mpc.domain.session.SiteSignals
 import org.mpc.domain.session.SiteStatus
+import org.mpc.domain.session.SiteVerdict
 import org.mpc.domain.session.Unavailability
 import kotlin.test.assertEquals
+import kotlin.test.fail
 
 private val SIGNED_IN_DASHBOARD = SiteResponse(
     status = 200,
     location = null,
-    html = "<a href='/dashboard/myTimeTable'></a><a href='/dashboard/latestEvent'></a>",
+    html = "dashboard",
 )
 private val SIGNED_OUT_REDIRECT = SiteResponse(status = 302, location = "/index/login", html = "")
 private val TIMETABLE = SitePath.of("/dashboard/myTimeTable")
+
+/** Reads status and location only, so these tests never depend on a site's HTML. */
+private val STATUS_SIGNALS = SiteSignals { response, _ ->
+    when (response.status) {
+        200 -> SiteVerdict.SIGNED_IN
+        302 -> SiteVerdict.SIGNED_OUT
+        else -> SiteVerdict.UNRECOGNIZED
+    }
+}
+
+private val TEST_SITE = CampusSite(
+    id = "test",
+    displayName = "Test",
+    host = "ncueeclass.ncu.edu.tw",
+    portalSystemId = "ncueeclass",
+    probePath = SitePath.of("/dashboard"),
+    signals = STATUS_SIGNALS,
+)
+
+private object UnusedHtmlParser : HtmlParser {
+    override fun parse(html: String, baseUrl: String): HtmlElement = fail("Session logic must not parse HTML")
+}
 
 /** Answers each request from a script and records what the session layer asked for, in order. */
 private class ScriptedTransport(
@@ -63,7 +89,13 @@ private class ScriptedTransport(
 private fun sessions(
     transport: SessionTransport,
     guardStore: PortalGuardStore = InMemoryPortalGuardStore(),
-) = DefaultCampusSessions(FakeAppSettingsRepository(), PortalState(guardStore), transport)
+) = DefaultCampusSessions(
+    settings = FakeAppSettingsRepository(),
+    portalState = PortalState(guardStore),
+    transport = transport,
+    parser = UnusedHtmlParser,
+    sites = listOf(TEST_SITE),
+)
 
 private fun page(response: SiteResponse) = TransportResult.Response(response)
 
@@ -76,11 +108,11 @@ val defaultCampusSessionsTests by testSuite {
             )
             val sessions = sessions(transport)
 
-            val result = sessions.fetch(CampusSites.Eeclass, TIMETABLE) { html -> html.length }
+            val result = sessions.fetch(TEST_SITE, TIMETABLE) { html -> html.length }
 
             assertEquals(SiteResult.Page(SIGNED_IN_DASHBOARD.html.length), result)
             assertEquals(1, transport.events.count { it.startsWith("handoff") })
-            assertEquals(SiteStatus.SignedIn, sessions.status(CampusSites.Eeclass).value)
+            assertEquals(SiteStatus.SignedIn, sessions.status(TEST_SITE).value)
             assertEquals(PortalStatus.Live, sessions.portal.value)
         }
     }
@@ -93,12 +125,12 @@ val defaultCampusSessionsTests by testSuite {
             )
             val sessions = sessions(transport)
 
-            val result = sessions.fetch(CampusSites.Eeclass, TIMETABLE) { it }
+            val result = sessions.fetch(TEST_SITE, TIMETABLE) { it }
 
             assertEquals(SiteResult.NeedsPortal(PortalNeed.MANUAL_SIGN_IN), result)
             assertEquals(
                 SiteStatus.SignedOut(Renewal.PORTAL_SIGN_IN_BY_USER),
-                sessions.status(CampusSites.Eeclass).value,
+                sessions.status(TEST_SITE).value,
             )
         }
     }
@@ -113,10 +145,10 @@ val defaultCampusSessionsTests by testSuite {
                 ),
                 guardStore,
             )
-            assertEquals(SiteResult.NeedsPortal(PortalNeed.DISPLACED), first.fetch(CampusSites.Eeclass, TIMETABLE) { it })
+            assertEquals(SiteResult.NeedsPortal(PortalNeed.DISPLACED), first.fetch(TEST_SITE, TIMETABLE) { it })
 
             val restarted = sessions(ScriptedTransport(pages = ArrayDeque(listOf(page(SIGNED_OUT_REDIRECT)))), guardStore)
-            restarted.refresh(CampusSites.Eeclass)
+            restarted.refresh(TEST_SITE)
             assertEquals(PortalStatus.Blocked(PortalNeed.DISPLACED), restarted.portal.value)
 
             assertEquals(PortalSignIn.OpenBrowser("https://portal.ncu.edu.tw/login"), restarted.signInToPortal())
@@ -169,14 +201,14 @@ val defaultCampusSessionsTests by testSuite {
                 gate = CompletableDeferred(),
             )
             val sessions = sessions(transport)
-            sessions.refresh(CampusSites.Eeclass)
+            sessions.refresh(TEST_SITE)
 
-            val job = launch { sessions.refresh(CampusSites.Eeclass) }
+            val job = launch { sessions.refresh(TEST_SITE) }
             yield()
-            assertEquals(SiteStatus.Checking, sessions.status(CampusSites.Eeclass).value)
+            assertEquals(SiteStatus.Checking, sessions.status(TEST_SITE).value)
             job.cancelAndJoin()
 
-            assertEquals(SiteStatus.SignedIn, sessions.status(CampusSites.Eeclass).value)
+            assertEquals(SiteStatus.SignedIn, sessions.status(TEST_SITE).value)
         }
     }
 

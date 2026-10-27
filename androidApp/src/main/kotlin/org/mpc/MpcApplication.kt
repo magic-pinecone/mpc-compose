@@ -4,6 +4,7 @@ import android.app.Application
 import org.mpc.core.createDataStore
 import org.mpc.core.createDatabase
 import org.mpc.core.createDatabaseBuilder
+import org.mpc.data.html.JsoupHtmlParser
 import org.mpc.di.AppGraph
 import org.mpc.di.createAppGraph
 
@@ -21,6 +22,6 @@ class MpcApplication : Application() {
                 createDatabaseBuilder(this),
             )
 
-        appGraph = createAppGraph(dataStore, database)
+        appGraph = createAppGraph(dataStore, database, JsoupHtmlParser())
     }
 }

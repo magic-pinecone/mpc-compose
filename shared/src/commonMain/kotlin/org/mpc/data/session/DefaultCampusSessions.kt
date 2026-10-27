@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.mpc.domain.html.HtmlParser
 import org.mpc.domain.model.PortalAuthenticationMode
 import org.mpc.domain.repository.AppSettingsRepository
 import org.mpc.domain.session.CampusSessions
@@ -43,10 +44,15 @@ private const val PORTAL_BROWSER_COOKIE = "portal"
 internal class CampusSessionsProvider {
     @Provides
     @SingleIn(AppScope::class)
-    fun providesCampusSessions(settings: AppSettingsRepository, guardStore: PortalGuardStore): CampusSessions = DefaultCampusSessions(
+    fun providesCampusSessions(
+        settings: AppSettingsRepository,
+        guardStore: PortalGuardStore,
+        parser: HtmlParser,
+    ): CampusSessions = DefaultCampusSessions(
         settings = settings,
         portalState = PortalState(guardStore),
         transport = KtorSessionTransport(createDefaultSessionHttpClient(), createPlatformCookieJar()),
+        parser = parser,
     )
 }
 
@@ -64,6 +70,7 @@ internal class DefaultCampusSessions(
     private val settings: AppSettingsRepository,
     private val portalState: PortalState,
     private val transport: SessionTransport,
+    private val parser: HtmlParser,
     private val sites: List<CampusSite> = CampusSites.all,
     private val now: () -> Instant = { Clock.System.now() },
 ) : CampusSessions {
@@ -97,7 +104,7 @@ internal class DefaultCampusSessions(
             var html = ""
             while (step !is Step.Finish) {
                 val observation = when (step) {
-                    Step.FetchPage -> observePage(transport, site, path).also { html = it.html }.observation
+                    Step.FetchPage -> observePage(transport, parser, site, path).also { html = it.html }.observation
 
                     Step.Handoff -> observeHandoff(transport, portalState, site)
 
@@ -134,7 +141,7 @@ internal class DefaultCampusSessions(
                 state.status.value = when (val result = transport.get(site.url(site.probePath))) {
                     is TransportResult.Failed -> SiteStatus.Unavailable(result.reason)
 
-                    is TransportResult.Response -> when (site.signals.classify(result.response)) {
+                    is TransportResult.Response -> when (site.signals.classify(result.response, parser)) {
                         SiteVerdict.SIGNED_IN -> SiteStatus.SignedIn
                         SiteVerdict.SIGNED_OUT -> SiteStatus.SignedOut(portalState.renewal(mode(), now()))
                         SiteVerdict.UNRECOGNIZED -> SiteStatus.Unavailable(Unavailability.UNEXPECTED_RESPONSE)
@@ -203,11 +210,11 @@ internal class DefaultCampusSessions(
 
 private class PageObservation(val observation: Observation, val html: String = "")
 
-private suspend fun observePage(transport: SessionTransport, site: CampusSite, path: SitePath): PageObservation = when (val result = transport.get(site.url(path))) {
+private suspend fun observePage(transport: SessionTransport, parser: HtmlParser, site: CampusSite, path: SitePath): PageObservation = when (val result = transport.get(site.url(path))) {
     is TransportResult.Failed -> PageObservation(Observation.Failed(result.reason))
 
     is TransportResult.Response -> when {
-        site.signals.classify(result.response) == SiteVerdict.SIGNED_OUT -> PageObservation(Observation.SiteSignedOut)
+        site.signals.classify(result.response, parser) == SiteVerdict.SIGNED_OUT -> PageObservation(Observation.SiteSignedOut)
         result.response.status == HTTP_STATUS_OK -> PageObservation(Observation.PageOk, result.response.html)
         else -> PageObservation(Observation.Failed(Unavailability.UNEXPECTED_RESPONSE))
     }

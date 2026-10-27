@@ -27,6 +27,7 @@ ktor = "3.5.1"
 kermit = "2.1.0"
 datastoreCore = "1.2.1"
 room = "2.8.4"
+jsoup = "1.23.2"
 sqlite = "2.7.0"
 
 ksp = "2.3.10"
@@ -88,6 +89,7 @@ metrox-viewmodel-compose = { module = "dev.zacsweers.metro:metrox-viewmodel-comp
 androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "navigation3" }
 androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "navigation3" }
 androidx-lifecycle-viewmodel-navigation3 = { module = "androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "androidx-lifecycle" }
+jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 kermit = { module = "co.touchlab:kermit", version.ref = "kermit"}
 androidx-datastore-core = { group = "androidx.datastore", name = "datastore-core", version.ref = "datastoreCore" }
 
