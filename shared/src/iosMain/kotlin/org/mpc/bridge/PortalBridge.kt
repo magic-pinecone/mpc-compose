@@ -1,11 +1,16 @@
 package org.mpc.bridge
 
+import androidx.datastore.core.IOException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import org.mpc.data.portal.PortalHome
 import org.mpc.data.portal.addingFavorite
@@ -25,7 +30,13 @@ class PortalBridge internal constructor(
 ) {
     val account: Flow<PortalAccount> = sessions.portal.map { it.toPortalAccount() }.distinctUntilChanged()
 
-    val favoriteIds: Flow<List<String>> = favorites.favoriteIds
+    private val failedWrites = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+
+    // The list shows edits before they are stored, so a failed write resends the stored favorites to undo it.
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val favoriteIds: Flow<List<String>> = failedWrites
+        .onStart { emit(Unit) }
+        .flatMapLatest { favorites.favoriteIds }
 
     fun home(favoriteIds: List<String>, query: String): PortalHome = portalHome(favoriteIds, query)
 
@@ -51,6 +62,12 @@ class PortalBridge internal constructor(
     fun setFavoriteIds(ids: List<String>) = update { ids }
 
     private fun update(transform: (List<String>) -> List<String>) {
-        scope.launch { favorites.updateFavoriteIds(transform) }
+        scope.launch {
+            try {
+                favorites.updateFavoriteIds(transform)
+            } catch (_: IOException) {
+                failedWrites.tryEmit(Unit)
+            }
+        }
     }
 }

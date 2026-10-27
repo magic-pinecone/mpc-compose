@@ -115,7 +115,8 @@ fun PortalScreen(
         if (favoriteIds != null && (!isSearching || home.favorites.isNotEmpty())) {
             favoritesSection(
                 favorites = home.favorites,
-                isEditing = isEditing,
+                // Moves index into the full list, so filtered favorites must not offer them.
+                isEditing = isEditing && !isSearching,
                 onToggleEditing = { isEditing = !isEditing }.takeUnless { isSearching },
                 onOpenDestination = onOpenDestination,
                 viewModel = viewModel,

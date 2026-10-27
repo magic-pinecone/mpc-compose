@@ -1,5 +1,6 @@
 package org.mpc.presentation.viewModel
 
+import androidx.datastore.core.IOException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.zacsweers.metro.AppScope
@@ -36,7 +37,13 @@ class PortalViewModel(
     fun moveFavorite(id: String, offset: Int) = update { it.movingFavorite(id, offset) }
 
     private fun update(transform: (List<String>) -> List<String>) {
-        viewModelScope.launch { favorites.updateFavoriteIds(transform) }
+        viewModelScope.launch {
+            // A failed write leaves the stored favorites, which the screen already shows, unchanged.
+            try {
+                favorites.updateFavoriteIds(transform)
+            } catch (_: IOException) {
+            }
+        }
     }
 }
 
