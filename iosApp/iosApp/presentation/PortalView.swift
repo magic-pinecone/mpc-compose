@@ -46,7 +46,7 @@ struct PortalView: View {
                     Text("常用")
                 } footer: {
                     if home.favorites.isEmpty {
-                        Text("長按或向右滑動服務，即可加入常用。")
+                        Text("點「編輯」後按 ＋，即可把服務加入常用。")
                     }
                 }
             }
@@ -54,7 +54,11 @@ struct PortalView: View {
             ForEach(home.sections, id: \.title) { section in
                 Section(section.title) {
                     ForEach(section.items, id: \.id) { item in
-                        shortcutRow(item, isFavorite: favoriteSet.contains(item.id))
+                        if editMode.isEditing {
+                            addFavoriteRow(item, isFavorite: favoriteSet.contains(item.id))
+                        } else {
+                            shortcutRow(item, isFavorite: favoriteSet.contains(item.id))
+                        }
                     }
                 }
             }
@@ -114,6 +118,28 @@ struct PortalView: View {
         .swipeActions(edge: .leading) {
             favoriteButton(item, isFavorite: isFavorite)
                 .tint(.yellow)
+        }
+    }
+
+    /// A catalog row while editing: a leading insert control, like the system's delete control on favorites.
+    private func addFavoriteRow(_ item: PortalShortcutItem, isFavorite: Bool) -> some View {
+        HStack(spacing: 12) {
+            Button {
+                withAnimation { bridge.addFavorite(id: item.id) }
+            } label: {
+                Image(systemName: isFavorite ? "checkmark.circle.fill" : "plus.circle.fill")
+                    .font(.title3)
+                    .symbolRenderingMode(.palette)
+                    .foregroundStyle(.white, isFavorite ? Color(.systemGray3) : .green)
+            }
+            .buttonStyle(.borderless)
+            .disabled(isFavorite)
+            .accessibilityLabel(isFavorite ? "已在常用" : "加入常用")
+            Label {
+                Text(item.label)
+            } icon: {
+                PortalShortcutIconView(icon: item.icon, tint: item.tint)
+            }
         }
     }
 

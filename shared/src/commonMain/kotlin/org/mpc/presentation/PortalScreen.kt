@@ -16,9 +16,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.Book
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CreditCardOff
 import androidx.compose.material.icons.filled.Event
@@ -33,8 +35,6 @@ import androidx.compose.material.icons.filled.RequestQuote
 import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material.icons.filled.SupportAgent
 import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material.icons.filled.Wifi
@@ -42,7 +42,6 @@ import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material.icons.filled.Workspaces
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -152,7 +151,7 @@ private fun LazyListScope.favoritesSection(
     if (favorites.isEmpty()) {
         item(key = "favorites-empty") {
             Text(
-                text = "點「編輯」，再用星號把服務加到這裡",
+                text = "點「編輯」後按 ＋，即可把服務加入常用",
                 modifier = Modifier.padding(horizontal = 16.dp),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -202,10 +201,10 @@ private fun LazyListScope.catalogSections(
                 onClick = { onOpenDestination(item.destination) }.takeUnless { isEditing },
                 trailingContent = if (isEditing) {
                     {
-                        FavoriteToggle(
+                        AddFavoriteButton(
                             label = item.label,
                             isFavorite = isFavorite,
-                            onToggle = { if (isFavorite) viewModel.removeFavorite(item.id) else viewModel.addFavorite(item.id) },
+                            onAdd = { viewModel.addFavorite(item.id) },
                         )
                     }
                 } else {
@@ -216,17 +215,18 @@ private fun LazyListScope.catalogSections(
     }
 }
 
+/** Adds a service to the favorites; one already there shows a check, and is removed from the favorites section. */
 @Composable
-private fun FavoriteToggle(
+private fun AddFavoriteButton(
     label: String,
     isFavorite: Boolean,
-    onToggle: () -> Unit,
+    onAdd: () -> Unit,
 ) {
-    IconToggleButton(checked = isFavorite, onCheckedChange = { onToggle() }) {
+    IconButton(onClick = onAdd, enabled = !isFavorite) {
         Icon(
-            imageVector = if (isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
-            contentDescription = if (isFavorite) "從常用移除$label" else "加入常用：$label",
-            tint = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+            imageVector = if (isFavorite) Icons.Default.CheckCircle else Icons.Default.AddCircle,
+            contentDescription = if (isFavorite) "已在常用：$label" else "加入常用：$label",
+            tint = if (isFavorite) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.primary,
         )
     }
 }
