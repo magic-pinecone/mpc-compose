@@ -7,12 +7,15 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 val campusSitesTests by testSuite {
-    test("JavaScript stays scoped to managed sites and their Portal handoff") {
-        assertTrue(CampusSites.allowsJavascript("https://portal.ncu.edu.tw/system/ncueeclass"))
+    test("JavaScript stays scoped to https campus hosts") {
+        assertTrue(CampusSites.allowsJavascript("https://portal.ncu.edu.tw/login"))
+        assertTrue(CampusSites.allowsJavascript("https://portal.ncu.edu.tw/system/129"))
         assertTrue(CampusSites.allowsJavascript("https://ncueeclass.ncu.edu.tw/dashboard"))
-        assertFalse(CampusSites.allowsJavascript("https://portal.ncu.edu.tw/system/129"))
+        assertTrue(CampusSites.allowsJavascript("https://NCU.EDU.TW/"))
         assertFalse(CampusSites.allowsJavascript("https://portal.ncu.edu.tw.evil.example/system/ncueeclass"))
+        assertFalse(CampusSites.allowsJavascript("https://evilncu.edu.tw/"))
         assertFalse(CampusSites.allowsJavascript("http://ncueeclass.ncu.edu.tw/dashboard"))
+        assertFalse(CampusSites.allowsJavascript("https://ncueeclass.ncu.edu.tw:8443/dashboard"))
     }
 
     test("site lookup accepts only the exact https host") {

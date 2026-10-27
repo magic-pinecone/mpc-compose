@@ -7,6 +7,7 @@ import kotlin.jvm.JvmInline
 const val PORTAL_HOST = "portal.ncu.edu.tw"
 const val PORTAL_BASE_URL = "https://$PORTAL_HOST"
 internal const val HTTPS_DEFAULT_PORT = 443
+private const val CAMPUS_DOMAIN = "ncu.edu.tw"
 
 /** A path on a campus site: starts with "/", plain segments only, no query string (a query could carry a token). */
 @JvmInline
@@ -78,12 +79,10 @@ object CampusSites {
         return all.firstOrNull { it.host.equals(parsed.host, ignoreCase = true) }
     }
 
-    /** JavaScript runs only on managed sites and on Portal pages that hand off to one. */
+    /** JavaScript runs only on https campus hosts; Portal sign-in needs it for reCAPTCHA. */
     fun allowsJavascript(url: String): Boolean {
-        if (forUrl(url) != null) return true
-        val parsed = parseHttpsUrl(url) ?: return false
-        return parsed.host.equals(PORTAL_HOST, ignoreCase = true) &&
-            all.any { site -> parsed.encodedPath == "/system/${site.portalSystemId}" }
+        val host = parseHttpsUrl(url)?.host?.lowercase() ?: return false
+        return host == CAMPUS_DOMAIN || host.endsWith(".$CAMPUS_DOMAIN")
     }
 }
 
