@@ -129,14 +129,14 @@ private struct CatalogFixturePane: View {
     @Binding var query: String
 
     var body: some View {
-        VStack(spacing: 0) {
-            CoursePlanningSearchField(query: $query, onSubmit: { _ in })
-                .padding(.horizontal, 8)
-                .padding(.top, 8)
-            CourseCatalogStaticPreview()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-        }
-        .background(Color(uiColor: .systemGroupedBackground).ignoresSafeArea())
+        CourseCatalogStaticPreview()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color(uiColor: .systemGroupedBackground).ignoresSafeArea())
+            .searchable(
+                text: $query,
+                placement: .navigationBarDrawer(displayMode: .always),
+                prompt: "搜尋課程名稱"
+            )
     }
 }
 
