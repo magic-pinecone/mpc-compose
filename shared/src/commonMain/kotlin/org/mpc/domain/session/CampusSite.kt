@@ -108,3 +108,14 @@ internal fun portalPage(url: Url): PortalPage = when {
     url.encodedPath == "/login" || url.encodedPath.startsWith("/login/") -> PortalPage.SIGN_IN
     else -> PortalPage.OTHER
 }
+
+/**
+ * The `/go` URL that continues Portal's "about to open" confirmation at [url], or null for any other page.
+ * Loading the confirmation arms the launch; any consent the target asks for afterwards stays with the user.
+ */
+fun portalLaunchUrl(url: String): String? {
+    val parsed = parseHttpsUrl(url)?.takeIf(::isPortalUrl) ?: return null
+    return if (parsed.encodedPath.matches(PORTAL_LAUNCH_PATH)) "$PORTAL_BASE_URL${parsed.encodedPath}/go" else null
+}
+
+private val PORTAL_LAUNCH_PATH = Regex("/system/[A-Za-z0-9_-]+")

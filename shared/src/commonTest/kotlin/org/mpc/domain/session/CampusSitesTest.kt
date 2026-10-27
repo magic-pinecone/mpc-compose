@@ -18,6 +18,19 @@ val campusSitesTests by testSuite {
         assertFalse(CampusSites.allowsJavascript("https://ncueeclass.ncu.edu.tw:8443/dashboard"))
     }
 
+    test("Portal launch confirmations continue to their /go page") {
+        assertEquals("https://portal.ncu.edu.tw/system/129/go", portalLaunchUrl("https://portal.ncu.edu.tw/system/129"))
+        assertEquals(
+            "https://portal.ncu.edu.tw/system/incu-studentscore/go",
+            portalLaunchUrl("https://portal.ncu.edu.tw/system/incu-studentscore?from=menu"),
+        )
+        assertNull(portalLaunchUrl("https://portal.ncu.edu.tw/system/129/go"))
+        assertNull(portalLaunchUrl("https://portal.ncu.edu.tw/login"))
+        assertNull(portalLaunchUrl("https://portal.ncu.edu.tw/system/"))
+        assertNull(portalLaunchUrl("https://ncueeclass.ncu.edu.tw/system/129"))
+        assertNull(portalLaunchUrl("http://portal.ncu.edu.tw/system/129"))
+    }
+
     test("site lookup accepts only the exact https host") {
         assertEquals(CampusSites.Eeclass, CampusSites.forUrl("https://ncueeclass.ncu.edu.tw/dashboard/myTimeTable"))
         assertNull(CampusSites.forUrl("https://ncueeclass.ncu.edu.tw:8443/dashboard"))
