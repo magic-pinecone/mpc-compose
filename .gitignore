@@ -19,3 +19,20 @@ captures
 node_modules/
 
 /.build/
+
+# Local verification artifacts
+.audit/
+
+# Coding agents: local state only, shared rules and settings stay committable
+.claude/worktrees/
+.claude/settings.local.json
+CLAUDE.local.md
+.codex/
+.aider*
+.cursor/chat/
+.windsurf/memories/
+.gemini/tmp/
+.opencode/
+.goose/
+.continue/sessions/
+.specstory/
