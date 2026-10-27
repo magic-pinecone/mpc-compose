@@ -159,6 +159,7 @@ private fun AndroidPrimaryNavigation(
 ) {
     val navigationState = rememberAndroidNavigationState()
     val navigator = remember(navigationState) { AndroidNavigator(navigationState) }
+    val uriHandler = LocalUriHandler.current
     val planViewModel: CoursePlanViewModel = metroViewModel()
     val planUiState by planViewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -215,7 +216,14 @@ private fun AndroidPrimaryNavigation(
                     onSelectedCoursesChange = { courses -> selectedCourses = courses },
                     isShowingSelectedCourses = isShowingSelectedCourses,
                     onDismissSelectedCourses = { isShowingSelectedCourses = false },
-                    onOpenWebPage = { url -> navigator.navigate(PortalWebRoute(title = "官方課程頁面", url = url)) },
+                    onOpenWebPage = { url ->
+                        // The WebView blocks cleartext traffic, so plain http pages open in the browser.
+                        if (url.startsWith("https://")) {
+                            navigator.navigate(PortalWebRoute(title = "官方課程頁面", url = url))
+                        } else {
+                            uriHandler.openUri(url)
+                        }
+                    },
                 )
             }
         }

@@ -33,6 +33,9 @@ skie {
         group("org.mpc.domain.model") {
             EnumInterop.Enabled(true)
         }
+        group("org.mpc.presentation.model") {
+            EnumInterop.Enabled(true)
+        }
         group("org.mpc.bridge") {
             FlowInterop.Enabled(true)
         }

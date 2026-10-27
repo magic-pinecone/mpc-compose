@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import org.mpc.bridge.CoursePlanBridge
 import org.mpc.bridge.CourseSearchBridge
+import org.mpc.bridge.PortalBridge
 import org.mpc.core.createDataStore
 import org.mpc.core.createDatabase
 import org.mpc.core.createDatabaseBuilder
@@ -29,10 +30,8 @@ import org.mpc.domain.html.HtmlParser
 import org.mpc.domain.model.AppSettings
 import org.mpc.domain.model.AppThemeMode
 import org.mpc.domain.model.CourseDetail
-import org.mpc.domain.model.PortalShortcutDestination
 import org.mpc.presentation.CourseCatalogViewBinding
 import org.mpc.presentation.CoursePlanningTimetableViewBinding
-import org.mpc.presentation.PortalScreen
 import org.mpc.presentation.PortalWebScreen
 import org.mpc.presentation.SettingsScreen
 import org.mpc.presentation.theme.MpcTheme
@@ -81,18 +80,7 @@ class IosSharedHost internal constructor(
         }
     }
 
-    fun portalScreenController(
-        onOpenDestination: (PortalShortcutDestination) -> Unit,
-    ): UIViewController = ComposeUIViewController {
-        ProvideAppDependencies(appGraph) {
-            ThemedContent {
-                PortalScreen(
-                    modifier = Modifier.fillMaxSize(),
-                    onOpenDestination = onOpenDestination,
-                )
-            }
-        }
-    }
+    fun portalBridge(): PortalBridge = PortalBridge(appGraph.campusSessions, appGraph.portalFavoritesRepository)
 
     fun portalWebScreenController(url: String): UIViewController = ComposeUIViewController(
         configure = {

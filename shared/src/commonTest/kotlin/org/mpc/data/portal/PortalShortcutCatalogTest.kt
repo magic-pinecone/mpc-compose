@@ -36,7 +36,7 @@ val portalShortcutCatalogTests by testSuite {
         val item = defaultPortalShortcutSections
             .first()
             .items
-            .first { it.label == "新ee-class" }
+            .first { it.label == "新 ee-class" }
 
         assertEquals("https://portal.ncu.edu.tw/system/ncueeclass", item.destination.url)
     }
@@ -48,5 +48,18 @@ val portalShortcutCatalogTests by testSuite {
             .first { it.label == "選課系統" }
 
         assertEquals("https://cis.ncu.edu.tw/Course/", item.destination.url)
+    }
+
+    test("each category has its own color, shared by its services") {
+        val tints = defaultPortalShortcutSections.map { section -> section.items.map { it.tint }.distinct().single() }
+
+        assertEquals(tints.distinct(), tints)
+    }
+
+    test("the catalog lists each service once and every default favorite") {
+        val ids = defaultPortalShortcutSections.flatMap { section -> section.items.map { it.id } }
+
+        assertEquals(ids.distinct(), ids)
+        assertEquals(emptyList(), defaultPortalFavoriteIds - ids.toSet())
     }
 }

@@ -15,7 +15,6 @@ enum class PortalShortcutIcon {
     LOCAL_LIBRARY,
     MAIL,
     REQUEST_QUOTE,
-    ROUTER,
     SAVINGS,
     SCHOOL,
     SUPPORT_AGENT,
@@ -30,11 +29,24 @@ data class PortalShortcutDestination(
     val url: String,
 )
 
+/** A category color. Each platform maps it to its own system palette. */
+enum class PortalShortcutTint {
+    BLUE,
+    GREEN,
+    ORANGE,
+    PURPLE,
+    TEAL,
+}
+
 data class PortalShortcutItem(
     val label: String,
     val icon: PortalShortcutIcon,
+    val tint: PortalShortcutTint,
     val destination: PortalShortcutDestination,
-)
+) {
+    /** Stable across catalog changes that keep the destination, so saved favorites survive relabeling. */
+    val id: String get() = destination.url
+}
 
 data class PortalShortcutSection(
     val title: String,

@@ -2,7 +2,8 @@ import Foundation
 import Shared
 import SwiftSoup
 
-/// Parses HTML with SwiftSoup. A document that fails to parse reads as empty, and a selector that fails matches nothing.
+/// Parses HTML with SwiftSoup.
+/// A document that fails to parse reads as empty, and a selector that fails matches nothing.
 final class SwiftSoupHtmlParser: NSObject, HtmlParser {
     func parse(html: String, baseUrl: String) -> HtmlElement {
         guard let document = try? SwiftSoup.parse(html, baseUrl) else {
