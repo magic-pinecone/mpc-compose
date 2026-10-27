@@ -37,6 +37,7 @@ import org.mpc.presentation.model.PortalAccount
 import org.mpc.presentation.model.PortalAccountAction
 import org.mpc.presentation.model.PortalAccountTone
 import org.mpc.presentation.model.toPortalAccount
+import org.mpc.presentation.theme.MpcSpacing
 import org.mpc.presentation.viewModel.CampusSessionViewModel
 
 @Composable
@@ -91,7 +92,7 @@ private fun PortalAccountRow(
         supportingContent = account.detail?.let { detail -> { Text(detail) } },
         leadingContent = { PortalAccountIcon(account.tone) },
         trailingContent = {
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(MpcSpacing.space1)) {
                 account.actions.forEachIndexed { index, action ->
                     if (index == 0 && action == PortalAccountAction.SIGN_IN) {
                         Button(onClick = { onAction(action) }) { Text(action.label()) }

@@ -72,6 +72,7 @@ import org.mpc.domain.model.PortalShortcutDestination
 import org.mpc.domain.model.PortalShortcutIcon
 import org.mpc.domain.model.PortalShortcutItem
 import org.mpc.domain.model.PortalShortcutSection
+import org.mpc.presentation.theme.MpcSpacing
 import org.mpc.presentation.theme.platformTimetablePalette
 import org.mpc.presentation.viewModel.PortalViewModel
 
@@ -90,7 +91,7 @@ fun PortalScreen(
 
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+        contentPadding = PaddingValues(horizontal = MpcSpacing.space4, vertical = MpcSpacing.space2),
     ) {
         item(key = "search") {
             PortalSearchField(query = query, onQueryChange = { query = it })
@@ -98,14 +99,14 @@ fun PortalScreen(
         item(key = "account") {
             PortalAccountCard(
                 onOpenDestination = onOpenDestination,
-                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                modifier = Modifier.fillMaxWidth().padding(top = MpcSpacing.space4),
             )
         }
         if (isSearching && home.isEmpty) {
             item(key = "no-results") {
                 Text(
                     text = "找不到「${query.trim()}」相關的服務",
-                    modifier = Modifier.fillMaxWidth().padding(top = 32.dp),
+                    modifier = Modifier.fillMaxWidth().padding(top = MpcSpacing.space8),
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -153,7 +154,7 @@ private fun LazyListScope.favoritesSection(
         item(key = "favorites-empty") {
             Text(
                 text = "點「編輯」後按 ＋，即可把服務加入常用",
-                modifier = Modifier.padding(horizontal = 16.dp),
+                modifier = Modifier.padding(horizontal = MpcSpacing.space4),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -272,7 +273,7 @@ private fun PortalSectionHeader(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 48.dp)
-            .padding(start = 16.dp, top = 16.dp),
+            .padding(start = MpcSpacing.space4, top = MpcSpacing.space4),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
