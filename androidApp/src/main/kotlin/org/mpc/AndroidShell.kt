@@ -1,5 +1,6 @@
 package org.mpc
 
+import android.content.Intent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -46,6 +47,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -213,6 +215,7 @@ private fun AndroidPrimaryNavigation(
                     onSelectedCoursesChange = { courses -> selectedCourses = courses },
                     isShowingSelectedCourses = isShowingSelectedCourses,
                     onDismissSelectedCourses = { isShowingSelectedCourses = false },
+                    onOpenWebPage = { url -> navigator.navigate(PortalWebRoute(title = "官方課程頁面", url = url)) },
                 )
             }
         }
@@ -361,9 +364,44 @@ private fun AndroidPrimaryTopBar(
                         contentDescription = "設定",
                     )
                 }
+            } else {
+                WebPageMenu(url = state.currentPortalWebRoute.url)
             }
         },
     )
+}
+
+/** Shares or opens the page the browser was opened with; later pages can carry one-time sign-in URLs. */
+@Composable
+private fun WebPageMenu(url: String) {
+    val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
+    var isShowingMenu by remember { mutableStateOf(false) }
+    Box {
+        IconButton(onClick = { isShowingMenu = true }) {
+            Icon(Icons.Default.MoreVert, contentDescription = "更多選項")
+        }
+        DropdownMenu(
+            expanded = isShowingMenu,
+            onDismissRequest = { isShowingMenu = false },
+        ) {
+            DropdownMenuItem(
+                text = { Text("分享") },
+                onClick = {
+                    isShowingMenu = false
+                    val send = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, url)
+                    context.startActivity(Intent.createChooser(send, null))
+                },
+            )
+            DropdownMenuItem(
+                text = { Text("在瀏覽器中開啟") },
+                onClick = {
+                    isShowingMenu = false
+                    uriHandler.openUri(url)
+                },
+            )
+        }
+    }
 }
 
 private data class CoursePlanTopBarActions(

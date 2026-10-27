@@ -13,9 +13,7 @@ struct PortalView: View {
             .ignoresSafeArea(.container, edges: .bottom)
             .navigationTitle("Portal")
             .navigationDestination(item: $webDestination) { destination in
-                PortalWebComposeView(sharedHost: sharedHost, destination: destination)
-                    .navigationTitle(destination.title)
-                    .navigationBarTitleDisplayMode(.inline)
+                WebPageView(sharedHost: sharedHost, title: destination.title, url: destination.url)
             }
             .toolbar {
                 if webDestination == nil {
@@ -39,18 +37,6 @@ private struct PortalComposeView: UIViewControllerRepresentable {
 
     func makeUIViewController(context: Context) -> some UIViewController {
         sharedHost.portalScreenController(onOpenDestination: onOpenDestination)
-    }
-
-    func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) {
-    }
-}
-
-private struct PortalWebComposeView: UIViewControllerRepresentable {
-    let sharedHost: IosSharedHost
-    let destination: PortalDestination
-
-    func makeUIViewController(context: Context) -> some UIViewController {
-        sharedHost.portalWebScreenController(url: destination.url)
     }
 
     func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) {

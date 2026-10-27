@@ -28,6 +28,7 @@ fun CourseDetailsContent(
     serialNumber: String,
     courseRepository: CourseRepository,
     onClose: () -> Unit,
+    onOpenWebPage: (String) -> Unit,
     modifier: Modifier = Modifier,
     initialSummary: CourseSummary? = null,
     planViewModel: CoursePlanViewModel = metroViewModel(),
@@ -72,6 +73,7 @@ fun CourseDetailsContent(
             },
             onRetry = onRetry,
             onClose = onClose,
+            onOpenOfficialPage = onOpenWebPage,
         ),
         modifier =
         modifier

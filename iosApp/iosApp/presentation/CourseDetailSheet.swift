@@ -59,8 +59,10 @@ struct CourseDetailSheet: View {
                 if let url = URL(string: selection.course.detailUrl),
                    ["https", "http"].contains(url.scheme?.lowercased() ?? "") {
                     Section {
-                        Link(destination: url) {
-                            Label("查看官方課程頁面", systemImage: "arrow.up.right.square")
+                        NavigationLink {
+                            WebPageView(sharedHost: sharedHost, title: "官方課程頁面", url: url.absoluteString)
+                        } label: {
+                            Label("查看官方課程頁面", systemImage: "globe")
                         }
                     }
                 }

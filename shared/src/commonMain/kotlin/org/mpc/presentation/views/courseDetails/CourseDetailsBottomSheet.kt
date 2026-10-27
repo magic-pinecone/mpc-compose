@@ -24,6 +24,7 @@ fun CourseDetailsBottomSheet(
     selection: CourseDetailsSelection,
     courseRepository: CourseRepository,
     onDismissRequest: () -> Unit,
+    onOpenWebPage: (String) -> Unit,
     planViewModel: CoursePlanViewModel,
 ) {
     // Course details include a persistent action footer, so don't hide it in the
@@ -39,6 +40,7 @@ fun CourseDetailsBottomSheet(
             serialNumber = selection.serialNumber,
             courseRepository = courseRepository,
             onClose = onDismissRequest,
+            onOpenWebPage = onOpenWebPage,
             modifier = Modifier.fillMaxWidth(),
             initialSummary = selection.course,
             planViewModel = planViewModel,

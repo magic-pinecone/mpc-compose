@@ -107,6 +107,7 @@ internal fun ComposePreviewScenarioContent(scenario: ComposePreviewScenario) {
                 onToggleCourse = {},
                 onRetry = {},
                 onClose = {},
+                onOpenOfficialPage = {},
             ),
             modifier = Modifier.fillMaxSize(),
         )
