@@ -9,6 +9,7 @@ androidx-core = "1.19.0"
 androidx-espresso = "3.7.0"
 androidx-lifecycle = "2.11.0"
 androidx-testExt = "1.3.0"
+androidx-testRunner = "1.7.0"
 androidx-dataStore = "1.2.1"
 kotlinx-coroutines = "1.11.0"
 kotlix-serialization = "1.11.0"
@@ -26,6 +27,7 @@ ktor = "3.5.1"
 kermit = "2.1.0"
 datastoreCore = "1.2.1"
 room = "2.8.4"
+jsoup = "1.23.2"
 sqlite = "2.7.0"
 
 ksp = "2.3.10"
@@ -42,6 +44,7 @@ kotlin-testJunit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.
 junit = { module = "junit:junit", version.ref = "junit" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
 androidx-testExt-junit = { module = "androidx.test.ext:junit", version.ref = "androidx-testExt" }
+androidx-testRunner = { module = "androidx.test:runner", version.ref = "androidx-testRunner" }
 androidx-espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "androidx-espresso" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
@@ -78,6 +81,7 @@ ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "kto
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
 ktor-client-content-negotiation =  { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor"}
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor"}
+ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 
@@ -85,6 +89,7 @@ metrox-viewmodel-compose = { module = "dev.zacsweers.metro:metrox-viewmodel-comp
 androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "navigation3" }
 androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "navigation3" }
 androidx-lifecycle-viewmodel-navigation3 = { module = "androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "androidx-lifecycle" }
+jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 kermit = { module = "co.touchlab:kermit", version.ref = "kermit"}
 androidx-datastore-core = { group = "androidx.datastore", name = "datastore-core", version.ref = "datastoreCore" }
 

@@ -1,10 +1,8 @@
 package org.mpc.data.portal
 
 import de.infix.testBalloon.framework.core.testSuite
-import org.mpc.domain.model.PortalLaunchMode
 import org.mpc.domain.model.PortalShortcutDestination
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 val portalShortcutCatalogTests by testSuite {
     test("portal paths normalize to the trusted portal host") {
@@ -13,7 +11,6 @@ val portalShortcutCatalogTests by testSuite {
             actual = PortalShortcutDestination(
                 title = "NCU Mail",
                 url = org.mpc.domain.model.portalUrl("system/129"),
-                launchMode = PortalLaunchMode.IN_APP,
             ).url,
         )
     }
@@ -35,13 +32,21 @@ val portalShortcutCatalogTests by testSuite {
         )
     }
 
-    test("direct services remain external destinations") {
+    test("ee-class opens through the official Portal handoff") {
         val item = defaultPortalShortcutSections
             .first()
             .items
             .first { it.label == "新ee-class" }
 
-        assertTrue(item.destination.launchMode == PortalLaunchMode.EXTERNAL)
-        assertEquals("https://ncueeclass.ncu.edu.tw/", item.destination.url)
+        assertEquals("https://portal.ncu.edu.tw/system/ncueeclass", item.destination.url)
+    }
+
+    test("the course selection system opens directly in the app browser") {
+        val item = defaultPortalShortcutSections
+            .first()
+            .items
+            .first { it.label == "選課系統" }
+
+        assertEquals("https://cis.ncu.edu.tw/Course/", item.destination.url)
     }
 }

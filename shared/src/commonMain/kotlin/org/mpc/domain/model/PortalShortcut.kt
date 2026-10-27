@@ -3,11 +3,6 @@ package org.mpc.domain.model
 const val PORTAL_HOST = "portal.ncu.edu.tw"
 const val PORTAL_HOME_URL = "https://portal.ncu.edu.tw/"
 
-enum class PortalLaunchMode {
-    IN_APP,
-    EXTERNAL,
-}
-
 enum class PortalShortcutIcon {
     ACCOUNT_BALANCE,
     APPS,
@@ -33,7 +28,6 @@ enum class PortalShortcutIcon {
 data class PortalShortcutDestination(
     val title: String,
     val url: String,
-    val launchMode: PortalLaunchMode,
 )
 
 data class PortalShortcutItem(

@@ -28,7 +28,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
@@ -49,7 +48,6 @@ fun CourseDetailsView(
     actions: CourseDetailsActions,
     modifier: Modifier = Modifier,
 ) {
-    val uriHandler = LocalUriHandler.current
     Column(
         modifier =
         modifier
@@ -111,7 +109,7 @@ fun CourseDetailsView(
                 if (summary.detailUrl.isNotBlank()) {
                     item(key = "official-course-page") {
                         SheetSection {
-                            TextButton(onClick = { uriHandler.openUri(summary.detailUrl) }) {
+                            TextButton(onClick = { actions.onOpenOfficialPage(summary.detailUrl) }) {
                                 Text("查看官方課程頁面")
                             }
                         }
@@ -370,4 +368,5 @@ data class CourseDetailsActions(
     val onToggleCourse: () -> Unit,
     val onRetry: () -> Unit,
     val onClose: () -> Unit,
+    val onOpenOfficialPage: (String) -> Unit,
 )

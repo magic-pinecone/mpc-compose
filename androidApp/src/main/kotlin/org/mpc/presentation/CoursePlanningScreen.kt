@@ -62,6 +62,7 @@ fun CoursePlanningScreen(
     onSelectedCoursesChange: (List<CourseSummary>) -> Unit = {},
     isShowingSelectedCourses: Boolean = false,
     onDismissSelectedCourses: () -> Unit = {},
+    onOpenWebPage: (String) -> Unit = {},
     isCompactCatalog: Boolean = false,
     planViewModel: CoursePlanViewModel = metroViewModel(),
 ) {
@@ -175,6 +176,10 @@ fun CoursePlanningScreen(
             selection = selection,
             courseRepository = courseRepository,
             onDismissRequest = { selectedCourseDetails = null },
+            onOpenWebPage = { url ->
+                selectedCourseDetails = null
+                onOpenWebPage(url)
+            },
             planViewModel = planViewModel,
         )
     }

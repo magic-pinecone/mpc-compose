@@ -75,6 +75,9 @@ kotlin {
         withHostTest {
             isIncludeAndroidResources = true
         }
+        withDeviceTest {
+            instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        }
     }
 
     sourceSets {
@@ -82,6 +85,7 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.ktor.client.okhttp)
             implementation(libs.kotlinx.coroutines.android)
+            implementation(libs.jsoup)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
@@ -112,10 +116,17 @@ kotlin {
             implementation(libs.metrox.viewmodel.compose)
             implementation(libs.kermit)
         }
+        getByName("androidDeviceTest").dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.testBalloon.frameworkCore)
+            implementation(libs.androidx.testRunner)
+        }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)
             implementation(libs.testBalloon.frameworkCore)
+            implementation(libs.ktor.client.mock)
         }
     }
 

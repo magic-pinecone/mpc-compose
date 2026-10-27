@@ -1,5 +1,6 @@
 package org.mpc
 
+import android.content.Intent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -65,7 +66,6 @@ import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_MEDIUM_LOW
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import org.mpc.di.AppGraph
 import org.mpc.domain.model.CourseSummary
-import org.mpc.domain.model.PortalLaunchMode
 import org.mpc.domain.repository.CourseRepository
 import org.mpc.navigation.AndroidNavigator
 import org.mpc.navigation.AppRoot
@@ -159,7 +159,6 @@ private fun AndroidPrimaryNavigation(
 ) {
     val navigationState = rememberAndroidNavigationState()
     val navigator = remember(navigationState) { AndroidNavigator(navigationState) }
-    val uriHandler = LocalUriHandler.current
     val planViewModel: CoursePlanViewModel = metroViewModel()
     val planUiState by planViewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -191,18 +190,12 @@ private fun AndroidPrimaryNavigation(
                 PortalScreen(
                     modifier = Modifier.fillMaxSize(),
                     onOpenDestination = { destination ->
-                        when (destination.launchMode) {
-                            PortalLaunchMode.IN_APP -> {
-                                navigator.navigate(
-                                    PortalWebRoute(
-                                        title = destination.title,
-                                        url = destination.url,
-                                    ),
-                                )
-                            }
-
-                            PortalLaunchMode.EXTERNAL -> uriHandler.openUri(destination.url)
-                        }
+                        navigator.navigate(
+                            PortalWebRoute(
+                                title = destination.title,
+                                url = destination.url,
+                            ),
+                        )
                     },
                 )
             }
@@ -222,6 +215,7 @@ private fun AndroidPrimaryNavigation(
                     onSelectedCoursesChange = { courses -> selectedCourses = courses },
                     isShowingSelectedCourses = isShowingSelectedCourses,
                     onDismissSelectedCourses = { isShowingSelectedCourses = false },
+                    onOpenWebPage = { url -> navigator.navigate(PortalWebRoute(title = "官方課程頁面", url = url)) },
                 )
             }
         }
@@ -370,9 +364,44 @@ private fun AndroidPrimaryTopBar(
                         contentDescription = "設定",
                     )
                 }
+            } else {
+                WebPageMenu(url = state.currentPortalWebRoute.url)
             }
         },
     )
+}
+
+/** Shares or opens the page the browser was opened with; later pages can carry one-time sign-in URLs. */
+@Composable
+private fun WebPageMenu(url: String) {
+    val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
+    var isShowingMenu by remember { mutableStateOf(false) }
+    Box {
+        IconButton(onClick = { isShowingMenu = true }) {
+            Icon(Icons.Default.MoreVert, contentDescription = "更多選項")
+        }
+        DropdownMenu(
+            expanded = isShowingMenu,
+            onDismissRequest = { isShowingMenu = false },
+        ) {
+            DropdownMenuItem(
+                text = { Text("分享") },
+                onClick = {
+                    isShowingMenu = false
+                    val send = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, url)
+                    context.startActivity(Intent.createChooser(send, null))
+                },
+            )
+            DropdownMenuItem(
+                text = { Text("在瀏覽器中開啟") },
+                onClick = {
+                    isShowingMenu = false
+                    uriHandler.openUri(url)
+                },
+            )
+        }
+    }
 }
 
 private data class CoursePlanTopBarActions(

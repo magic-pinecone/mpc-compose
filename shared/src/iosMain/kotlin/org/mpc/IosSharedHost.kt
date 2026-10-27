@@ -25,6 +25,7 @@ import org.mpc.core.createDatabase
 import org.mpc.core.createDatabaseBuilder
 import org.mpc.di.AppGraph
 import org.mpc.di.createAppGraph
+import org.mpc.domain.html.HtmlParser
 import org.mpc.domain.model.AppSettings
 import org.mpc.domain.model.AppThemeMode
 import org.mpc.domain.model.CourseDetail
@@ -141,12 +142,12 @@ class IosSharedHost internal constructor(
     }
 }
 
-fun createIosSharedHost(): IosSharedHost {
+fun createIosSharedHost(htmlParser: HtmlParser): IosSharedHost {
     val storage = createDataStore()
     val dataStore = createDataStore(storage)
     val database =
         createDatabase(
             createDatabaseBuilder(),
         )
-    return IosSharedHost(createAppGraph(dataStore, database))
+    return IosSharedHost(createAppGraph(dataStore, database, htmlParser))
 }
