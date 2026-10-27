@@ -19,6 +19,8 @@ struct CoursePlanningView: View {
     @State private var courseDetailSelection: CourseDetailSelection?
     @AppStorage("courseCatalogCompactMode") private var isCompactCatalog = false
     @State private var catalogQuery = ""
+    @State private var isSearchPresented = false
+    @State private var sectionBeforeSearch: Section?
     @State private var catalogBridge = CourseSearchBridge()
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.layoutDirection) private var layoutDirection
@@ -42,8 +44,51 @@ struct CoursePlanningView: View {
                 division: geometry.coursePlanningDivision
             )
 
-            VStack(spacing: isWide ? 0 : 12) {
-                if !isWide {
+            // Retain both hosts while their frames adapt to the available regions.
+            layout {
+                CourseCatalogView(
+                    sharedHost: sharedHost,
+                    planBridge: planBridge,
+                    selectedCourses: selectedCourses,
+                    canEditPlan: canEditPlan,
+                    isCompact: isCompactCatalog,
+                    semester: semester,
+                    query: $catalogQuery,
+                    bridge: catalogBridge
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .offset(x: isWide ? 0 : pageOffset(for: .catalog, width: geometry.size.width))
+                .disabled(!isWide && activeSection != .catalog)
+                .allowsHitTesting(isWide || activeSection == .catalog)
+                .accessibilityHidden(!isWide && activeSection != .catalog)
+
+                Color(uiColor: .separator)
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
+
+                CoursePlanningTimetableView(
+                    sharedHost: sharedHost,
+                    planBridge: planBridge
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .offset(x: isWide ? 0 : pageOffset(for: .timetable, width: geometry.size.width))
+                .allowsHitTesting(isWide || activeSection == .timetable)
+                .accessibilityHidden(!isWide && activeSection != .timetable)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .contentShape(Rectangle())
+            .gesture(
+                sectionSwipe,
+                including: !isWide && activeSection == .catalog ? .all : .subviews
+            )
+            .simultaneousGesture(
+                sectionSwipe,
+                including: !isWide && activeSection == .timetable ? .all : .subviews
+            )
+            .animation(reduceMotion ? nil : .snappy, value: activeSection)
+            .animation(reduceMotion ? nil : .snappy, value: swipeTranslation)
+            .coursePlanningTopBar {
+                if !isWide && !isSearchPresented {
                     Picker("選課檢視", selection: $activeSection) {
                         Text("搜尋").tag(Section.catalog)
                         Text("課表").tag(Section.timetable)
@@ -51,57 +96,34 @@ struct CoursePlanningView: View {
                     .pickerStyle(.segmented)
                     .accessibilityIdentifier("course-planning-section")
                     .padding(.horizontal)
-                    .padding(.top, 8)
+                    .padding(.vertical, 8)
                 }
-
-                // Retain both hosts while their frames adapt to the available regions.
-                layout {
-                    CourseCatalogView(
-                        sharedHost: sharedHost,
-                        planBridge: planBridge,
-                        selectedCourses: selectedCourses,
-                        canEditPlan: canEditPlan,
-                        isCompact: isCompactCatalog,
-                        semester: semester,
-                        query: $catalogQuery,
-                        bridge: catalogBridge
-                    )
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .clipped()
-                    .offset(x: isWide ? 0 : pageOffset(for: .catalog, width: geometry.size.width))
-                    .disabled(!isWide && activeSection != .catalog)
-                    .allowsHitTesting(isWide || activeSection == .catalog)
-                    .accessibilityHidden(!isWide && activeSection != .catalog)
-
-                    Color(uiColor: .separator)
-                        .allowsHitTesting(false)
-                        .accessibilityHidden(true)
-
-                    CoursePlanningTimetableView(
-                        sharedHost: sharedHost,
-                        planBridge: planBridge
-                    )
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .clipped()
-                    .offset(x: isWide ? 0 : pageOffset(for: .timetable, width: geometry.size.width))
-                    .allowsHitTesting(isWide || activeSection == .timetable)
-                    .accessibilityHidden(!isWide && activeSection != .timetable)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .clipped()
-                .contentShape(Rectangle())
-                .gesture(
-                    sectionSwipe,
-                    including: !isWide && activeSection == .catalog ? .all : .subviews
-                )
-                .simultaneousGesture(
-                    sectionSwipe,
-                    including: !isWide && activeSection == .timetable ? .all : .subviews
-                )
-                .animation(reduceMotion ? nil : .snappy, value: activeSection)
-                .animation(reduceMotion ? nil : .snappy, value: swipeTranslation)
             }
+            .searchable(
+                text: $catalogQuery,
+                isPresented: $isSearchPresented,
+                placement: .navigationBarDrawer(displayMode: .always),
+                prompt: "搜尋課程名稱"
+            )
+            .onSubmit(of: .search) {
+                catalogBridge.submitSearch(
+                    request: CourseSearchRequest(semester: semester, query: catalogQuery)
+                )
+            }
+            // Searching takes over the catalog page, then returns to the page it started from.
+            .onChange(of: isSearchPresented) { _, isPresented in
+                if isPresented {
+                    sectionBeforeSearch = activeSection
+                    activeSection = .catalog
+                } else if let section = sectionBeforeSearch {
+                    activeSection = section
+                    sectionBeforeSearch = nil
+                }
+            }
+            .background(Color(uiColor: .systemGroupedBackground).ignoresSafeArea())
             .navigationTitle(isWide ? "選課" : (activeSection == .catalog ? "課程搜尋" : "我的課表"))
+            // The panes scroll independently, so a large title has no single scroll view to collapse with.
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("儲存", systemImage: "square.and.arrow.down") {
@@ -193,6 +215,7 @@ struct CoursePlanningView: View {
         DragGesture(minimumDistance: 30)
             .updating($swipeTranslation) { value, translation, transaction in
                 transaction.animation = nil
+                guard !isSearchPresented else { return }
                 let horizontal = value.translation.width
                 guard abs(horizontal) > abs(value.translation.height) * 1.5 else { return }
                 let logicalTranslation = layoutDirection == .rightToLeft ? -horizontal : horizontal
@@ -202,6 +225,7 @@ struct CoursePlanningView: View {
                 translation = horizontal
             }
             .onEnded { value in
+                guard !isSearchPresented else { return }
                 let horizontal = value.translation.width
                 guard abs(horizontal) >= 60,
                       abs(horizontal) > abs(value.translation.height) * 1.5 else { return }
@@ -211,61 +235,16 @@ struct CoursePlanningView: View {
     }
 }
 
-struct CoursePlanningSearchField: UIViewRepresentable {
-    @Binding var query: String
-    let onSubmit: (String) -> Void
-
-    func makeUIView(context: Context) -> UISearchBar {
-        let searchBar = UISearchBar()
-        searchBar.searchBarStyle = .minimal
-        searchBar.placeholder = "搜尋課程名稱"
-        searchBar.returnKeyType = .search
-        searchBar.searchTextField.accessibilityIdentifier = "course-catalog-search"
-        searchBar.delegate = context.coordinator
-        return searchBar
-    }
-
-    func updateUIView(_ searchBar: UISearchBar, context: Context) {
-        context.coordinator.parent = self
-        searchBar.isUserInteractionEnabled = context.environment.isEnabled
-        if !context.environment.isEnabled, searchBar.isFirstResponder {
-            searchBar.resignFirstResponder()
-        }
-        if searchBar.text != query {
-            searchBar.text = query
-        }
-    }
-
-    func sizeThatFits(
-        _ proposal: ProposedViewSize, uiView: UISearchBar, context: Context
-    ) -> CGSize? {
-        guard let width = proposal.width, width.isFinite else { return nil }
-        let size = uiView.sizeThatFits(
-            CGSize(width: width, height: .greatestFiniteMagnitude)
-        )
-        return CGSize(width: width, height: size.height)
-    }
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator(parent: self)
-    }
-
-    final class Coordinator: NSObject, UISearchBarDelegate {
-        var parent: CoursePlanningSearchField
-
-        init(parent: CoursePlanningSearchField) {
-            self.parent = parent
-        }
-
-        func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-            parent.query = searchText
-        }
-
-        func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-            let submittedQuery = searchBar.text ?? ""
-            parent.query = submittedQuery
-            searchBar.resignFirstResponder()
-            parent.onSubmit(submittedQuery)
+private extension View {
+    // Let both pages scroll beneath the section picker so it shares the navigation bar's edge effect.
+    @ViewBuilder
+    func coursePlanningTopBar(@ViewBuilder content: () -> some View) -> some View {
+        if #available(iOS 26.0, *) {
+            safeAreaBar(edge: .top, spacing: 0, content: content)
+        } else {
+            safeAreaInset(edge: .top, spacing: 0) {
+                content().background(Color(uiColor: .systemGroupedBackground))
+            }
         }
     }
 }
