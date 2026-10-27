@@ -1,7 +1,6 @@
 package org.mpc.data.portal
 
 import org.mpc.domain.model.PORTAL_HOME_URL
-import org.mpc.domain.model.PortalLaunchMode
 import org.mpc.domain.model.PortalShortcutDestination
 import org.mpc.domain.model.PortalShortcutIcon
 import org.mpc.domain.model.PortalShortcutItem
@@ -13,7 +12,7 @@ val defaultPortalShortcutSections: List<PortalShortcutSection> = listOf(
         title = "常用服務",
         items = listOf(
             portalShortcut("新ee-class", PortalShortcutIcon.BOOK, "/system/ncueeclass"),
-            externalShortcut("選課系統", PortalShortcutIcon.EVENT, "https://cis.ncu.edu.tw/Course/"),
+            shortcut("選課系統", PortalShortcutIcon.EVENT, "https://cis.ncu.edu.tw/Course/"),
             portalShortcut("服務櫃台", PortalShortcutIcon.SUPPORT_AGENT, "/system/incu"),
             portalShortcut("NCU Mail", PortalShortcutIcon.MAIL, "/system/129"),
             portalShortcut("成績查詢", PortalShortcutIcon.GRADE, "/system/incu-studentscore"),
@@ -26,7 +25,7 @@ val defaultPortalShortcutSections: List<PortalShortcutSection> = listOf(
         title = "課務相關",
         items = listOf(
             portalShortcut("新ee-class", PortalShortcutIcon.BOOK, "/system/ncueeclass"),
-            externalShortcut("選課系統", PortalShortcutIcon.EVENT, "https://cis.ncu.edu.tw/Course/"),
+            shortcut("選課系統", PortalShortcutIcon.EVENT, "https://cis.ncu.edu.tw/Course/"),
             portalShortcut("成績查詢", PortalShortcutIcon.GRADE, "/system/incu-studentscore"),
             portalShortcut("期中預警查詢", PortalShortcutIcon.WARNING, "/system/incu-ewarningstudent"),
         ),
@@ -87,33 +86,20 @@ fun filterPortalShortcutSections(
 fun portalLoginDestination(url: String = PORTAL_HOME_URL): PortalShortcutDestination = PortalShortcutDestination(
     title = "Portal 登入",
     url = url,
-    launchMode = PortalLaunchMode.IN_APP,
 )
 
 private fun portalShortcut(
     label: String,
     icon: PortalShortcutIcon,
     path: String,
-): PortalShortcutItem = PortalShortcutItem(
-    label = label,
-    icon = icon,
-    destination = PortalShortcutDestination(
-        title = label,
-        url = portalUrl(path),
-        launchMode = PortalLaunchMode.IN_APP,
-    ),
-)
+): PortalShortcutItem = shortcut(label, icon, portalUrl(path))
 
-private fun externalShortcut(
+private fun shortcut(
     label: String,
     icon: PortalShortcutIcon,
     url: String,
 ): PortalShortcutItem = PortalShortcutItem(
     label = label,
     icon = icon,
-    destination = PortalShortcutDestination(
-        title = label,
-        url = url,
-        launchMode = PortalLaunchMode.EXTERNAL,
-    ),
+    destination = PortalShortcutDestination(title = label, url = url),
 )

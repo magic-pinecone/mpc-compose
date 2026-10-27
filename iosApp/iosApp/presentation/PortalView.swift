@@ -5,16 +5,10 @@ struct PortalView: View {
     let sharedHost: IosSharedHost
     let onOpenSettings: () -> Void
     @State private var webDestination: PortalDestination?
-    @Environment(\.openURL) private var openURL
 
     var body: some View {
         PortalComposeView(sharedHost: sharedHost) { destination in
-            if destination.launchMode == PortalLaunchMode.external {
-                guard let url = URL(string: destination.url) else { return }
-                openURL(url)
-            } else {
-                webDestination = PortalDestination(title: destination.title, url: destination.url)
-            }
+            webDestination = PortalDestination(title: destination.title, url: destination.url)
         }
             .ignoresSafeArea(.container, edges: .bottom)
             .navigationTitle("Portal")
