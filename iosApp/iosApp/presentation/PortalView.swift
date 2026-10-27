@@ -107,7 +107,7 @@ struct PortalView: View {
             Label {
                 Text(item.label)
             } icon: {
-                PortalShortcutIconView(icon: item.icon)
+                PortalShortcutIconView(icon: item.icon, tint: item.tint)
             }
         }
         .contextMenu { favoriteButton(item, isFavorite: isFavorite) }
@@ -218,13 +218,14 @@ private struct PortalAccountRow: View {
 
 private struct PortalShortcutIconView: View {
     let icon: PortalShortcutIcon
+    let tint: PortalShortcutTint
 
     var body: some View {
         Image(systemName: icon.systemImage)
             .font(.system(size: 15, weight: .semibold))
             .foregroundStyle(.white)
             .frame(width: 30, height: 30)
-            .background(Color.accentColor.gradient, in: .rect(cornerRadius: 7, style: .continuous))
+            .background(tint.color.gradient, in: .rect(cornerRadius: 7, style: .continuous))
             .accessibilityHidden(true)
     }
 }
@@ -235,6 +236,18 @@ private extension PortalAccountAction {
         case .signIn: "登入"
         case .signOut: "登出"
         case .retry: "重試"
+        }
+    }
+}
+
+private extension PortalShortcutTint {
+    var color: Color {
+        switch self {
+        case .blue: .blue
+        case .green: .green
+        case .orange: .orange
+        case .purple: .purple
+        case .teal: .teal
         }
     }
 }

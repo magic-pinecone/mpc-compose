@@ -61,6 +61,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -72,6 +73,7 @@ import org.mpc.domain.model.PortalShortcutDestination
 import org.mpc.domain.model.PortalShortcutIcon
 import org.mpc.domain.model.PortalShortcutItem
 import org.mpc.domain.model.PortalShortcutSection
+import org.mpc.presentation.theme.platformTimetablePalette
 import org.mpc.presentation.viewModel.PortalViewModel
 
 @Composable
@@ -293,7 +295,7 @@ private fun PortalShortcutRow(
 ) {
     ListItem(
         headlineContent = { Text(item.label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-        leadingContent = { PortalShortcutBadge(item.icon) },
+        leadingContent = { PortalShortcutBadge(item) },
         trailingContent = trailingContent,
         colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
         modifier = Modifier
@@ -304,22 +306,30 @@ private fun PortalShortcutRow(
     )
 }
 
+/** The icon on its category color, taken from the palette the timetable uses so the app shares one set of hues. */
 @Composable
-private fun PortalShortcutBadge(icon: PortalShortcutIcon) {
+private fun PortalShortcutBadge(item: PortalShortcutItem) {
+    val palette = platformTimetablePalette(
+        MaterialTheme.colorScheme.background.luminance() < DARK_SURFACE_LUMINANCE_THRESHOLD,
+    )
+    // The palette lists BLUE, GREEN, ORANGE, PURPLE, TEAL first, matching the tint order.
+    val colors = palette[item.tint.ordinal % palette.size]
     Box(
         modifier = Modifier
             .size(40.dp)
-            .background(MaterialTheme.colorScheme.secondaryContainer, CircleShape),
+            .background(colors.container, CircleShape),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            imageVector = icon.toImageVector(),
+            imageVector = item.icon.toImageVector(),
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+            tint = colors.content,
             modifier = Modifier.size(22.dp),
         )
     }
 }
+
+private const val DARK_SURFACE_LUMINANCE_THRESHOLD = 0.5f
 
 @Composable
 private fun FavoriteEditControls(

@@ -5,12 +5,14 @@ import org.mpc.domain.model.PortalShortcutDestination
 import org.mpc.domain.model.PortalShortcutIcon
 import org.mpc.domain.model.PortalShortcutItem
 import org.mpc.domain.model.PortalShortcutSection
+import org.mpc.domain.model.PortalShortcutTint
 import org.mpc.domain.model.portalUrl
 
 /** Every Portal service the app lists, each once, grouped by what it is for. */
 val defaultPortalShortcutSections: List<PortalShortcutSection> = listOf(
-    PortalShortcutSection(
+    section(
         title = "課務",
+        tint = PortalShortcutTint.BLUE,
         items = listOf(
             portalShortcut("新 ee-class", PortalShortcutIcon.BOOK, "/system/ncueeclass"),
             shortcut("選課系統", PortalShortcutIcon.EVENT, "https://cis.ncu.edu.tw/Course/"),
@@ -18,16 +20,18 @@ val defaultPortalShortcutSections: List<PortalShortcutSection> = listOf(
             portalShortcut("期中預警查詢", PortalShortcutIcon.WARNING, "/system/incu-ewarningstudent"),
         ),
     ),
-    PortalShortcutSection(
+    section(
         title = "學籍",
+        tint = PortalShortcutTint.PURPLE,
         items = listOf(
             portalShortcut("學籍系統", PortalShortcutIcon.ACCOUNT_BALANCE, "/system/incu-registrationflow"),
             portalShortcut("畢業資格審查", PortalShortcutIcon.SCHOOL, "/system/incu-graduate-2"),
             portalShortcut("學生證掛失", PortalShortcutIcon.CREDIT_CARD_OFF, "/system/32"),
         ),
     ),
-    PortalShortcutSection(
+    section(
         title = "學費與補助",
+        tint = PortalShortcutTint.GREEN,
         items = listOf(
             portalShortcut("學費繳費單", PortalShortcutIcon.REQUEST_QUOTE, "/system/82"),
             portalShortcut("學費繳費證明", PortalShortcutIcon.REQUEST_QUOTE, "/system/tuition"),
@@ -36,8 +40,9 @@ val defaultPortalShortcutSections: List<PortalShortcutSection> = listOf(
             portalShortcut("撥帳系統", PortalShortcutIcon.ACCOUNT_BALANCE, "/system/46"),
         ),
     ),
-    PortalShortcutSection(
+    section(
         title = "校園服務",
+        tint = PortalShortcutTint.ORANGE,
         items = listOf(
             portalShortcut("服務櫃台", PortalShortcutIcon.SUPPORT_AGENT, "/system/incu"),
             portalShortcut("圖書館服務平台", PortalShortcutIcon.LOCAL_LIBRARY, "/system/library-cloud-services"),
@@ -45,8 +50,9 @@ val defaultPortalShortcutSections: List<PortalShortcutSection> = listOf(
             portalShortcut("人事系統", PortalShortcutIcon.BADGE, "/system/humanoauth"),
         ),
     ),
-    PortalShortcutSection(
+    section(
         title = "網路與帳號",
+        tint = PortalShortcutTint.TEAL,
         items = listOf(
             portalShortcut("NCU Mail", PortalShortcutIcon.MAIL, "/system/129"),
             portalShortcut("宿舍網路", PortalShortcutIcon.WIFI, "/system/dormnet"),
@@ -87,18 +93,29 @@ fun portalLoginDestination(url: String = PORTAL_HOME_URL): PortalShortcutDestina
     url = url,
 )
 
+private typealias TintedShortcut = (PortalShortcutTint) -> PortalShortcutItem
+
+private fun section(
+    title: String,
+    tint: PortalShortcutTint,
+    items: List<TintedShortcut>,
+): PortalShortcutSection = PortalShortcutSection(title = title, items = items.map { it(tint) })
+
 private fun portalShortcut(
     label: String,
     icon: PortalShortcutIcon,
     path: String,
-): PortalShortcutItem = shortcut(label, icon, portalUrl(path))
+): TintedShortcut = shortcut(label, icon, portalUrl(path))
 
 private fun shortcut(
     label: String,
     icon: PortalShortcutIcon,
     url: String,
-): PortalShortcutItem = PortalShortcutItem(
-    label = label,
-    icon = icon,
-    destination = PortalShortcutDestination(title = label, url = url),
-)
+): TintedShortcut = { tint ->
+    PortalShortcutItem(
+        label = label,
+        icon = icon,
+        tint = tint,
+        destination = PortalShortcutDestination(title = label, url = url),
+    )
+}

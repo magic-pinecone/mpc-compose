@@ -50,6 +50,12 @@ val portalShortcutCatalogTests by testSuite {
         assertEquals("https://cis.ncu.edu.tw/Course/", item.destination.url)
     }
 
+    test("each category has its own color, shared by its services") {
+        val tints = defaultPortalShortcutSections.map { section -> section.items.map { it.tint }.distinct().single() }
+
+        assertEquals(tints.distinct(), tints)
+    }
+
     test("the catalog lists each service once and every default favorite") {
         val ids = defaultPortalShortcutSections.flatMap { section -> section.items.map { it.id } }
 
