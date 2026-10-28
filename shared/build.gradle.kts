@@ -95,7 +95,7 @@ kotlin {
         }
         commonMain.dependencies {
             api(libs.calf.ui)
-            implementation(libs.calf.webview)
+            api(libs.calf.webview)
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.materialIconsCore)
