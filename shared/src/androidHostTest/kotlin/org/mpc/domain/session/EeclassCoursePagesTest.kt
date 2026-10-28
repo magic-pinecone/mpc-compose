@@ -49,7 +49,7 @@ val eeclassCoursePagesTests by testSuite {
             """
             <div class="modalBox"><div class="app-bulletin-content"><div>
               <div class="modal-iframe-ext2">人氣: 17, 公告日期 10-28, <a href="/course/40001"><span class="text">雲端平台</span></a>, by 林老師</div>
-              <div class="fs-text-break-word bulletin-content"><div>請盡快<strong>報名</strong></div><ul><li>考試一</li></ul></div>
+              <div class="fs-text-break-word bulletin-content"><div>請盡快<strong>報名</strong>，<a href="/media/doc/123">簡章</a></div><ul><li>考試一</li></ul></div>
               <p></p>
               <div class="fs-list fs-filelist">
                 <a href="/filedownload/5" target="_blank"><span class="fs-iconfont"></span></a>
@@ -64,6 +64,7 @@ val eeclassCoursePagesTests by testSuite {
 
         assertEquals("人氣: 17, 公告日期 10-28, 雲端平台, by 林老師", detail?.info)
         assertEquals(true, detail?.bodyHtml?.contains("<strong>報名</strong>"))
+        assertEquals(true, detail?.bodyHtml?.contains("""href="https://ncueeclass.ncu.edu.tw/media/doc/123""""))
         assertEquals(listOf(EeclassAttachment("報名流程.pdf", SitePath.of("/filedownload/5"))), detail?.attachments)
         assertEquals(null, eeclassBulletinDetail(page("<p>錯誤</p>")))
     }

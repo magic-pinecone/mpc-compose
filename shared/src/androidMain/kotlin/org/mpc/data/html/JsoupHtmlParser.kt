@@ -19,4 +19,8 @@ private class JsoupElement(private val element: Element) : HtmlElement {
     override fun text(): String = element.text()
 
     override fun html(): String = element.html()
+
+    override fun htmlWithAbsoluteLinks(): String = element.clone().apply {
+        select("a[href]").forEach { link -> link.absUrl("href").ifEmpty { null }?.let { link.attr("href", it) } }
+    }.html()
 }

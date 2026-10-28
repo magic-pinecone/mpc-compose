@@ -32,7 +32,11 @@ struct EeclassBulletinSheet: View {
                     }
                 }
                 .navigationDestination(for: EeclassPageLink.self) { link in
-                    WebPageView(sharedHost: sharedHost, title: link.title, url: sharedHost.eeclassPageUrl(path: link.path))
+                    WebPageView(
+                        sharedHost: sharedHost,
+                        title: link.title,
+                        url: sharedHost.eeclassPageUrl(path: link.path)
+                    )
                 }
         }
         .task(id: reloadID) { await load() }
@@ -110,7 +114,7 @@ enum EeclassRichText {
                 data: data,
                 options: [
                     .documentType: NSAttributedString.DocumentType.html,
-                    .characterEncoding: String.Encoding.utf8.rawValue,
+                    .characterEncoding: String.Encoding.utf8.rawValue
                 ],
                 documentAttributes: nil
             )

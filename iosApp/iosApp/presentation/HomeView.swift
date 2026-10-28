@@ -33,7 +33,10 @@ struct HomeView<CourseDestination: View>: View {
                 List {
                     Section("ee-class 課程") {
                         ForEach(courses.courses, id: \.number) { course in
-                            NavigationLink(course.name, value: EeclassCourseLink(number: course.number, name: course.name))
+                            NavigationLink(
+                                course.name,
+                                value: EeclassCourseLink(number: course.number, name: course.name)
+                            )
                         }
                     }
                 }

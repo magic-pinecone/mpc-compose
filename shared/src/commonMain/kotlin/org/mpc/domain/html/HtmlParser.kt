@@ -18,4 +18,7 @@ interface HtmlElement {
 
     /** The element's inner HTML. */
     fun html(): String
+
+    /** The element's inner HTML with every link resolved against the document's base URL. */
+    fun htmlWithAbsoluteLinks(): String
 }

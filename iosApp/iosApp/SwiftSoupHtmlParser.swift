@@ -42,6 +42,16 @@ private final class SwiftSoupElement: NSObject, HtmlElement {
     func html() -> String {
         (try? element.html()) ?? ""
     }
+
+    func htmlWithAbsoluteLinks() -> String {
+        guard let copy = element.copy() as? Element, let links = try? copy.select("a[href]") else { return html() }
+        for link in links.array() {
+            if let resolved = try? link.absUrl("href"), !resolved.isEmpty {
+                _ = try? link.attr("href", resolved)
+            }
+        }
+        return (try? copy.html()) ?? ""
+    }
 }
 
 private final class EmptyHtmlElement: NSObject, HtmlElement {
@@ -50,4 +60,5 @@ private final class EmptyHtmlElement: NSObject, HtmlElement {
     func absUrl(name: String) -> String? { nil }
     func text() -> String { "" }
     func html() -> String { "" }
+    func htmlWithAbsoluteLinks() -> String { "" }
 }

@@ -32,7 +32,7 @@ fun eeclassBulletinDetail(page: HtmlElement): EeclassBulletinDetail? {
     val body = page.select(".bulletin-content").firstOrNull() ?: return null
     return EeclassBulletinDetail(
         info = page.select(".modal-iframe-ext2").firstOrNull()?.text()?.trim().orEmpty(),
-        bodyHtml = body.html(),
+        bodyHtml = body.htmlWithAbsoluteLinks(),
         attachments = page.select(".fs-filelist").flatMap { list ->
             list.select("a[href]").mapNotNull { anchor -> anchor.siteLink(ATTACHMENT_PATH) }
         }.distinctBy { it.path }.map { EeclassAttachment(it.name, it.path) },
