@@ -76,10 +76,10 @@ struct ContentView: View {
     }
 }
 
-private extension View {
+extension View {
     @ViewBuilder
-    func minimizeTabBarOnScrolling() -> some View {
-        if #available(iOS 27.0, *) {
+    fileprivate func minimizeTabBarOnScrolling() -> some View {
+        if #available(iOS 26, *) {
             tabBarMinimizeBehavior(.onScrollDown)
         } else {
             self
