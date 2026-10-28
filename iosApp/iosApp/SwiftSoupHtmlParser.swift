@@ -38,6 +38,10 @@ private final class SwiftSoupElement: NSObject, HtmlElement {
     func text() -> String {
         (try? element.text()) ?? ""
     }
+
+    func html() -> String {
+        (try? element.html()) ?? ""
+    }
 }
 
 private final class EmptyHtmlElement: NSObject, HtmlElement {
@@ -45,4 +49,5 @@ private final class EmptyHtmlElement: NSObject, HtmlElement {
     func attr(name: String) -> String? { nil }
     func absUrl(name: String) -> String? { nil }
     func text() -> String { "" }
+    func html() -> String { "" }
 }

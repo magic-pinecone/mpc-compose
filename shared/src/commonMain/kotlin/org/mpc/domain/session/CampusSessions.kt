@@ -78,6 +78,17 @@ interface CampusSessions {
      */
     suspend fun <T> fetch(site: CampusSite, path: SitePath, parse: (String) -> T): SiteResult<T>
 
+    /**
+     * Loads [path] like [fetch], then loads the link [pick] chooses from its HTML and parses that page. The link must
+     * be https on [site]. It may carry a one-time token, so it is used once inside this call and never returned.
+     */
+    suspend fun <T> fetchFollowing(
+        site: CampusSite,
+        path: SitePath,
+        pick: (String) -> String?,
+        parse: (String) -> T,
+    ): SiteResult<T>
+
     /** Checks [site]'s session without recovering it. */
     suspend fun refresh(site: CampusSite)
 

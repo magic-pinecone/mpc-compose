@@ -17,4 +17,6 @@ private class JsoupElement(private val element: Element) : HtmlElement {
     override fun absUrl(name: String): String? = element.absUrl(name).ifEmpty { null }
 
     override fun text(): String = element.text()
+
+    override fun html(): String = element.html()
 }

@@ -15,4 +15,7 @@ interface HtmlElement {
     fun absUrl(name: String): String?
 
     fun text(): String
+
+    /** The element's inner HTML. */
+    fun html(): String
 }
