@@ -6,7 +6,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.mpc.domain.model.PortalAuthenticationMode
 import org.mpc.domain.session.PortalStatus
-import org.mpc.domain.session.Renewal
 import org.mpc.domain.session.Unavailability
 import kotlin.time.Instant
 
@@ -52,11 +51,4 @@ internal class PortalState(private val guardStore: PortalGuardStore) {
         if (_status.value !is PortalStatus.Blocked) _status.value = PortalStatus.Unavailable(reason)
     }
 
-    suspend fun automaticSignIn(mode: PortalAuthenticationMode, now: Instant): AutomaticSignIn = automaticSignIn(mode, guardStore.read(), now)
-
-    suspend fun renewal(mode: PortalAuthenticationMode, now: Instant): Renewal = when {
-        _status.value == PortalStatus.Live -> Renewal.HANDOFF
-        automaticSignIn(mode, now) == AutomaticSignIn.Allowed -> Renewal.PORTAL_SIGN_IN_UNATTENDED
-        else -> Renewal.PORTAL_SIGN_IN_BY_USER
-    }
-}
+    suspend fun automaticSignIn(mode: PortalAuthenticationMode, now: Instant): AutomaticSignIn = automaticSignIn(mode, guardStore.read(), now)}

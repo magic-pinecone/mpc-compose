@@ -12,7 +12,6 @@ import org.mpc.domain.session.CampusSite
 import org.mpc.domain.session.PortalNeed
 import org.mpc.domain.session.PortalSignIn
 import org.mpc.domain.session.PortalStatus
-import org.mpc.domain.session.Renewal
 import org.mpc.domain.session.SitePath
 import org.mpc.domain.session.SiteResponse
 import org.mpc.domain.session.SiteResult
@@ -128,9 +127,27 @@ val defaultCampusSessionsTests by testSuite {
             val result = sessions.fetch(TEST_SITE, TIMETABLE) { it }
 
             assertEquals(SiteResult.NeedsPortal(PortalNeed.MANUAL_SIGN_IN), result)
+            assertEquals(SiteStatus.SignedOut, sessions.status(TEST_SITE).value)
+        }
+    }
+
+    test("checking and loading a signed-in site leave Portal untouched") {
+        runTest {
+            val guardStore = InMemoryPortalGuardStore(PortalGuard(block = PortalBlock.DISPLACED))
+            val transport = ScriptedTransport(pages = ArrayDeque(listOf(page(SIGNED_IN_DASHBOARD), page(SIGNED_IN_DASHBOARD))))
+            val sessions = sessions(transport, guardStore)
+
+            sessions.refresh(TEST_SITE)
+            assertEquals(SiteResult.Page("dashboard"), sessions.fetch(TEST_SITE, TIMETABLE) { it })
+
+            assertEquals(SiteStatus.SignedIn, sessions.status(TEST_SITE).value)
+            assertEquals(PortalStatus.Unknown, sessions.portal.value)
             assertEquals(
-                SiteStatus.SignedOut(Renewal.PORTAL_SIGN_IN_BY_USER),
-                sessions.status(TEST_SITE).value,
+                listOf(
+                    "get https://ncueeclass.ncu.edu.tw/dashboard",
+                    "get https://ncueeclass.ncu.edu.tw/dashboard/myTimeTable",
+                ),
+                transport.events,
             )
         }
     }
@@ -147,8 +164,14 @@ val defaultCampusSessionsTests by testSuite {
             )
             assertEquals(SiteResult.NeedsPortal(PortalNeed.DISPLACED), first.fetch(TEST_SITE, TIMETABLE) { it })
 
-            val restarted = sessions(ScriptedTransport(pages = ArrayDeque(listOf(page(SIGNED_OUT_REDIRECT)))), guardStore)
-            restarted.refresh(TEST_SITE)
+            val restarted = sessions(
+                ScriptedTransport(
+                    pages = ArrayDeque(listOf(page(SIGNED_OUT_REDIRECT))),
+                    handoffs = ArrayDeque(listOf(HandoffResult.PortalSignedOut)),
+                ),
+                guardStore,
+            )
+            assertEquals(SiteResult.NeedsPortal(PortalNeed.MANUAL_SIGN_IN), restarted.fetch(TEST_SITE, TIMETABLE) { it })
             assertEquals(PortalStatus.Blocked(PortalNeed.DISPLACED), restarted.portal.value)
 
             assertEquals(PortalSignIn.OpenBrowser("https://portal.ncu.edu.tw/login"), restarted.signInToPortal())
@@ -299,7 +322,7 @@ val defaultCampusSessionsTests by testSuite {
 
             assertEquals(SiteResult.Unavailable(Unavailability.UNEXPECTED_RESPONSE), result)
             assertEquals(0, transport.events.count { it.startsWith("handoff") })
-            assertEquals(SiteStatus.SignedOut(Renewal.PORTAL_SIGN_IN_BY_USER), sessions.status(TEST_SITE).value)
+            assertEquals(SiteStatus.SignedOut, sessions.status(TEST_SITE).value)
         }
     }
 }

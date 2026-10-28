@@ -2,7 +2,10 @@ package org.mpc.domain.session
 
 import kotlinx.coroutines.flow.StateFlow
 
-/** Session status of one campus site. Derived from the last check or fetch and never persisted. */
+/**
+ * Session status of one campus site, read from the site's own answers only. Getting a signed-out site back goes
+ * through Portal, whose state is [CampusSessions.portal]. Derived from the last check or fetch and never persisted.
+ */
 sealed interface SiteStatus {
     data object Unknown : SiteStatus
 
@@ -10,21 +13,9 @@ sealed interface SiteStatus {
 
     data object SignedIn : SiteStatus
 
-    data class SignedOut(val renewal: Renewal) : SiteStatus
+    data object SignedOut : SiteStatus
 
     data class Unavailable(val reason: Unavailability) : SiteStatus
-}
-
-/** What getting a signed-out site back costs, so the UI can label its action honestly. */
-enum class Renewal {
-    /** Portal is signed in; the app can hand off again without signing anyone out. */
-    HANDOFF,
-
-    /** The app may sign in to Portal by itself, which ends the user's Portal session in their browser. */
-    PORTAL_SIGN_IN_UNATTENDED,
-
-    /** The user signs in to Portal, which ends their Portal session elsewhere. */
-    PORTAL_SIGN_IN_BY_USER,
 }
 
 /** Portal status. Portal allows one active sign-in per account. */
@@ -89,7 +80,7 @@ interface CampusSessions {
         parse: (String) -> T,
     ): SiteResult<T>
 
-    /** Checks [site]'s session without recovering it. */
+    /** Checks [site]'s session on the site alone: it neither recovers the session nor reads Portal. */
     suspend fun refresh(site: CampusSite)
 
     /** The URL the WebView loads for [path]: the page itself when signed in, otherwise the Portal handoff. */

@@ -22,7 +22,6 @@ import org.mpc.domain.session.PortalNeed
 import org.mpc.domain.session.PortalPage
 import org.mpc.domain.session.PortalSignIn
 import org.mpc.domain.session.PortalStatus
-import org.mpc.domain.session.Renewal
 import org.mpc.domain.session.SitePath
 import org.mpc.domain.session.SiteResult
 import org.mpc.domain.session.SiteStatus
@@ -57,9 +56,9 @@ internal class CampusSessionsProvider {
 }
 
 /**
- * One campus site's session: its lock, status, and page loads. Each site recovers on its own; Portal's status and
- * block in [PortalState] are shared by all of them. The status is written only while holding the lock, except for the
- * WebView's loading signal.
+ * One campus site's session: its lock, status, and page loads. The status comes from the site's own answers; Portal's
+ * status and block in [PortalState] are shared by all sites and touched only when a handoff runs. The status is
+ * written only while holding the lock, except for the WebView's loading signal.
  */
 private class SiteSession(
     val site: CampusSite,
@@ -92,7 +91,6 @@ private class SiteSession(
 
     suspend fun refresh() {
         lock.withLock {
-            portalState.load()
             val previous = status.value
             status.value = SiteStatus.Checking
             try {
@@ -101,7 +99,7 @@ private class SiteSession(
 
                     is TransportResult.Response -> when (site.signals.classify(result.response, parser)) {
                         SiteVerdict.SIGNED_IN -> SiteStatus.SignedIn
-                        SiteVerdict.SIGNED_OUT -> SiteStatus.SignedOut(renewal())
+                        SiteVerdict.SIGNED_OUT -> SiteStatus.SignedOut
                         SiteVerdict.UNRECOGNIZED -> SiteStatus.Unavailable(Unavailability.UNEXPECTED_RESPONSE)
                     }
                 }
@@ -119,17 +117,16 @@ private class SiteSession(
 
     fun browserEntry(path: SitePath): String = if (status.value == SiteStatus.SignedIn) site.url(path) else site.portalEntryUrl
 
-    /** Removes this site's cookies. [comeback] says what getting back in costs; null asks Portal's current state. */
-    suspend fun signOut(comeback: Renewal? = null) {
+    /** Removes this site's cookies. */
+    suspend fun signOut() {
         lock.withLock {
             transport.clearCookies(site.baseUrl)
-            status.value = SiteStatus.SignedOut(comeback ?: renewal())
+            status.value = SiteStatus.SignedOut
         }
     }
 
     /** Loads [path], recovering the session as [CampusSessions.fetch] describes, and records the status. Holds the lock. */
     private suspend fun load(path: SitePath): Loaded {
-        portalState.load()
         var attempt = Attempt(portalState.automaticSignIn(mode(), now()))
         var step: Step = Step.FetchPage
         var html = ""
@@ -137,7 +134,11 @@ private class SiteSession(
             val observation = when (step) {
                 Step.FetchPage -> observePage(transport, parser, site, path).also { html = it.html }.observation
 
-                Step.Handoff -> observeHandoff(transport, portalState, site)
+                Step.Handoff -> {
+                    // Show a persisted block first, so a signed-out handoff does not hide it.
+                    portalState.load()
+                    observeHandoff(transport, portalState, site)
+                }
 
                 // Secure-mode Portal sign-in arrives with the credential vault; until then it needs the user.
                 Step.SignInToPortal -> Observation.PortalSignInStopped(PortalNeed.NO_CREDENTIALS)
@@ -152,7 +153,7 @@ private class SiteSession(
             FetchOutcome.Page -> Loaded.Page(html).also { status.value = SiteStatus.SignedIn }
 
             is FetchOutcome.NeedsPortal -> Loaded.Stopped(SiteResult.NeedsPortal(outcome.need)).also {
-                status.value = SiteStatus.SignedOut(renewal())
+                status.value = SiteStatus.SignedOut
             }
 
             is FetchOutcome.Unavailable -> Loaded.Stopped(SiteResult.Unavailable(outcome.reason)).also {
@@ -167,7 +168,7 @@ private class SiteSession(
 
         is TransportResult.Response -> when {
             site.signals.classify(result.response, parser) == SiteVerdict.SIGNED_OUT -> {
-                status.value = SiteStatus.SignedOut(renewal())
+                status.value = SiteStatus.SignedOut
                 SiteResult.Unavailable(Unavailability.UNEXPECTED_RESPONSE)
             }
 
@@ -176,8 +177,6 @@ private class SiteSession(
             else -> SiteResult.Unavailable(Unavailability.UNEXPECTED_RESPONSE)
         }
     }
-
-    private suspend fun renewal(): Renewal = portalState.renewal(mode(), now())
 
     private suspend fun mode(): PortalAuthenticationMode = settings.settings.first().portalAuthenticationMode
 }
@@ -261,7 +260,7 @@ internal class DefaultCampusSessions(
         // Block first: if the app stops partway, it still cannot sign back in by itself.
         portalState.block(PortalBlock.USER_SIGNED_OUT)
         transport.clearCookies(PORTAL_BASE_URL, keep = setOf(PORTAL_BROWSER_COOKIE))
-        sites.forEach { site -> session(site).signOut(Renewal.PORTAL_SIGN_IN_BY_USER) }
+        sites.forEach { site -> session(site).signOut() }
     }
 
     private fun session(site: CampusSite): SiteSession = requireNotNull(sessions[site.id]) { "Unknown campus site" }
