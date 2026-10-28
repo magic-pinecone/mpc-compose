@@ -66,18 +66,27 @@ import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_MEDIUM_LOW
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import org.mpc.di.AppGraph
 import org.mpc.domain.model.CourseSummary
-import org.mpc.domain.repository.CourseRepository
+import org.mpc.domain.session.CampusSites
+import org.mpc.domain.session.SitePath
 import org.mpc.navigation.AndroidNavigator
 import org.mpc.navigation.AppRoot
 import org.mpc.navigation.CoursePlanningRoot
+import org.mpc.navigation.EeclassBulletinRoute
+import org.mpc.navigation.EeclassCategoryRoute
+import org.mpc.navigation.EeclassCourseRoute
 import org.mpc.navigation.HomeRoot
 import org.mpc.navigation.PortalRoot
 import org.mpc.navigation.PortalWebRoute
 import org.mpc.navigation.SettingsRoute
 import org.mpc.navigation.TopLevelRoute
 import org.mpc.navigation.rememberAndroidNavigationState
+import org.mpc.navigation.scene.BottomSheetSceneStrategy
 import org.mpc.presentation.CoursePlanningScreen
 import org.mpc.presentation.CoursePlanningView
+import org.mpc.presentation.EeclassBulletinScreen
+import org.mpc.presentation.EeclassCategoryScreen
+import org.mpc.presentation.EeclassCourseScreen
+import org.mpc.presentation.EeclassHomeScreen
 import org.mpc.presentation.PortalScreen
 import org.mpc.presentation.PortalWebScreen
 import org.mpc.presentation.SettingsScreen
@@ -110,7 +119,7 @@ private fun AndroidAppContent(appGraph: AppGraph) {
         entryProvider<NavKey> {
             entry<AppRoot> {
                 AndroidPrimaryNavigation(
-                    courseRepository = appGraph.courseRepository,
+                    appGraph = appGraph,
                     onOpenSettings = {
                         if (SettingsRoute !in appBackStack) {
                             appBackStack.add(SettingsRoute)
@@ -154,7 +163,7 @@ private fun AndroidAppContent(appGraph: AppGraph) {
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 private fun AndroidPrimaryNavigation(
-    courseRepository: CourseRepository,
+    appGraph: AppGraph,
     onOpenSettings: () -> Unit,
 ) {
     val navigationState = rememberAndroidNavigationState()
@@ -163,6 +172,7 @@ private fun AndroidPrimaryNavigation(
     val planViewModel: CoursePlanViewModel = metroViewModel()
     val planUiState by planViewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val bottomSheetSceneStrategy = remember { BottomSheetSceneStrategy<NavKey>() }
     val context = LocalContext.current
     val displayPreferences = remember(context) {
         context.getSharedPreferences("course_catalog_display", android.content.Context.MODE_PRIVATE)
@@ -182,10 +192,42 @@ private fun AndroidPrimaryNavigation(
     val isExpanded =
         adaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(WIDTH_DP_MEDIUM_LOWER_BOUND) ||
             adaptiveInfo.windowPosture.isTabletop
+    val openEeclassPage = { title: String, path: String ->
+        // The URL is resolved on open because it depends on the session at that moment.
+        val url = appGraph.campusSessions.browserEntry(CampusSites.Eeclass, SitePath.of(path))
+        navigator.navigate(PortalWebRoute(title = title, url = url))
+    }
     val entryProvider =
         entryProvider<NavKey> {
             entry<HomeRoot> {
-                TopLevelPlaceholder(title = "首頁")
+                EeclassHomeScreen(
+                    onOpenCourse = { number, name -> navigator.navigate(EeclassCourseRoute(number, name)) },
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+            entry<EeclassCourseRoute> { route ->
+                EeclassCourseScreen(
+                    course = route.number,
+                    onOpenCategory = { navigator.navigate(EeclassCategoryRoute(route.number, it)) },
+                    onOpenBulletin = { number, title -> navigator.navigate(EeclassBulletinRoute(route.number, number, title)) },
+                    onOpenPage = openEeclassPage,
+                )
+            }
+            entry<EeclassCategoryRoute> { route ->
+                EeclassCategoryScreen(
+                    course = route.number,
+                    category = route.category,
+                    onOpenBulletin = { number, title -> navigator.navigate(EeclassBulletinRoute(route.number, number, title)) },
+                    onOpenPage = openEeclassPage,
+                )
+            }
+            entry<EeclassBulletinRoute>(metadata = BottomSheetSceneStrategy.bottomSheet()) { route ->
+                EeclassBulletinScreen(
+                    course = route.course,
+                    number = route.number,
+                    title = route.title,
+                    onOpenPage = openEeclassPage,
+                )
             }
             entry<PortalRoot> {
                 PortalScreen(
@@ -212,7 +254,7 @@ private fun AndroidPrimaryNavigation(
                     isCompactCatalog = isCompactCatalog,
                     selectedView = selectedCoursePlanningView,
                     onSelectedViewChange = { view -> selectedCoursePlanningView = view },
-                    courseRepository = courseRepository,
+                    courseRepository = appGraph.courseRepository,
                     onSelectedCoursesChange = { courses -> selectedCourses = courses },
                     isShowingSelectedCourses = isShowingSelectedCourses,
                     onDismissSelectedCourses = { isShowingSelectedCourses = false },
@@ -249,6 +291,7 @@ private fun AndroidPrimaryNavigation(
         val topBarState =
             PrimaryTopBarState(
                 currentPortalWebRoute = currentPortalWebRoute,
+                pushedTitle = navigationState.currentBackStack.lastOrNull { it !is EeclassBulletinRoute }?.pushedTitle(),
                 selectedTopLevelRoute = navigationState.selectedTopLevelRoute,
                 isExpanded = isExpanded,
                 selectedCoursePlanningView = selectedCoursePlanningView,
@@ -279,6 +322,7 @@ private fun AndroidPrimaryNavigation(
                 NavDisplay(
                     entries = navigationState.toDecoratedEntries(entryProvider),
                     onBack = { navigator.goBack() },
+                    sceneStrategies = listOf(bottomSheetSceneStrategy),
                     modifier =
                     Modifier
                         .fillMaxSize()
@@ -300,7 +344,7 @@ private fun AndroidPrimaryTopBar(
     TopAppBar(
         title = { Text(state.title) },
         navigationIcon = {
-            if (state.currentPortalWebRoute != null) {
+            if (state.currentPortalWebRoute != null || state.pushedTitle != null) {
                 IconButton(onClick = onBack) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -310,7 +354,9 @@ private fun AndroidPrimaryTopBar(
             }
         },
         actions = {
-            if (state.currentPortalWebRoute == null) {
+            if (state.currentPortalWebRoute != null) {
+                WebPageMenu(url = state.currentPortalWebRoute.url)
+            } else if (state.pushedTitle == null) {
                 if (state.showsCoursePlanAction) {
                     TextButton(onClick = coursePlanActions.onSavePlan, enabled = state.canSavePlan) {
                         Text("儲存")
@@ -372,8 +418,6 @@ private fun AndroidPrimaryTopBar(
                         contentDescription = "設定",
                     )
                 }
-            } else {
-                WebPageMenu(url = state.currentPortalWebRoute.url)
             }
         },
     )
@@ -420,6 +464,8 @@ private data class CoursePlanTopBarActions(
 
 private data class PrimaryTopBarState(
     val currentPortalWebRoute: PortalWebRoute?,
+    /** The title of the pushed ee-class screen showing, or null on a top-level screen. */
+    val pushedTitle: String?,
     val selectedTopLevelRoute: NavKey,
     val isExpanded: Boolean,
     val selectedCoursePlanningView: CoursePlanningView,
@@ -431,6 +477,7 @@ private data class PrimaryTopBarState(
         get() =
             when {
                 currentPortalWebRoute != null -> currentPortalWebRoute.title
+                pushedTitle != null -> pushedTitle
                 selectedTopLevelRoute == CoursePlanningRoot && isExpanded -> "選課"
                 selectedTopLevelRoute == CoursePlanningRoot -> selectedCoursePlanningView.title
                 selectedTopLevelRoute == HomeRoot -> "首頁"
@@ -441,6 +488,12 @@ private data class PrimaryTopBarState(
     val showsCoursePlanAction: Boolean
         get() =
             selectedTopLevelRoute == CoursePlanningRoot
+}
+
+private fun NavKey.pushedTitle(): String? = when (this) {
+    is EeclassCourseRoute -> name
+    is EeclassCategoryRoute -> category.title
+    else -> null
 }
 
 private const val MAX_COURSE_COUNT_BADGE = 99
@@ -487,16 +540,6 @@ private fun SettingsDialog(
                 onPortalAuthenticationModeSelected = settingsViewModel::setPortalAuthenticationMode,
             )
         }
-    }
-}
-
-@Composable
-private fun TopLevelPlaceholder(title: String) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(title)
     }
 }
 
