@@ -76,7 +76,6 @@ struct ContentView: View {
     }
 }
 
-
 private extension View {
     @ViewBuilder
     func minimizeTabBarOnScrolling() -> some View {
@@ -86,6 +85,5 @@ private extension View {
             self
         }
     }
-    
 
 }
