@@ -42,6 +42,7 @@ struct ContentView: View {
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
         }
+        .minimizeTabBarOnScrolling()
         .ignoresSafeArea(.container, edges: bottomSafeAreaEdges)
         .preferredColorScheme(preferredColorScheme)
         .task(id: ObjectIdentifier(sharedHost)) {
@@ -73,4 +74,18 @@ struct ContentView: View {
     private func openSettings() {
         isShowingSettings = true
     }
+}
+
+
+private extension View {
+    @ViewBuilder
+    func minimizeTabBarOnScrolling() -> some View {
+        if #available(iOS 27.0, *) {
+            tabBarMinimizeBehavior(.onScrollDown)
+        } else {
+            self
+        }
+    }
+    
+
 }
