@@ -9,6 +9,7 @@ import androidx.compose.ui.uikit.OnFocusBehavior
 import androidx.compose.ui.window.ComposeUIViewController
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.zacsweers.metrox.viewmodel.metroViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.Flow
@@ -30,10 +31,20 @@ import org.mpc.domain.html.HtmlParser
 import org.mpc.domain.model.AppSettings
 import org.mpc.domain.model.AppThemeMode
 import org.mpc.domain.model.CourseDetail
+import org.mpc.domain.model.EeclassBulletinNumber
+import org.mpc.domain.model.EeclassCourseNumber
+import org.mpc.domain.session.CampusSites
+import org.mpc.domain.session.SitePath
 import org.mpc.presentation.CourseCatalogViewBinding
 import org.mpc.presentation.CoursePlanningTimetableViewBinding
 import org.mpc.presentation.PortalWebScreen
 import org.mpc.presentation.SettingsScreen
+import org.mpc.presentation.model.EeclassBulletinPage
+import org.mpc.presentation.model.EeclassCoursePage
+import org.mpc.presentation.model.EeclassCourses
+import org.mpc.presentation.model.toEeclassBulletinPage
+import org.mpc.presentation.model.toEeclassCoursePage
+import org.mpc.presentation.model.toEeclassCourses
 import org.mpc.presentation.theme.MpcTheme
 import org.mpc.presentation.viewModel.AppSettingsViewModel
 import platform.UIKit.UIViewController
@@ -57,6 +68,20 @@ class IosSharedHost internal constructor(
         semester: String,
         serialNumber: String,
     ): CourseDetail = appGraph.courseRepository.fetchCourseDetail(semester, serialNumber)
+
+    @Throws(CancellationException::class)
+    suspend fun loadEeclassCourses(): EeclassCourses = appGraph.eeclassCourseRepository.fetchEnrolledCourses().toEeclassCourses()
+
+    @Throws(CancellationException::class)
+    suspend fun loadEeclassCourse(number: String): EeclassCoursePage = appGraph.eeclassCourseRepository.fetchCourseContent(EeclassCourseNumber(number)).toEeclassCoursePage()
+
+    @Throws(CancellationException::class)
+    suspend fun loadEeclassBulletin(course: String, bulletin: String): EeclassBulletinPage = appGraph.eeclassCourseRepository
+        .fetchBulletin(EeclassCourseNumber(course), EeclassBulletinNumber(bulletin))
+        .toEeclassBulletinPage()
+
+    /** The URL the in-app browser opens for an ee-class [path] from an [org.mpc.presentation.model.EeclassItemRow]. */
+    fun eeclassPageUrl(path: String): String = appGraph.campusSessions.browserEntry(CampusSites.Eeclass, SitePath.of(path))
 
     fun courseCatalogScreenController(
         bridge: CourseSearchBridge,
