@@ -112,5 +112,4 @@ interface CampusSessions {
 }
 
 /** The URL the WebView loads for [path] on [site], as [CampusSessions.browserEntry] describes. */
-fun CampusSessions.browserEntry(site: CampusSite, path: SitePath): String =
-    requireNotNull(browserEntry(site.url(path))) { "${site.id} is not a managed site" }
+fun CampusSessions.browserEntry(site: CampusSite, path: SitePath): String = requireNotNull(browserEntry(site.url(path))) { "${site.id} is not a managed site" }
