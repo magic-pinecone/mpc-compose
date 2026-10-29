@@ -9,7 +9,6 @@ import androidx.compose.ui.uikit.OnFocusBehavior
 import androidx.compose.ui.window.ComposeUIViewController
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.zacsweers.metrox.viewmodel.metroViewModel
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.Flow
@@ -71,13 +70,13 @@ class IosSharedHost internal constructor(
         serialNumber: String,
     ): CourseDetail = appGraph.courseRepository.fetchCourseDetail(semester, serialNumber)
 
-    @Throws(CancellationException::class)
+    @Throws(Exception::class)
     suspend fun loadEeclassCourses(): EeclassCourses = appGraph.eeclassCourseRepository.fetchEnrolledCourses().toEeclassCourses()
 
-    @Throws(CancellationException::class)
+    @Throws(Exception::class)
     suspend fun loadEeclassCourse(number: String): EeclassCoursePage = appGraph.eeclassCourseRepository.fetchCourseContent(EeclassCourseNumber(number)).toEeclassCoursePage()
 
-    @Throws(CancellationException::class)
+    @Throws(Exception::class)
     suspend fun loadEeclassBulletin(course: String, bulletin: String): EeclassBulletinPage = appGraph.eeclassCourseRepository
         .fetchBulletin(EeclassCourseNumber(course), EeclassBulletinNumber(bulletin))
         .toEeclassBulletinPage()
