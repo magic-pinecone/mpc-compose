@@ -50,7 +50,7 @@ internal class DefaultEeclassCourseRepository(
             site = site,
             path = list,
             pick = { html -> eeclassBulletinDialogLink(parser.parse(html, site.url(list)), bulletin) },
-            parse = { html -> eeclassBulletinDetail(parser.parse(html, site.url(BULLETIN_DIALOG))) },
+            parse = { html -> eeclassBulletinDetail(parser.parse(html, site.baseUrl + BULLETIN_DIALOG)) },
         ).then { detail -> detail?.let { SiteResult.Page(it) } ?: SiteResult.Unavailable(Unavailability.UNEXPECTED_RESPONSE) }
     }
 
@@ -61,7 +61,7 @@ internal class DefaultEeclassCourseRepository(
 }
 
 /** Where ee-class serves announcement dialogs; relative links in a dialog resolve against it. */
-private val BULLETIN_DIALOG = SitePath.of("/bulletin/content")
+private const val BULLETIN_DIALOG = "/bulletin/content/"
 
 /** Continues with [next] on a page; a session or network failure ends the chain as it is. */
 private inline fun <T, R> SiteResult<T>.then(next: (T) -> SiteResult<R>): SiteResult<R> = when (this) {
