@@ -92,8 +92,8 @@ interface CampusSessions {
     /** Checks [site]'s session without recovering it. */
     suspend fun refresh(site: CampusSite)
 
-    /** The URL the WebView loads for [path]: the page itself when signed in, otherwise the Portal handoff. */
-    fun browserEntry(site: CampusSite, path: SitePath): String
+    /** The URL the WebView loads for [url]: the page itself when its site is signed in, otherwise the Portal handoff. Null when no managed site serves it. */
+    fun browserEntry(url: String): String?
 
     /** The WebView reports each page as it starts and finishes loading. Other hosts are ignored. */
     suspend fun browserPage(url: String, loading: Boolean)
@@ -110,3 +110,7 @@ interface CampusSessions {
      */
     suspend fun signOutEverywhere()
 }
+
+/** The URL the WebView loads for [path] on [site], as [CampusSessions.browserEntry] describes. */
+fun CampusSessions.browserEntry(site: CampusSite, path: SitePath): String =
+    requireNotNull(browserEntry(site.url(path))) { "${site.id} is not a managed site" }

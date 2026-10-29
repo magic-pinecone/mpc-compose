@@ -13,10 +13,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -31,6 +33,7 @@ fun EeclassBulletinScreen(
     number: String,
     title: String,
     onOpenPage: (title: String, path: String) -> Unit,
+    onOpenLink: (url: String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: EeclassViewModel = metroViewModel(),
 ) {
@@ -46,7 +49,10 @@ fun EeclassBulletinScreen(
         modifier = modifier,
     ) {
         val loaded = page ?: return@EeclassPageContent
-        val body = remember(loaded.bodyHtml) { AnnotatedString.fromHtml(loaded.bodyHtml) }
+        val openLink by rememberUpdatedState(onOpenLink)
+        val body = remember(loaded.bodyHtml) {
+            AnnotatedString.fromHtml(loaded.bodyHtml) { link -> (link as? LinkAnnotation.Url)?.let { openLink(it.url) } }
+        }
         Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
             Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                 Text(

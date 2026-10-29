@@ -10,6 +10,11 @@ struct EeclassBulletinSelection: Identifiable {
     var id: String { bulletin.number }
 }
 
+/// A link in an announcement body that opens in the in-app browser.
+private struct EeclassBodyLink: Hashable {
+    let url: String
+}
+
 /// One announcement: its title, ee-class's summary line, the body as rich text, and its attachments.
 struct EeclassBulletinSheet: View {
     let sharedHost: IosSharedHost
@@ -18,10 +23,11 @@ struct EeclassBulletinSheet: View {
     @State private var page: EeclassBulletinPage?
     @State private var bodyText: AttributedString?
     @State private var reloadID = 0
+    @State private var path = NavigationPath()
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             content
                 .navigationTitle("公告")
                 .navigationBarTitleDisplayMode(.inline)
@@ -37,6 +43,9 @@ struct EeclassBulletinSheet: View {
                         title: link.title,
                         url: sharedHost.eeclassPageUrl(path: link.path)
                     )
+                }
+                .navigationDestination(for: EeclassBodyLink.self) { link in
+                    WebPageView(sharedHost: sharedHost, title: selection.bulletin.title, url: link.url)
                 }
         }
         .task(id: reloadID) { await load() }
@@ -62,6 +71,14 @@ struct EeclassBulletinSheet: View {
                         if let bodyText {
                             Text(bodyText)
                                 .textSelection(.enabled)
+                                .environment(\.openURL, OpenURLAction { url in
+                                    // Links to ee-class need its session, so they stay in the in-app browser.
+                                    guard let entry = sharedHost.campusLinkUrl(url: url.absoluteString) else {
+                                        return .systemAction
+                                    }
+                                    path.append(EeclassBodyLink(url: entry))
+                                    return .handled
+                                })
                         }
                     }
                     if !page.attachments.isEmpty {

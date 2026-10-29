@@ -302,4 +302,17 @@ val defaultCampusSessionsTests by testSuite {
             assertEquals(SiteStatus.SignedOut(Renewal.PORTAL_SIGN_IN_BY_USER), sessions.status(TEST_SITE).value)
         }
     }
+
+    test("a link opens in the browser only on a managed site, through Portal until the site is signed in") {
+        runTest {
+            val sessions = sessions(ScriptedTransport(pages = ArrayDeque(listOf(page(SIGNED_IN_DASHBOARD)))))
+            val link = "https://ncueeclass.ncu.edu.tw/media/doc/1?page=2"
+
+            assertEquals(TEST_SITE.portalEntryUrl, sessions.browserEntry(link))
+            sessions.fetch(TEST_SITE, TIMETABLE) { it }
+            assertEquals(link, sessions.browserEntry(link))
+            assertEquals(null, sessions.browserEntry("https://example.com/"))
+            assertEquals(null, sessions.browserEntry("http://ncueeclass.ncu.edu.tw/media/doc/1"))
+        }
+    }
 }

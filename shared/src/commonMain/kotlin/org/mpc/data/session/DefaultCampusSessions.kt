@@ -117,7 +117,7 @@ private class SiteSession(
         status.value = SiteStatus.Checking
     }
 
-    fun browserEntry(path: SitePath): String = if (status.value == SiteStatus.SignedIn) site.url(path) else site.portalEntryUrl
+    fun browserEntry(url: String): String = if (status.value == SiteStatus.SignedIn) url else site.portalEntryUrl
 
     /** Removes this site's cookies. [comeback] says what getting back in costs; null asks Portal's current state. */
     suspend fun signOut(comeback: Renewal? = null) {
@@ -227,7 +227,11 @@ internal class DefaultCampusSessions(
 
     override suspend fun refresh(site: CampusSite) = session(site).refresh()
 
-    override fun browserEntry(site: CampusSite, path: SitePath): String = session(site).browserEntry(path)
+    override fun browserEntry(url: String): String? {
+        val host = parseHttpsUrl(url)?.host ?: return null
+        val site = sites.firstOrNull { it.host.equals(host, ignoreCase = true) } ?: return null
+        return session(site).browserEntry(url)
+    }
 
     override suspend fun browserPage(url: String, loading: Boolean) {
         val site = CampusSites.forUrl(url)?.takeIf { it in sites }

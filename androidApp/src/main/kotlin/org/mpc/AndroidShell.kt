@@ -68,6 +68,7 @@ import org.mpc.di.AppGraph
 import org.mpc.domain.model.CourseSummary
 import org.mpc.domain.session.CampusSites
 import org.mpc.domain.session.SitePath
+import org.mpc.domain.session.browserEntry
 import org.mpc.navigation.AndroidNavigator
 import org.mpc.navigation.AppRoot
 import org.mpc.navigation.CoursePlanningRoot
@@ -227,6 +228,12 @@ private fun AndroidPrimaryNavigation(
                     number = route.number,
                     title = route.title,
                     onOpenPage = openEeclassPage,
+                    onOpenLink = { url ->
+                        // Links to ee-class need its session, so they stay in the in-app browser.
+                        appGraph.campusSessions.browserEntry(url)
+                            ?.let { navigator.navigate(PortalWebRoute(title = route.title, url = it)) }
+                            ?: uriHandler.openUri(url)
+                    },
                 )
             }
             entry<PortalRoot> {
