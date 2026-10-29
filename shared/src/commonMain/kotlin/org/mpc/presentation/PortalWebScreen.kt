@@ -6,16 +6,21 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.mohamedrejeb.calf.ui.web.WebView
-import com.mohamedrejeb.calf.ui.web.rememberWebViewNavigator
+import com.mohamedrejeb.calf.ui.web.WebViewNavigator
 import com.mohamedrejeb.calf.ui.web.rememberWebViewState
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import org.mpc.domain.session.CampusSites
 import org.mpc.domain.session.portalLaunchUrl
 import org.mpc.presentation.viewModel.CampusSessionViewModel
 
+/**
+ * The in-app browser page. Back gestures leave the page; the host's toolbar uses [navigator]
+ * for going back within it.
+ */
 @Composable
 fun PortalWebScreen(
     url: String,
+    navigator: WebViewNavigator,
 ) {
     val sessionViewModel: CampusSessionViewModel = metroViewModel()
     val webViewState = rememberWebViewState(url = url)
@@ -26,7 +31,6 @@ fun PortalWebScreen(
         webViewState.settings.javaScriptEnabled = javascriptEnabled
     }
 
-    val navigator = rememberWebViewNavigator()
     // Continue each launch once, so going back shows the confirmation instead of reopening the app.
     val continuedLaunches = remember { mutableSetOf<String>() }
 
@@ -40,7 +44,8 @@ fun PortalWebScreen(
 
     WebView(
         state = webViewState,
-        navigator = navigator,
         modifier = Modifier.fillMaxSize(),
+        captureBackPresses = false,
+        navigator = navigator,
     )
 }

@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.stateIn
 import org.mpc.bridge.CoursePlanBridge
 import org.mpc.bridge.CourseSearchBridge
 import org.mpc.bridge.PortalBridge
+import org.mpc.bridge.PortalWebPageBridge
 import org.mpc.core.createDataStore
 import org.mpc.core.createDatabase
 import org.mpc.core.createDatabaseBuilder
@@ -108,15 +109,17 @@ class IosSharedHost internal constructor(
 
     fun portalBridge(): PortalBridge = PortalBridge(appGraph.campusSessions, appGraph.portalFavoritesRepository)
 
-    fun portalWebScreenController(url: String): UIViewController = ComposeUIViewController(
-        configure = {
-            // WKWebView already scrolls focused HTML fields above the keyboard.
-            onFocusBehavior = OnFocusBehavior.DoNothing
-        },
-    ) {
-        ProvideAppDependencies(appGraph) {
-            ThemedContent {
-                PortalWebScreen(url = url)
+    fun portalWebPage(url: String): PortalWebPageBridge = PortalWebPageBridge { navigator ->
+        ComposeUIViewController(
+            configure = {
+                // WKWebView already scrolls focused HTML fields above the keyboard.
+                onFocusBehavior = OnFocusBehavior.DoNothing
+            },
+        ) {
+            ProvideAppDependencies(appGraph) {
+                ThemedContent {
+                    PortalWebScreen(url = url, navigator = navigator)
+                }
             }
         }
     }

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
@@ -40,6 +41,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -63,6 +65,7 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.scene.DialogSceneStrategy
 import androidx.navigation3.ui.NavDisplay
 import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_MEDIUM_LOWER_BOUND
+import com.mohamedrejeb.calf.ui.web.WebViewNavigator
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import org.mpc.di.AppGraph
 import org.mpc.domain.model.CourseSummary
@@ -198,6 +201,9 @@ private fun AndroidPrimaryNavigation(
         val url = appGraph.campusSessions.browserEntry(CampusSites.Eeclass, SitePath.of(path))
         navigator.navigate(PortalWebRoute(title = title, url = url))
     }
+    // The top bar goes back within the open page, so each page's navigator lives here.
+    val webNavigatorScope = rememberCoroutineScope()
+    val webNavigators = remember { mutableMapOf<PortalWebRoute, WebViewNavigator>() }
     val entryProvider =
         entryProvider<NavKey> {
             entry<HomeRoot> {
@@ -252,6 +258,7 @@ private fun AndroidPrimaryNavigation(
             entry<PortalWebRoute> { route ->
                 PortalWebScreen(
                     url = route.url,
+                    navigator = webNavigators.getOrPut(route) { WebViewNavigator(webNavigatorScope) },
                 )
             }
             entry<CoursePlanningRoot> {
@@ -295,10 +302,12 @@ private fun AndroidPrimaryNavigation(
         },
     ) {
         val currentPortalWebRoute = navigationState.currentBackStack.lastOrNull() as? PortalWebRoute
+        val currentWebNavigator = currentPortalWebRoute?.let { webNavigators[it] }
         val topBarState =
             PrimaryTopBarState(
                 currentPortalWebRoute = currentPortalWebRoute,
                 pushedTitle = navigationState.currentBackStack.lastOrNull { it !is EeclassBulletinRoute }?.pushedTitle(),
+                canGoBackInPage = currentWebNavigator?.canGoBack == true,
                 selectedTopLevelRoute = navigationState.selectedTopLevelRoute,
                 isExpanded = isExpanded,
                 selectedCoursePlanningView = selectedCoursePlanningView,
@@ -320,6 +329,7 @@ private fun AndroidPrimaryNavigation(
                         onOpenSelectedCourses = { isShowingSelectedCourses = true },
                     ),
                     onBack = { navigator.goBack() },
+                    onBackInPage = { currentWebNavigator?.navigateBack() },
                     onOpenSettings = onOpenSettings,
                 )
             },
@@ -346,6 +356,7 @@ private fun AndroidPrimaryTopBar(
     state: PrimaryTopBarState,
     coursePlanActions: CoursePlanTopBarActions,
     onBack: () -> Unit,
+    onBackInPage: () -> Unit,
     onOpenSettings: () -> Unit,
 ) {
     TopAppBar(
@@ -362,6 +373,14 @@ private fun AndroidPrimaryTopBar(
         },
         actions = {
             if (state.currentPortalWebRoute != null) {
+                if (state.canGoBackInPage) {
+                    IconButton(onClick = onBackInPage) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Undo,
+                            contentDescription = "上一頁",
+                        )
+                    }
+                }
                 WebPageMenu(url = state.currentPortalWebRoute.url)
             } else if (state.pushedTitle == null) {
                 if (state.showsCoursePlanAction) {
@@ -473,6 +492,7 @@ private data class PrimaryTopBarState(
     val currentPortalWebRoute: PortalWebRoute?,
     /** The title of the pushed ee-class screen showing, or null on a top-level screen. */
     val pushedTitle: String?,
+    val canGoBackInPage: Boolean,
     val selectedTopLevelRoute: NavKey,
     val isExpanded: Boolean,
     val selectedCoursePlanningView: CoursePlanningView,
