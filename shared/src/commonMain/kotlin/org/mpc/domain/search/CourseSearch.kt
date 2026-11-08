@@ -64,19 +64,19 @@ private fun CourseSummary.satisfiesFilters(filters: Set<CourseFilter>): Boolean 
     .all { sameKind -> sameKind.any { matches(it) } }
 
 private fun CourseSummary.matches(filter: CourseFilter): Boolean = when (filter) {
-    is CourseFilter.Teacher -> teachers.any { containsNormalized(it, filter.name) }
-    is CourseFilter.Department -> containsNormalized(departmentName, filter.name)
-    is CourseFilter.College -> containsNormalized(collegeName, filter.name)
+    is CourseFilter.Teacher -> teachers.any { sameName(it, filter.name) }
+    is CourseFilter.Department -> sameName(departmentName, filter.name)
+    is CourseFilter.College -> sameName(collegeName, filter.name)
     is CourseFilter.Type -> courseType == filter.type
     is CourseFilter.Credits -> credit == filter.credits
     is CourseFilter.Seats -> hasOpenSeats() == (filter.availability == SeatAvailability.OPEN)
     is CourseFilter.Schedule -> matchesSchedule(filter)
 }
 
-private fun containsNormalized(
-    haystack: String,
-    needle: String,
-): Boolean = normalizeForSearch(haystack).contains(normalizeForSearch(needle))
+private fun sameName(
+    catalogName: String,
+    filterName: String,
+): Boolean = normalizeForSearch(catalogName) == normalizeForSearch(filterName)
 
 // A limitCnt of 0 means the catalog publishes no enrollment cap, so such a course is never full.
 private fun CourseSummary.hasOpenSeats(): Boolean = limitCnt == 0 || admitCnt < limitCnt

@@ -122,7 +122,7 @@ val courseSearchTests by testSuite {
         )
         assertEquals(listOf("10001"), search(courses, query("微积分")))
         assertEquals(listOf("10002"), search(courses, query("线性代数")))
-        assertEquals(listOf("10001"), search(courses, filtered(CourseFilter.Teacher("陈"))))
+        assertEquals(listOf("10001"), search(courses, filtered(CourseFilter.Teacher("陈大明"))))
     }
 
     test("roman numeral characters match their letter forms") {
@@ -141,13 +141,24 @@ val courseSearchTests by testSuite {
             course("10002", "B", teachers = listOf("黃小華"), departmentName = "物理系", collegeName = "理學院"),
             course("10003", "C", teachers = listOf("黃小華"), departmentName = "中文系", collegeName = "文學院"),
         )
-        assertEquals(listOf("10002", "10003"), search(courses, filtered(CourseFilter.Teacher("黃"))))
+        assertEquals(listOf("10002", "10003"), search(courses, filtered(CourseFilter.Teacher("黃小華"))))
         assertEquals(listOf("10003"), search(courses, filtered(CourseFilter.College("文學院"))))
         assertEquals(listOf("10002"), search(courses, filtered(CourseFilter.Department("物理系"))))
         assertEquals(
             listOf("10002"),
-            search(courses, filtered(CourseFilter.Teacher("黃"), CourseFilter.Department("物理"))),
+            search(courses, filtered(CourseFilter.Teacher("黃小華"), CourseFilter.Department("物理系"))),
         )
+    }
+
+    test("name filters match whole catalog names only") {
+        val courses = listOf(
+            course("10001", "A", teachers = listOf("王明"), departmentName = "數學系", collegeName = "理學院"),
+            course("10002", "B", teachers = listOf("王明華"), departmentName = "應用數學系", collegeName = "管理學院"),
+        )
+        assertEquals(listOf("10001"), search(courses, filtered(CourseFilter.Department("數學系"))))
+        assertEquals(listOf("10001"), search(courses, filtered(CourseFilter.Teacher("王明"))))
+        assertEquals(listOf("10001"), search(courses, filtered(CourseFilter.College("理學院"))))
+        assertEquals(emptyList(), search(courses, filtered(CourseFilter.Department("數學"))))
     }
 
     test("filters of the same kind match either value") {
