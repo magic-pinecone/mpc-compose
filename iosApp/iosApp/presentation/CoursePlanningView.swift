@@ -22,6 +22,7 @@ struct CoursePlanningView: View {
     @State private var isSearchPresented = false
     @State private var sectionBeforeSearch: Section?
     @State private var catalogBridge = CourseSearchBridge()
+    @State private var catalogSnapshot: CourseCatalogSnapshot?
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.layoutDirection) private var layoutDirection
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -54,7 +55,8 @@ struct CoursePlanningView: View {
                     isCompact: isCompactCatalog,
                     semester: semester,
                     query: $catalogQuery,
-                    bridge: catalogBridge
+                    bridge: catalogBridge,
+                    catalogSnapshot: catalogSnapshot
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .offset(x: isWide ? 0 : pageOffset(for: .catalog, width: geometry.size.width))
@@ -101,16 +103,27 @@ struct CoursePlanningView: View {
             }
             .searchable(
                 text: $catalogQuery,
+                tokens: tokensBinding,
                 isPresented: $isSearchPresented,
                 placement: .navigationBarDrawer(displayMode: .always),
                 prompt: "搜尋課程名稱"
-            )
+            ) { token in
+                Label(token.label, systemImage: token.symbol)
+            }
+            .searchSuggestions {
+                ForEach(suggestionTokens) { token in
+                    Label(token.label, systemImage: token.symbol)
+                        .searchCompletion(token)
+                }
+            }
             .onSubmit(of: .search) {
                 catalogBridge.submit(semester: semester, query: catalogQuery)
             }
             .onChange(of: catalogQuery) { _, newValue in
                 catalogBridge.updateQuery(semester: semester, query: newValue)
             }
+            // Adding a filter makes the ViewModel clear the query; reflect that in the field.
+            .onChange(of: catalogSnapshot?.filters.count ?? 0, clearQueryAfterFilterAdded)
             // Searching takes over the catalog page, then returns to the page it started from.
             .onChange(of: isSearchPresented) { _, isPresented in
                 if isPresented {
@@ -181,6 +194,11 @@ struct CoursePlanningView: View {
                 planSnapshot = snapshot
             }
         }
+        .task(id: ObjectIdentifier(catalogBridge)) {
+            for await snapshot in catalogBridge.catalogSnapshot {
+                catalogSnapshot = snapshot
+            }
+        }
         .sheet(isPresented: $isShowingSelectedCourses) {
             SelectedCoursesSheet(
                 planBridge: planBridge,
@@ -245,6 +263,38 @@ private extension View {
         } else {
             safeAreaInset(edge: .top, spacing: 0) {
                 content().background(Color(uiColor: .systemGroupedBackground))
+            }
+        }
+    }
+}
+
+private extension CoursePlanningView {
+    func clearQueryAfterFilterAdded(old: Int, new: Int) {
+        if new > old, catalogSnapshot?.query.isEmpty == true, !catalogQuery.isEmpty {
+            catalogQuery = ""
+        }
+    }
+
+    var activeFilterCount: Int {
+        catalogSnapshot?.filters.count ?? 0
+    }
+
+    var suggestionTokens: [CourseFilterToken] {
+        (catalogSnapshot?.suggestions ?? []).map(CourseFilterToken.init)
+    }
+
+    var tokensBinding: Binding<[CourseFilterToken]> {
+        Binding {
+            (catalogSnapshot?.filters ?? []).map(CourseFilterToken.init)
+        } set: { newTokens in
+            let current = (catalogSnapshot?.filters ?? []).map(CourseFilterToken.init)
+            let newIDs = Set(newTokens.map(\.id))
+            let currentIDs = Set(current.map(\.id))
+            for token in current where !newIDs.contains(token.id) {
+                catalogBridge.removeFilter(filter: token.filter)
+            }
+            for token in newTokens where !currentIDs.contains(token.id) {
+                catalogBridge.addFilter(filter: token.filter)
             }
         }
     }

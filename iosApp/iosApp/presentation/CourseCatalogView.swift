@@ -11,7 +11,7 @@ struct CourseCatalogView: View {
     let semester: String
     @Binding var query: String
     let bridge: CourseSearchBridge
-    @State private var catalogSnapshot: CourseCatalogSnapshot?
+    let catalogSnapshot: CourseCatalogSnapshot?
 
     private var selectedSerialNumbers: Set<String> {
         Set(selectedCourses.map(\.serialNumber))
@@ -48,11 +48,6 @@ struct CourseCatalogView: View {
         .onChange(of: query) { _, newValue in
             if newValue.isEmpty {
                 submitSearch()
-            }
-        }
-        .task(id: ObjectIdentifier(bridge)) {
-            for await snapshot in bridge.catalogSnapshot {
-                catalogSnapshot = snapshot
             }
         }
     }
