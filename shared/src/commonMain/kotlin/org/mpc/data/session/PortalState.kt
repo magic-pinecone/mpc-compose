@@ -51,4 +51,5 @@ internal class PortalState(private val guardStore: PortalGuardStore) {
         if (_status.value !is PortalStatus.Blocked) _status.value = PortalStatus.Unavailable(reason)
     }
 
-    suspend fun automaticSignIn(mode: PortalAuthenticationMode, now: Instant): AutomaticSignIn = automaticSignIn(mode, guardStore.read(), now)}
+    suspend fun automaticSignIn(mode: PortalAuthenticationMode, now: Instant): AutomaticSignIn = automaticSignIn(mode, guardStore.read(), now)
+}
