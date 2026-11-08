@@ -28,7 +28,11 @@ struct NextClassIntent: AppIntent {
             : "下一堂是\(title)，\(next.whenLabel()) 開始（\(meeting.periodLabel())）。"
         return .result(
             value: CourseEntity(semester: semester, course: meeting.course),
-            dialog: IntentDialog(stringLiteral: dialog),
+            // The card already shows the time and periods, so the onscreen line stays short.
+            dialog: IntentDialog(
+                full: LocalizedStringResource(stringLiteral: dialog),
+                supporting: next.inProgress ? "正在上課" : "下一堂課"
+            ),
             view: CourseSnippetList(rows: [CourseSnippetRow(upcoming: next)])
         )
     }
@@ -60,7 +64,12 @@ struct ClassesOnDayIntent: AppIntent {
                 + "。"
         return .result(
             value: meetings.map { CourseEntity(semester: semester, course: $0.course) },
-            dialog: IntentDialog(stringLiteral: dialog),
+            dialog: IntentDialog(
+                full: LocalizedStringResource(stringLiteral: dialog),
+                supporting: LocalizedStringResource(
+                    stringLiteral: meetings.isEmpty ? "\(dayName)沒有課。" : "\(dayName)有 \(meetings.count) 堂課。"
+                )
+            ),
             view: CourseSnippetList(rows: meetings.map(CourseSnippetRow.init(meeting:)))
         )
     }

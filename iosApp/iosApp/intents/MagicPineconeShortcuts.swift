@@ -28,7 +28,9 @@ struct MagicPineconeShortcuts: AppShortcutsProvider {
             phrases: [
                 "Find courses with \(.applicationName)",
                 "Find \(\.$timeOfDay) courses with \(.applicationName)",
-                "Find courses on \(\.$day) with \(.applicationName)"
+                "Find courses on \(\.$day) with \(.applicationName)",
+                "Find \(\.$courseType) courses with \(.applicationName)",
+                "Find courses that are \(\.$seats) with \(.applicationName)"
             ],
             shortTitle: "找課",
             systemImageName: "magnifyingglass"
