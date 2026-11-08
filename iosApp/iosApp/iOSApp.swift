@@ -21,6 +21,11 @@ struct IOSApp: App {
         WindowGroup {
             ContentView(sharedHost: sharedHost)
                 .environment(router)
+                .task {
+                    await Task.detached(priority: .utility) { [sharedHost] in
+                        await SpotlightIndexer.indexAll(sharedHost: sharedHost)
+                    }.value
+                }
         }
     }
 }

@@ -280,7 +280,7 @@ private extension PortalShortcutTint {
     }
 }
 
-private extension PortalShortcutIcon {
+extension PortalShortcutIcon {
     var systemImage: String {
         switch self {
         case .accountBalance: "building.columns"
