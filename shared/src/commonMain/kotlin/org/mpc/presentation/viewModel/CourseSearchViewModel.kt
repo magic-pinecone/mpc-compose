@@ -16,16 +16,15 @@ import kotlinx.coroutines.launch
 import org.mpc.domain.model.CourseFilter
 import org.mpc.domain.model.CourseQuery
 import org.mpc.domain.model.CourseResult
-import org.mpc.domain.model.CourseSummary
 import org.mpc.domain.model.CourseTime
 import org.mpc.domain.model.SlotMatch
 import org.mpc.domain.repository.CourseRepository
 import org.mpc.domain.search.searchCourses
 import org.mpc.domain.search.suggestCourseFilters
-import org.mpc.presentation.state.CourseFilterOptions
 import org.mpc.presentation.state.CourseSearchError
 import org.mpc.presentation.state.CourseSearchResultUiState
 import org.mpc.presentation.state.CourseSearchUiState
+import org.mpc.presentation.state.courseFilterOptions
 
 @Inject
 @ViewModelKey
@@ -120,7 +119,7 @@ class CourseSearchViewModel(
             }.onSuccess { result ->
                 catalog = result
                 _uiState.update {
-                    it.copy(filterOptions = result.courses.filterOptions()).withSuggestions()
+                    it.copy(filterOptions = result.courses.courseFilterOptions()).withSuggestions()
                 }
                 showResult(result, query)
             }.onFailure(::acceptSearchFailure)
@@ -158,12 +157,3 @@ class CourseSearchViewModel(
         }
     }
 }
-
-private fun List<CourseSummary>.filterOptions() = CourseFilterOptions(
-    teachers = flatMap { it.teachers }.distinctNames(),
-    departments = map { it.departmentName }.distinctNames(),
-    colleges = map { it.collegeName }.distinctNames(),
-    credits = map { it.credit }.distinct().sorted(),
-)
-
-private fun List<String>.distinctNames() = filter { it.isNotBlank() }.distinct().sorted()

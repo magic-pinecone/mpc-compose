@@ -9,6 +9,8 @@ import org.mpc.domain.schedule.ClassMeeting
 import org.mpc.domain.schedule.UpcomingMeeting
 import org.mpc.domain.schedule.meetingsOn
 import org.mpc.domain.schedule.nextMeeting
+import org.mpc.presentation.state.CourseFilterOptions
+import org.mpc.presentation.state.courseFilterOptions
 
 private const val SERIAL_NUMBER_LENGTH = 5
 
@@ -23,6 +25,13 @@ suspend fun IosSharedHost.findCourses(
     .searchCourses(CourseQuery(semester, keyword, filters.toSet()))
     .courses
     .take(limit.coerceAtLeast(0))
+
+/** The teachers, departments, colleges, and credits the filter sheet offers, so intents ask with the same choices. */
+@Throws(Exception::class)
+suspend fun IosSharedHost.courseFilterOptions(semester: String): CourseFilterOptions = appGraph.courseRepository
+    .searchCourses(CourseQuery(semester))
+    .courses
+    .courseFilterOptions()
 
 /** The course with this serial number, or null when it is malformed or not in the catalog. */
 @Throws(Exception::class)

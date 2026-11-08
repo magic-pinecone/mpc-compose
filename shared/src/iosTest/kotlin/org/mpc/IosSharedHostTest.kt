@@ -78,6 +78,7 @@ val iosSharedHostTests by testSuite {
 
             assertEquals(listOf("10001"), host.findCourses("115-1", "", emptyList(), limit = 1).map { it.serialNumber })
             assertEquals("10002", host.course("115-1", "10002")?.serialNumber)
+            assertEquals(listOf("數學系"), host.courseFilterOptions("115-1").departments)
             assertEquals(null, host.course("115-1", "bad"))
             assertEquals(listOf("10001"), host.savedMeetingsOn("115-1", CourseDay.MONDAY).map { it.course.serialNumber })
             assertEquals(480, host.nextSavedMeeting("115-1", CourseDay.TUESDAY, 0)?.meeting?.startMinute)
