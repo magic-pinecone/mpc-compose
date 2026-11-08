@@ -1,5 +1,7 @@
 package org.mpc.presentation
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -12,8 +14,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -40,6 +44,14 @@ fun CourseCatalogScreen(
     val planUiState by planViewModel.uiState.collectAsStateWithLifecycle()
     var query by rememberSaveable { mutableStateOf(searchUiState.query) }
     val keyboard = LocalSoftwareKeyboardController.current
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
+
+    // addFilter clears the query in the view model; mirror it into the field.
+    LaunchedEffect(searchUiState.query) {
+        if (query != searchUiState.query) query = searchUiState.query
+    }
+
     val submitSearch = {
         searchViewModel.updateQuery(semester = searchUiState.semester, query = query)
         searchViewModel.onSearch()
@@ -55,6 +67,7 @@ fun CourseCatalogScreen(
             query = query,
             onQueryChange = { value ->
                 query = value
+                searchViewModel.updateQuery(semester = searchUiState.semester, query = value)
                 if (value.isEmpty()) submitSearch()
             },
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
@@ -79,19 +92,36 @@ fun CourseCatalogScreen(
                 }
             },
             onSearch = { submitSearch() },
+            interactionSource = interactionSource,
             // Results stay in the catalog pane instead of opening an expanded search surface.
             expanded = false,
             onExpandedChange = {},
         )
-        CourseSearchResultView(
-            modifier = Modifier.fillMaxWidth().weight(1f),
-            uiState = searchUiState.result,
-            selectedCourseSerialNumbers = selectedCourseSerialNumbers,
-            onCourseClick = { course -> onCourseClick(searchUiState.semester, course) },
-            onToggleCourse = planViewModel::toggleCourse,
-            isCompact = isCompact,
-            canEditPlan = planUiState is CoursePlanUiState.Success,
-            onRetry = { submitSearch() },
-        )
+        if (searchUiState.filters.isNotEmpty()) {
+            CourseFilterChipRow(
+                filters = searchUiState.filters,
+                onRemove = searchViewModel::removeFilter,
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+            )
+        }
+        // Suggestions take over the results area while typing; results are stale until the next search.
+        if (isFocused && searchUiState.suggestions.isNotEmpty()) {
+            CourseFilterSuggestionList(
+                suggestions = searchUiState.suggestions,
+                onSelect = searchViewModel::addFilter,
+                modifier = Modifier.fillMaxWidth().weight(1f),
+            )
+        } else {
+            CourseSearchResultView(
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                uiState = searchUiState.result,
+                selectedCourseSerialNumbers = selectedCourseSerialNumbers,
+                onCourseClick = { course -> onCourseClick(searchUiState.semester, course) },
+                onToggleCourse = planViewModel::toggleCourse,
+                isCompact = isCompact,
+                canEditPlan = planUiState is CoursePlanUiState.Success,
+                onRetry = { submitSearch() },
+            )
+        }
     }
 }
