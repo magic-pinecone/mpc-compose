@@ -84,7 +84,7 @@ fun CourseSlotPicker(
                 enabled = selected.isNotEmpty(),
                 colors = ButtonDefaults.textButtonColors(contentColor = MpcTheme.colors.accent),
             ) {
-                Text("清除", style = MpcTheme.typography.label)
+                Text("清除時段", style = MpcTheme.typography.label)
             }
         }
         SlotGrid(days = days, selected = selected, onSelectedChange = onSelectedChange)
