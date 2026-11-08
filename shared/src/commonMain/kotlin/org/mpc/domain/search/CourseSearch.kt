@@ -1,16 +1,20 @@
 package org.mpc.domain.search
 
 import org.mpc.domain.model.CourseDay
-import org.mpc.domain.model.CoursePeriod
+import org.mpc.domain.model.CourseFilter
 import org.mpc.domain.model.CourseQuery
 import org.mpc.domain.model.CourseSummary
+import org.mpc.domain.model.SeatAvailability
+import org.mpc.domain.model.SlotMatch
 
 private enum class MatchTier(
     val score: Int,
     val matches: (course: NormalizedCourse, token: String) -> Boolean,
 ) {
-    SERIAL_NUMBER(60, { course, token -> course.serialNo == token }),
-    TITLE_EQUALS(50, { course, token -> course.title == token }),
+    SERIAL_NUMBER(80, { course, token -> course.serialNo == token }),
+    CLASS_NO_EXACT(70, { course, token -> course.classNo == token }),
+    TITLE_EQUALS(60, { course, token -> course.title == token }),
+    CLASS_NO_PREFIX(50, { course, token -> course.classNo.startsWith(token) }),
     TITLE_STARTS_WITH(40, { course, token -> course.title.startsWith(token) }),
     TITLE_CONTAINS(30, { course, token -> course.title.contains(token) }),
     TEACHER_CONTAINS(20, { course, token -> course.teachers.any { it.contains(token) } }),
@@ -19,6 +23,7 @@ private enum class MatchTier(
 
 private class NormalizedCourse(course: CourseSummary) {
     val serialNo = normalizeForSearch(course.serialNo.value)
+    val classNo = normalizeForSearch(course.classNo)
     val title = normalizeForSearch(course.title)
     val teachers = course.teachers.map(::normalizeForSearch)
     val department = listOf(course.departmentName, course.collegeName).map(::normalizeForSearch)
@@ -34,7 +39,7 @@ fun searchCourses(
     courses: List<CourseSummary>,
     query: CourseQuery,
 ): List<CourseSummary> {
-    val candidates = courses.filter { it.satisfiesFilters(query) }
+    val candidates = courses.filter { it.satisfiesFilters(query.filters) }
     val tokens = normalizeForSearch(query.keyword).split(' ').filter { it.isNotEmpty() }
     if (tokens.isEmpty()) return candidates
 
@@ -53,21 +58,33 @@ private fun scoreToken(
     token: String,
 ): Int? = MatchTier.entries.firstOrNull { it.matches(course, token) }?.score
 
-private fun CourseSummary.satisfiesFilters(query: CourseQuery): Boolean = matchesName(query.teacher, teachers) &&
-    matchesName(query.department, listOf(departmentName, collegeName)) &&
-    (query.courseType == null || courseType == query.courseType) &&
-    meetsAt(query.days, query.periods)
+private fun CourseSummary.satisfiesFilters(filters: Set<CourseFilter>): Boolean = filters
+    .groupBy { it::class }
+    .values
+    .all { sameKind -> sameKind.any { matches(it) } }
 
-private fun matchesName(
-    wanted: String?,
-    names: List<String>,
-): Boolean {
-    val normalizedWanted = wanted?.let(::normalizeForSearch).orEmpty()
-    return normalizedWanted.isEmpty() || names.any { normalizeForSearch(it).contains(normalizedWanted) }
+private fun CourseSummary.matches(filter: CourseFilter): Boolean = when (filter) {
+    is CourseFilter.Teacher -> teachers.any { containsNormalized(it, filter.name) }
+    is CourseFilter.Department -> containsNormalized(departmentName, filter.name)
+    is CourseFilter.College -> containsNormalized(collegeName, filter.name)
+    is CourseFilter.Type -> courseType == filter.type
+    is CourseFilter.Credits -> credit == filter.credits
+    is CourseFilter.Seats -> hasOpenSeats() == (filter.availability == SeatAvailability.OPEN)
+    is CourseFilter.Schedule -> matchesSchedule(filter)
 }
 
-private fun CourseSummary.meetsAt(
-    days: Set<CourseDay>,
-    periods: Set<CoursePeriod>,
-): Boolean = (days.isEmpty() && periods.isEmpty()) ||
-    classTimes.any { (days.isEmpty() || it.day in days) && (periods.isEmpty() || it.period in periods) }
+private fun containsNormalized(
+    haystack: String,
+    needle: String,
+): Boolean = normalizeForSearch(haystack).contains(normalizeForSearch(needle))
+
+// A limitCnt of 0 means the catalog publishes no enrollment cap, so such a course is never full.
+private fun CourseSummary.hasOpenSeats(): Boolean = limitCnt == 0 || admitCnt < limitCnt
+
+private fun CourseSummary.matchesSchedule(filter: CourseFilter.Schedule): Boolean = when (filter.match) {
+    SlotMatch.FITS_WITHIN -> classTimes.isNotEmpty() &&
+        classTimes.none { it.day == CourseDay.UNKNOWN } &&
+        filter.slots.containsAll(classTimes)
+
+    SlotMatch.OVERLAPS -> classTimes.any { it in filter.slots }
+}
