@@ -55,7 +55,7 @@ fun CourseCatalogScreen(
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
 
-    // addFilter clears the query in the view model; mirror it into the field.
+    // pickSuggestion clears the query in the view model; mirror it into the field.
     LaunchedEffect(searchUiState.query) {
         if (query != searchUiState.query) query = searchUiState.query
     }
@@ -125,7 +125,7 @@ fun CourseCatalogScreen(
         if (isFocused && searchUiState.suggestions.isNotEmpty()) {
             CourseFilterSuggestionList(
                 suggestions = searchUiState.suggestions,
-                onSelect = searchViewModel::addFilter,
+                onSelect = searchViewModel::pickSuggestion,
                 modifier = Modifier.fillMaxWidth().weight(1f),
             )
         } else {

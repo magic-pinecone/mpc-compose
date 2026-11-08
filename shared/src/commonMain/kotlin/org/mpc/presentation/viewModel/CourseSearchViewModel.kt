@@ -61,11 +61,12 @@ class CourseSearchViewModel(
     }
 
     fun addFilter(filter: CourseFilter) {
-        _uiState.update {
-            val filters = if (filter in it.filters) it.filters else it.filters + filter
-            it.copy(query = "", filters = filters).withSuggestions()
-        }
-        onSearch()
+        updateFilters { filters -> if (filter in filters) filters else filters + filter }
+    }
+
+    fun pickSuggestion(filter: CourseFilter) {
+        _uiState.update { it.copy(query = "") }
+        addFilter(filter)
     }
 
     fun removeFilter(filter: CourseFilter) {
@@ -117,7 +118,10 @@ class CourseSearchViewModel(
             runCatching {
                 courseRepository.fetchAllCourses(query.semester)
             }.onSuccess { result ->
-                acceptCatalog(result)
+                catalog = result
+                _uiState.update {
+                    it.copy(filterOptions = result.courses.filterOptions()).withSuggestions()
+                }
                 showResult(result, query)
             }.onFailure(::acceptSearchFailure)
         }
@@ -133,13 +137,6 @@ class CourseSearchViewModel(
     private fun CourseSearchUiState.withSuggestions(): CourseSearchUiState = copy(
         suggestions = suggestCourseFilters(catalog?.courses.orEmpty(), query, active = filters.toSet()),
     )
-
-    private fun acceptCatalog(result: CourseResult) {
-        catalog = result
-        _uiState.update {
-            it.copy(filterOptions = result.courses.filterOptions()).withSuggestions()
-        }
-    }
 
     private fun showResult(
         catalog: CourseResult,

@@ -26,6 +26,10 @@ internal sealed interface CourseSearchAction {
         val filter: CourseFilter,
     ) : CourseSearchAction
 
+    data class PickSuggestion(
+        val filter: CourseFilter,
+    ) : CourseSearchAction
+
     data class RemoveFilter(
         val filter: CourseFilter,
     ) : CourseSearchAction
@@ -55,6 +59,8 @@ class CourseSearchBridge {
     ) = send(CourseSearchAction.Submit(semester, query))
 
     fun addFilter(filter: CourseFilter) = send(CourseSearchAction.AddFilter(filter))
+
+    fun pickSuggestion(filter: CourseFilter) = send(CourseSearchAction.PickSuggestion(filter))
 
     fun removeFilter(filter: CourseFilter) = send(CourseSearchAction.RemoveFilter(filter))
 

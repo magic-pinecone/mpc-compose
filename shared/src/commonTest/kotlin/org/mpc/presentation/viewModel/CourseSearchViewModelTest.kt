@@ -143,8 +143,8 @@ val courseSearchViewModelTests by testSuite {
     test("picking a suggestion adds one chip, clears the text, and narrows results") {
         viewModelTest { viewModel, repository ->
             viewModel.updateQuery("115-1", "數學")
-            viewModel.addFilter(CourseFilter.Department("數學系"))
-            viewModel.addFilter(CourseFilter.Department("數學系"))
+            viewModel.pickSuggestion(CourseFilter.Department("數學系"))
+            viewModel.pickSuggestion(CourseFilter.Department("數學系"))
 
             val state = viewModel.uiState.value
             assertEquals(listOf<CourseFilter>(CourseFilter.Department("數學系")), state.filters)
@@ -152,6 +152,18 @@ val courseSearchViewModelTests by testSuite {
             assertEquals(emptyList(), state.suggestions)
             assertEquals(listOf("10001"), viewModel.shownSerials())
             assertEquals(1, repository.fetches)
+        }
+    }
+
+    test("adding a filter from the sheet keeps the typed keyword and searches with both") {
+        viewModelTest { viewModel, _ ->
+            viewModel.updateQuery("115-1", "線性")
+            viewModel.addFilter(CourseFilter.Credits(2.0))
+
+            val state = viewModel.uiState.value
+            assertEquals("線性", state.query)
+            assertEquals(listOf<CourseFilter>(CourseFilter.Credits(2.0)), state.filters)
+            assertEquals(listOf("10002"), viewModel.shownSerials())
         }
     }
 

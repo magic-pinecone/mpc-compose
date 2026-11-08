@@ -51,6 +51,7 @@ val courseSearchBridgeTests by testSuite {
             val department = CourseFilter.Department("數學系")
             bridge.updateQuery(semester = "115-1", query = "數學")
             bridge.addFilter(department)
+            bridge.pickSuggestion(department)
             bridge.setSchedule(setOf(monday1), SlotMatch.FITS_WITHIN)
             bridge.removeFilter(department)
             bridge.clearFilters()
@@ -60,12 +61,13 @@ val courseSearchBridgeTests by testSuite {
                 listOf(
                     CourseSearchAction.UpdateQuery("115-1", "數學"),
                     CourseSearchAction.AddFilter(department),
+                    CourseSearchAction.PickSuggestion(department),
                     CourseSearchAction.SetSchedule(setOf(monday1), SlotMatch.FITS_WITHIN),
                     CourseSearchAction.RemoveFilter(department),
                     CourseSearchAction.ClearFilters,
                     CourseSearchAction.Submit("115-1", ""),
                 ),
-                bridge.actions.take(6).toList(),
+                bridge.actions.take(7).toList(),
             )
         }
     }

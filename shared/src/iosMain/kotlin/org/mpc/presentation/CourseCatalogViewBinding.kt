@@ -54,6 +54,8 @@ fun CourseCatalogViewBinding(
 
                 is CourseSearchAction.AddFilter -> searchViewModel.addFilter(action.filter)
 
+                is CourseSearchAction.PickSuggestion -> searchViewModel.pickSuggestion(action.filter)
+
                 is CourseSearchAction.RemoveFilter -> searchViewModel.removeFilter(action.filter)
 
                 is CourseSearchAction.SetSchedule -> searchViewModel.setSchedule(action.slots, action.match)
