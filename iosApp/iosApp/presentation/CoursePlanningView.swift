@@ -29,7 +29,8 @@ struct CoursePlanningView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.layoutDirection) private var layoutDirection
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    private let semester = "115-1"
+    @Environment(AppRouter.self) private var router
+    private let semester = CourseIdentity.currentSemester
 
     private var selectedCourses: [CourseSummary] {
         planSnapshot.selectedCourses
@@ -197,6 +198,9 @@ struct CoursePlanningView: View {
         .onDisappear {
             planBridge.observeCourseDetailsRequest(observer: nil)
         }
+        .task(id: router.pendingRoute) {
+            await openPendingRoute()
+        }
         .task(id: ObjectIdentifier(planBridge)) {
             for await snapshot in planBridge.planSnapshot {
                 planSnapshot = snapshot
@@ -284,6 +288,24 @@ private extension View {
 }
 
 private extension CoursePlanningView {
+    func openPendingRoute() async {
+        if let query = router.take(\.catalogSearch) {
+            // Results the user asked for should not open behind a sheet left from earlier.
+            courseDetailSelection = nil
+            isShowingSelectedCourses = false
+            isShowingFilters = false
+            activeSection = .catalog
+            catalogQuery = query
+            catalogBridge.submit(semester: semester, query: query)
+        } else if let identity = router.take(\.course) {
+            guard let course = try? await sharedHost.course(
+                semester: identity.semester,
+                serialNumber: identity.serialNumber
+            ) else { return }
+            planBridge.requestCourseDetails(semester: identity.semester, course: course)
+        }
+    }
+
     func clearQueryAfterFilterAdded(old: Int, new: Int) {
         if new > old, catalogSnapshot?.query.isEmpty == true, !catalogQuery.isEmpty {
             catalogQuery = ""
