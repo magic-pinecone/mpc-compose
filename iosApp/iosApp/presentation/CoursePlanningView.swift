@@ -123,7 +123,8 @@ struct CoursePlanningView: View {
             .onChange(of: catalogQuery) { _, newValue in
                 catalogBridge.updateQuery(semester: semester, query: newValue)
             }
-            // Adding a filter makes the ViewModel clear the query; reflect that in the field.
+            // Picking a suggestion makes the ViewModel clear the query; reflect that in the field.
+            // Filters added from the sheet keep the query, so the field is left alone.
             .onChange(of: catalogSnapshot?.filters.count ?? 0, clearQueryAfterFilterAdded)
             // Searching takes over the catalog page, then returns to the page it started from.
             .onChange(of: isSearchPresented) { _, isPresented in
@@ -165,6 +166,8 @@ struct CoursePlanningView: View {
                         } label: {
                             Label("篩選", systemImage: filterSymbol)
                         }
+                        // Without a new identity the item disappears from the bar after a filter
+                        // token is added and the search is dismissed (verified on iOS 26 without it).
                         .id(activeFilterCount > 0)
                         .accessibilityValue("\(activeFilterCount)")
                         .accessibilityIdentifier("course-filters")
@@ -215,8 +218,6 @@ struct CoursePlanningView: View {
                 bridge: catalogBridge,
                 snapshot: catalogSnapshot
             )
-            .presentationDetents([.medium, .large])
-            .presentationDragIndicator(.visible)
         }
         .sheet(isPresented: $isShowingSelectedCourses) {
             SelectedCoursesSheet(
@@ -317,7 +318,7 @@ private extension CoursePlanningView {
                 catalogBridge.removeFilter(filter: token.filter)
             }
             for token in newTokens where !currentIDs.contains(token.id) {
-                catalogBridge.addFilter(filter: token.filter)
+                catalogBridge.pickSuggestion(filter: token.filter)
             }
         }
     }

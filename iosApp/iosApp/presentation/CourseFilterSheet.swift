@@ -12,6 +12,7 @@ struct CourseFilterSheet: View {
     }
 
     @State private var tab: Tab = .filters
+    @State private var detent: PresentationDetent = .medium
     @Environment(\.dismiss) private var dismiss
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
@@ -47,6 +48,8 @@ struct CourseFilterSheet: View {
                     }
                 }
             }
+            // The slot grid is drawn by Compose on the grouped background, so the Form and the sheet match it.
+            .background(Color(uiColor: .systemGroupedBackground).ignoresSafeArea())
             .navigationTitle("篩選")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -58,6 +61,12 @@ struct CourseFilterSheet: View {
                     Button("完成") { dismiss() }
                 }
             }
+        }
+        .presentationDetents([.medium, .large], selection: $detent)
+        .presentationDragIndicator(.visible)
+        .onChange(of: tab) { _, newTab in
+            // The slot grid needs the full height; leave the detent alone when returning to the filters.
+            if newTab == .schedule { detent = .large }
         }
     }
 }
