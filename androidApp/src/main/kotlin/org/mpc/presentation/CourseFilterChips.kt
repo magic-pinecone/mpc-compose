@@ -31,6 +31,7 @@ import org.mpc.domain.model.CourseFilter
 import org.mpc.domain.model.CourseType
 import org.mpc.domain.model.SeatAvailability
 import org.mpc.presentation.formatting.label
+import org.mpc.presentation.formatting.stableKey
 import org.mpc.presentation.theme.MpcTheme
 
 @Composable
@@ -44,7 +45,7 @@ internal fun CourseFilterChipRow(
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        items(filters, key = { it }) { filter ->
+        items(filters, key = { it.stableKey }) { filter ->
             InputChip(
                 selected = false,
                 onClick = { onRemove(filter) },
@@ -67,7 +68,7 @@ internal fun CourseFilterSuggestionList(
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(modifier = modifier) {
-        items(suggestions, key = { it }) { filter ->
+        items(suggestions, key = { it.stableKey }) { filter ->
             ListItem(
                 headlineContent = { Text(filter.label()) },
                 leadingContent = { Icon(filter.icon(), contentDescription = null) },
