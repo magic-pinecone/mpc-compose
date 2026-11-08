@@ -77,14 +77,55 @@ val courseSearchTests by testSuite {
         assertEquals(listOf("10002"), search(courses, query("微積分 黃")))
     }
 
-    test("full-width and traditional variant queries match") {
+    test("full-width queries match half-width text") {
         val courses = listOf(
             course("10001", "台灣史"),
             course("10002", "Calculus"),
+            course("10003", "Algebra"),
         )
-        assertEquals(listOf("10001"), search(courses, query("臺灣")))
         assertEquals(listOf("10002"), search(courses, query("ＣＡＬＣＵＬＵＳ")))
         assertEquals(listOf("10002"), search(courses, query("　calculus　")))
+    }
+
+    test("full-width serial number matches") {
+        val courses = listOf(course("12345", "微積分"), course("10001", "線性代數"))
+        assertEquals(listOf("12345"), search(courses, query("１２３４５")))
+    }
+
+    test("variant forms of the same character match in both directions") {
+        val courses = listOf(
+            course("10001", "台灣史"),
+            course("10002", "臺灣文學"),
+            course("10003", "裡面的世界"),
+            course("10004", "行為科學"),
+            course("10005", "Calculus"),
+        )
+        assertEquals(listOf("10001", "10002"), search(courses, query("臺灣")).sorted())
+        assertEquals(listOf("10001", "10002"), search(courses, query("台灣")).sorted())
+        assertEquals(listOf("10003"), search(courses, query("裏面")))
+        assertEquals(listOf("10003"), search(courses, query("裡面")))
+        assertEquals(listOf("10004"), search(courses, query("行爲")))
+        assertEquals(listOf("10004"), search(courses, query("行為")))
+    }
+
+    test("simplified query matches traditional course fields") {
+        val courses = listOf(
+            course("10001", "微積分", teachers = listOf("陳大明")),
+            course("10002", "線性代數"),
+        )
+        assertEquals(listOf("10001"), search(courses, query("微积分")))
+        assertEquals(listOf("10002"), search(courses, query("线性代数")))
+        assertEquals(listOf("10001"), search(courses, query(teacher = "陈")))
+    }
+
+    test("roman numeral characters match their letter forms") {
+        val courses = listOf(
+            course("10001", "微積分II"),
+            course("10002", "統計學"),
+        )
+        assertEquals(listOf("10001"), search(courses, query("微積分Ⅱ")))
+        val roman = listOf(course("10001", "微積分Ⅱ"), course("10002", "統計學"))
+        assertEquals(listOf("10001"), search(roman, query("微積分II")))
     }
 
     test("teacher and department filters narrow the catalog") {

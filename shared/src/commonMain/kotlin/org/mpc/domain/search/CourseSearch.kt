@@ -5,8 +5,6 @@ import org.mpc.domain.model.CoursePeriod
 import org.mpc.domain.model.CourseQuery
 import org.mpc.domain.model.CourseSummary
 
-private const val FULL_WIDTH_OFFSET = 0xFEE0
-
 private enum class MatchTier(
     val score: Int,
     val matches: (course: NormalizedCourse, token: String) -> Boolean,
@@ -26,18 +24,11 @@ private class NormalizedCourse(course: CourseSummary) {
     val department = listOf(course.departmentName, course.collegeName).map(::normalizeForSearch)
 }
 
-fun normalizeForSearch(text: String): String = buildString {
-    for (char in text) {
-        append(
-            when (char) {
-                '　' -> ' '
-                '臺' -> '台'
-                in '！'..'～' -> (char.code - FULL_WIDTH_OFFSET).toChar().lowercaseChar()
-                else -> char.lowercaseChar()
-            },
-        )
-    }
-}.trim().replace(Regex("\\s+"), " ")
+fun normalizeForSearch(text: String): String = foldTraditionalToSimplified(normalizeCompatibility(text).lowercase())
+    .trim()
+    .replace(WHITESPACE, " ")
+
+private val WHITESPACE = Regex("\\s+")
 
 fun searchCourses(
     courses: List<CourseSummary>,
