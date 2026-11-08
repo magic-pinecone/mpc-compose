@@ -10,6 +10,7 @@ import dev.zacsweers.metrox.viewmodel.ViewModelGraph
 import org.mpc.data.local.database.AppDatabase
 import org.mpc.domain.html.HtmlParser
 import org.mpc.domain.repository.AppSettingsRepository
+import org.mpc.domain.repository.CoursePlanRepository
 import org.mpc.domain.repository.CourseRepository
 import org.mpc.domain.repository.EeclassCourseRepository
 import org.mpc.domain.repository.PortalFavoritesRepository
@@ -20,6 +21,7 @@ import org.mpc.presentation.state.CoursePlanDraftStore
 interface AppGraph : ViewModelGraph {
     val appSettingsRepository: AppSettingsRepository
     val courseRepository: CourseRepository
+    val coursePlanRepository: CoursePlanRepository
     val coursePlanDraftStore: CoursePlanDraftStore
     val campusSessions: CampusSessions
     val portalFavoritesRepository: PortalFavoritesRepository
