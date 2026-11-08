@@ -18,6 +18,7 @@ import org.mpc.di.AppGraph
 import org.mpc.domain.model.AppSettings
 import org.mpc.domain.model.AppThemeMode
 import org.mpc.domain.model.CourseDetail
+import org.mpc.domain.model.CourseQuery
 import org.mpc.domain.model.CourseResult
 import org.mpc.domain.model.CourseSerialNo
 import org.mpc.domain.model.PortalAuthenticationMode
@@ -138,7 +139,7 @@ private class SuspendedDetailRepository(
 
     override suspend fun fetchAllCourses(semester: String): CourseResult = error("No catalog request expected")
 
-    override suspend fun fetchCourses(semester: String, query: String): CourseResult = error("No catalog request expected")
+    override suspend fun searchCourses(query: CourseQuery): CourseResult = error("No catalog request expected")
 
     override suspend fun fetchCoursesBySerialNo(semester: String, serialNos: List<CourseSerialNo>): CourseResult = error("No catalog request expected")
 

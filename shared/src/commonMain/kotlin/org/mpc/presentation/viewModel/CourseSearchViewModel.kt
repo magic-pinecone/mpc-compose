@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.mpc.domain.model.CourseQuery
 import org.mpc.domain.model.CourseResult
 import org.mpc.domain.repository.CourseRepository
 import org.mpc.presentation.state.CourseSearchError
@@ -83,7 +84,7 @@ class CourseSearchViewModel(
                 if (query.isBlank()) {
                     courseRepository.fetchAllCourses(semester)
                 } else {
-                    courseRepository.fetchCourses(semester, query)
+                    courseRepository.searchCourses(CourseQuery(semester = semester, keyword = query))
                 }
             }.onSuccess { result ->
                 acceptSearchResult(result)
