@@ -1,11 +1,12 @@
 import AppIntents
 @preconcurrency import Shared
 
+#if !SIRI_AI_PREVIEW
 @available(iOS 27.0, *)
 @AppIntent(schema: .system.searchInApp)
 struct SearchCoursesInAppIntent: ShowInAppSearchResultsIntent {
     static let title: LocalizedStringResource = "在選課中搜尋"
-    static let description = IntentDescription("開啟選課並搜尋課程。")
+    static let description = IntentDescription("開啟神奇松果的選課畫面，並將搜尋內容帶入關鍵字欄位。")
     static let searchScopes: [StringSearchScope] = [.general]
 
     @Parameter(title: "搜尋內容", requestValueDialog: "要搜尋什麼課程？")
@@ -19,40 +20,74 @@ struct SearchCoursesInAppIntent: ShowInAppSearchResultsIntent {
         return .result()
     }
 }
+#endif
 
 /// The Course Catalog search with the same keyword and filters as the search bar and filter sheet, answered in Siri.
 struct FindCoursesIntent: AppIntent {
     static let title: LocalizedStringResource = "找課程"
-    static let description = IntentDescription("用選課的搜尋與篩選條件找本學期的課程，直接顯示結果。")
+    static let description = IntentDescription(
+        "依關鍵字與篩選條件搜尋本學期課程，直接在 Siri 回覆結果。可只指定篩選條件，不必提供關鍵字。上課時段篩選只保留所有上課時間都落在所選範圍內的課程。"
+    )
+#if SIRI_AI_PREVIEW
+    static let isDiscoverable = false
+#endif
 
-    @Parameter(title: "關鍵字", description: "課名、課號、老師或系所。", requestValueDialog: "要找什麼課？")
+    @Parameter(
+        title: "關鍵字",
+        description: "課名、課號或其他搜尋文字。學分、星期、時段、老師、系所等條件使用對應參數；未指定關鍵字時留空。",
+        requestValueDialog: "要找什麼課？"
+    )
     var keyword: String?
 
-    @Parameter(title: "課程類型")
+    @Parameter(title: "課程類型", description: "只找所選修別的課程：必修或選修。")
     var courseType: CourseTypeOption?
 
-    @Parameter(title: "名額")
+    @Parameter(
+        title: "名額",
+        description: "尚有名額或已額滿；依目錄資料判斷，可能與即時選課狀態不同。"
+    )
     var seats: SeatsOption?
 
-    @Parameter(title: "學分", optionsProvider: CreditOptions())
+    @Parameter(title: "學分", description: "可多選；課程符合其中一個所選學分數即可。", optionsProvider: CreditOptions())
     var credits: [Double]?
 
-    @Parameter(title: "系所", optionsProvider: DepartmentOptions())
+    @Parameter(
+        title: "系所",
+        description: "開課系所名稱；可多選，符合其中一個即可。",
+        optionsProvider: DepartmentOptions()
+    )
     var departments: [String]?
 
-    @Parameter(title: "學院", optionsProvider: CollegeOptions())
+    @Parameter(
+        title: "學院",
+        description: "開課學院名稱；可多選，符合其中一個即可。",
+        optionsProvider: CollegeOptions()
+    )
     var colleges: [String]?
 
-    @Parameter(title: "老師", optionsProvider: TeacherOptions())
+    @Parameter(
+        title: "老師",
+        description: "授課老師姓名；可多選，符合其中一位即可。",
+        optionsProvider: TeacherOptions()
+    )
     var teachers: [String]?
 
-    @Parameter(title: "星期")
+    @Parameter(
+        title: "星期",
+        description: "篩選每週上課日；未指定星期但選了節次時，任何星期都符合。"
+    )
     var day: WeekdayOption?
 
-    @Parameter(title: "時段")
+    @Parameter(
+        title: "時段",
+        description: "上午、中午、下午或晚上會轉換為課表節次，並與節次條件合併。"
+    )
     var timeOfDay: TimeOfDayOption?
 
-    @Parameter(title: "節次")
+    @Parameter(
+        title: "節次",
+        description: "可多選節次；與時段條件合併。未指定星期時，包含所有星期。"
+    )
     var periods: [PeriodOption]?
 
     static var parameterSummary: some ParameterSummary {
@@ -72,10 +107,16 @@ struct FindCoursesIntent: AppIntent {
     @Dependency private var sharedHost: IosSharedHost
 
     func perform() async throws -> some ReturnsValue<[CourseEntity]> & ProvidesDialog & ShowsSnippetView {
+        try await execute(missingCriteriaError: $keyword.needsValueError())
+    }
+
+    func execute(
+        missingCriteriaError: AppIntentError
+    ) async throws -> some ReturnsValue<[CourseEntity]> & ProvidesDialog & ShowsSnippetView {
         let semester = CourseIdentity.currentSemester
         let query = try await courseQuery(semester: semester)
         if query.keyword.isEmpty, query.filters.isEmpty {
-            throw $keyword.needsValueError()
+            throw missingCriteriaError
         }
         let courses = try await sharedHost.findCourses(
             semester: semester,

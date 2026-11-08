@@ -1,112 +1,102 @@
 {
   "sourceLanguage": "en",
   "strings": {
-    "Check my next class with ${applicationName}": {
-      "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "用${applicationName}查下一堂課"
-          }
-        }
-      }
-    },
-    "Find ${timeOfDay} courses with ${applicationName}": {
-      "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "用${applicationName}找${timeOfDay}的課"
-          }
-        }
-      }
-    },
-    "Find ${courseType} courses with ${applicationName}": {
-      "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "用${applicationName}找${courseType}課"
-          }
-        }
-      }
-    },
-    "Find courses that are ${seats} with ${applicationName}": {
-      "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "用${applicationName}找${seats}的課"
-          }
-        }
-      }
-    },
-    "Find courses on ${day} with ${applicationName}": {
-      "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "用${applicationName}找${day}的課"
-          }
-        }
-      }
-    },
     "Find courses with ${applicationName}": {
+      "extractionState": "extracted_with_value",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "用${applicationName}找課"
+        "en": {
+          "stringSet": {
+            "state": "new",
+            "values": [
+              "Find courses with ${applicationName}",
+              "Find ${timeOfDay} courses with ${applicationName}",
+              "Find courses on ${day} with ${applicationName}",
+              "Find ${courseType} courses with ${applicationName}",
+              "Find courses that are ${seats} with ${applicationName}"
+            ]
           }
-        }
-      }
-    },
-    "Next class in ${applicationName}": {
-      "localizations": {
+        },
         "zh-Hant": {
-          "stringUnit": {
+          "stringSet": {
             "state": "translated",
-            "value": "${applicationName}下一堂課"
-          }
-        }
-      }
-    },
-    "Show today's classes in ${applicationName}": {
-      "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "用${applicationName}看今天的課"
-          }
-        }
-      }
-    },
-    "What classes do I have on ${day} in ${applicationName}": {
-      "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "${applicationName}${day}有什麼課"
+            "values": [
+              "用${applicationName}找課",
+              "用${applicationName}找${timeOfDay}的課",
+              "用${applicationName}找${day}的課",
+              "用${applicationName}找${courseType}課",
+              "用${applicationName}找${seats}的課"
+            ]
           }
         }
       }
     },
     "What classes do I have today in ${applicationName}": {
+      "extractionState": "extracted_with_value",
       "localizations": {
+        "en": {
+          "stringSet": {
+            "state": "new",
+            "values": [
+              "What classes do I have today in ${applicationName}",
+              "What classes do I have on ${day} in ${applicationName}",
+              "Show today's classes in ${applicationName}"
+            ]
+          }
+        },
         "zh-Hant": {
-          "stringUnit": {
+          "stringSet": {
             "state": "translated",
-            "value": "${applicationName}今天有什麼課"
+            "values": [
+              "${applicationName}今天有什麼課",
+              "${applicationName}${day}有什麼課",
+              "用${applicationName}看今天的課"
+            ]
           }
         }
       }
     },
     "What's my next class in ${applicationName}": {
+      "extractionState": "extracted_with_value",
       "localizations": {
+        "en": {
+          "stringSet": {
+            "state": "new",
+            "values": [
+              "What's my next class in ${applicationName}",
+              "Next class in ${applicationName}",
+              "Check my next class with ${applicationName}"
+            ]
+          }
+        },
         "zh-Hant": {
-          "stringUnit": {
+          "stringSet": {
             "state": "translated",
-            "value": "${applicationName}下一堂課是什麼"
+            "values": [
+              "${applicationName}下一堂課是什麼",
+              "${applicationName}下一堂課",
+              "用${applicationName}查下一堂課"
+            ]
+          }
+        }
+      }
+    },
+    "Search the course catalog with ${applicationName}": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringSet": {
+            "state": "new",
+            "values": [
+              "Search the course catalog with ${applicationName}"
+            ]
+          }
+        },
+        "zh-Hant": {
+          "stringSet": {
+            "state": "translated",
+            "values": [
+              "用${applicationName}找課程"
+            ]
           }
         }
       }

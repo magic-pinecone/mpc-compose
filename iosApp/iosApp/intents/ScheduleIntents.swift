@@ -1,9 +1,12 @@
 import AppIntents
 @preconcurrency import Shared
 
+#if SIRI_AI_PREVIEW
+@AppIntent(.tool)
+#endif
 struct NextClassIntent: AppIntent {
     static let title: LocalizedStringResource = "下一堂課"
-    static let description = IntentDescription("從已儲存的課表找出下一堂課。")
+    static let description = IntentDescription("依目前時間查詢已儲存的本學期課表，回覆下一堂課；若正在上課，回覆目前課程和下課時間。")
 
     @Dependency private var sharedHost: IosSharedHost
 
@@ -38,9 +41,12 @@ struct NextClassIntent: AppIntent {
     }
 }
 
+#if SIRI_AI_PREVIEW
+@AppIntent(.tool)
+#endif
 struct ClassesOnDayIntent: AppIntent {
     static let title: LocalizedStringResource = "某天的課"
-    static let description = IntentDescription("列出已儲存的課表在某一天的課程。")
+    static let description = IntentDescription("列出已儲存的本學期課表在指定星期的課程；未指定星期時列出今天。")
 
     @Parameter(title: "星期", description: "不指定時為今天。")
     var day: WeekdayOption?

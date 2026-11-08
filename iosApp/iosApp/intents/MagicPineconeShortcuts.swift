@@ -23,6 +23,14 @@ struct MagicPineconeShortcuts: AppShortcutsProvider {
             shortTitle: "今天的課",
             systemImageName: "calendar"
         )
+#if SIRI_AI_PREVIEW
+        AppShortcut(
+            intent: FindCoursesToolIntent(),
+            phrases: ["Search the course catalog with \(.applicationName)"],
+            shortTitle: "找課",
+            systemImageName: "magnifyingglass"
+        )
+#else
         AppShortcut(
             intent: FindCoursesIntent(),
             phrases: [
@@ -35,5 +43,6 @@ struct MagicPineconeShortcuts: AppShortcutsProvider {
             shortTitle: "找課",
             systemImageName: "magnifyingglass"
         )
+#endif
     }
 }
