@@ -106,9 +106,10 @@ struct CoursePlanningView: View {
                 prompt: "搜尋課程名稱"
             )
             .onSubmit(of: .search) {
-                catalogBridge.submitSearch(
-                    request: CourseSearchRequest(semester: semester, query: catalogQuery)
-                )
+                catalogBridge.submit(semester: semester, query: catalogQuery)
+            }
+            .onChange(of: catalogQuery) { _, newValue in
+                catalogBridge.updateQuery(semester: semester, query: newValue)
             }
             // Searching takes over the catalog page, then returns to the page it started from.
             .onChange(of: isSearchPresented) { _, isPresented in

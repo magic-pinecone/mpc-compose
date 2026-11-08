@@ -58,7 +58,7 @@ struct CourseCatalogView: View {
     }
 
     private func submitSearch() {
-        bridge.submitSearch(request: CourseSearchRequest(semester: semester, query: query))
+        bridge.submit(semester: semester, query: query)
     }
 }
 
