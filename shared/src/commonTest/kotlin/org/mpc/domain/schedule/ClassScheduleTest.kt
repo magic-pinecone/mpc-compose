@@ -47,6 +47,12 @@ val classScheduleTests by testSuite {
         assertEquals(clock(11) to clock(13, 50), meetings[0].startMinute to meetings[0].endMinute)
     }
 
+    test("a course lists its weekly meetings Monday first") {
+        val meetings = calculus.meetings()
+        assertEquals(listOf(CourseDay.MONDAY, CourseDay.WEDNESDAY), meetings.map { it.day })
+        assertEquals(listOf(CoursePeriod.ONE to CoursePeriod.TWO, CoursePeriod.THREE to CoursePeriod.THREE), meetings.map { it.firstPeriod to it.lastPeriod })
+    }
+
     test("meetings are sorted by start across courses") {
         val meetings = schedulePlan(physics, calculus).meetingsOn(CourseDay.MONDAY)
         assertEquals(listOf("10001", "10002"), meetings.map { it.course.serialNumber })

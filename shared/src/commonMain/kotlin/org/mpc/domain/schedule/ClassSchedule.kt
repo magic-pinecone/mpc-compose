@@ -54,6 +54,9 @@ private fun CoursePlan.nextMeetingAfter(day: CourseDay): UpcomingMeeting? {
     }
 }
 
+/** Every weekly meeting of this course, Monday first; consecutive periods on a day form one meeting. */
+fun CourseSummary.meetings(): List<ClassMeeting> = weekdays.flatMap { meetingsOn(it) }
+
 private fun CourseSummary.meetingsOn(day: CourseDay): List<ClassMeeting> {
     val periods = classTimes
         .filter { it.day == day }
