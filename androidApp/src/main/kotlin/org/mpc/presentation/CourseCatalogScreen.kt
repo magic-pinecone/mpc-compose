@@ -3,11 +3,15 @@ package org.mpc.presentation
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -20,12 +24,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import org.mpc.domain.model.CourseSummary
+import org.mpc.domain.model.SlotMatch
 import org.mpc.presentation.state.CoursePlanUiState
 import org.mpc.presentation.viewModel.CoursePlanViewModel
 import org.mpc.presentation.viewModel.CourseSearchViewModel
@@ -43,6 +49,8 @@ fun CourseCatalogScreen(
     val searchUiState by searchViewModel.uiState.collectAsStateWithLifecycle()
     val planUiState by planViewModel.uiState.collectAsStateWithLifecycle()
     var query by rememberSaveable { mutableStateOf(searchUiState.query) }
+    var showsFilterSheet by rememberSaveable { mutableStateOf(false) }
+    val filterCount = searchUiState.filters.size
     val keyboard = LocalSoftwareKeyboardController.current
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
@@ -82,12 +90,21 @@ fun CourseCatalogScreen(
                 }
             },
             trailingIcon = {
-                if (query.isNotEmpty()) {
-                    IconButton(onClick = {
-                        query = ""
-                        submitSearch()
-                    }) {
-                        Icon(Icons.Default.Close, contentDescription = "清除搜尋")
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (query.isNotEmpty()) {
+                        IconButton(onClick = {
+                            query = ""
+                            submitSearch()
+                        }) {
+                            Icon(Icons.Default.Close, contentDescription = "清除搜尋")
+                        }
+                    }
+                    IconButton(onClick = { showsFilterSheet = true }) {
+                        BadgedBox(badge = {
+                            if (filterCount > 0) Badge { Text("$filterCount") }
+                        }) {
+                            Icon(Icons.Default.FilterList, contentDescription = "篩選條件，已套用 $filterCount 項")
+                        }
                     }
                 }
             },
@@ -123,5 +140,19 @@ fun CourseCatalogScreen(
                 onRetry = { submitSearch() },
             )
         }
+    }
+
+    if (showsFilterSheet) {
+        CourseFilterSheet(
+            filters = searchUiState.filters,
+            options = searchUiState.filterOptions,
+            actions = CourseFilterActions(
+                onAdd = searchViewModel::addFilter,
+                onRemove = searchViewModel::removeFilter,
+                onClear = searchViewModel::clearFilters,
+                onScheduleChange = { slots -> searchViewModel.setSchedule(slots, SlotMatch.FITS_WITHIN) },
+            ),
+            onDismissRequest = { showsFilterSheet = false },
+        )
     }
 }
