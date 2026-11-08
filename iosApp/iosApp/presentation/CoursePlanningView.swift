@@ -1,3 +1,4 @@
+import AppIntents
 import Shared
 import SwiftUI
 import UIKit
@@ -201,6 +202,8 @@ struct CoursePlanningView: View {
         .task(id: router.pendingRoute) {
             await openPendingRoute()
         }
+        // Looking at the timetable is when "what's my next class" is worth suggesting.
+        .task(id: activeSection) { if activeSection == .timetable { _ = try? await NextClassIntent().donate() } }
         .task(id: ObjectIdentifier(planBridge)) {
             for await snapshot in planBridge.planSnapshot {
                 planSnapshot = snapshot

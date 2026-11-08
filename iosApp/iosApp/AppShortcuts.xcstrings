@@ -1,0 +1,96 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "Check my next class with ${applicationName}": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用${applicationName}查下一堂課"
+          }
+        }
+      }
+    },
+    "Find ${timeOfDay} courses with ${applicationName}": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用${applicationName}找${timeOfDay}的課"
+          }
+        }
+      }
+    },
+    "Find courses on ${day} with ${applicationName}": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用${applicationName}找${day}的課"
+          }
+        }
+      }
+    },
+    "Find courses with ${applicationName}": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用${applicationName}找課"
+          }
+        }
+      }
+    },
+    "Next class in ${applicationName}": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "${applicationName}下一堂課"
+          }
+        }
+      }
+    },
+    "Show today's classes in ${applicationName}": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用${applicationName}看今天的課"
+          }
+        }
+      }
+    },
+    "What classes do I have on ${day} in ${applicationName}": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "${applicationName}${day}有什麼課"
+          }
+        }
+      }
+    },
+    "What classes do I have today in ${applicationName}": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "${applicationName}今天有什麼課"
+          }
+        }
+      }
+    },
+    "What's my next class in ${applicationName}": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "${applicationName}下一堂課是什麼"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

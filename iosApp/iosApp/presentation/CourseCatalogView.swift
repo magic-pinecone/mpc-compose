@@ -143,6 +143,9 @@ struct CourseCatalogResultsView: View {
                                 onOpenDetails: { onCourseDetails(course) },
                                 onToggleSelection: { onToggleCourse(course) }
                             )
+                            .courseEntityContext(
+                                CourseIdentity(semester: snapshot.semester, serialNumber: course.serialNumber)
+                            )
                         }
                     }
                     .padding(.horizontal, 16)

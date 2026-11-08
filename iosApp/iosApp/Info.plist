@@ -6,5 +6,20 @@
         <string>神奇松果</string>
         <key>CADisableMinimumFrameDurationOnPhone</key>
         <true/>
+        <key>INAlternativeAppNames</key>
+        <array>
+            <dict>
+                <key>INAlternativeAppName</key>
+                <string>神奇松果</string>
+                <key>INAlternativeAppNamePronunciationHint</key>
+                <string>shén qí sōng guǒ</string>
+            </dict>
+            <dict>
+                <key>INAlternativeAppName</key>
+                <string>Magic Pinecone</string>
+                <key>INAlternativeAppNamePronunciationHint</key>
+                <string>magic pine cone</string>
+            </dict>
+        </array>
     </dict>
 </plist>
