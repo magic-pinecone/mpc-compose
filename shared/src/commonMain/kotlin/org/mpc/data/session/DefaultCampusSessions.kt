@@ -127,7 +127,7 @@ private class SiteSession(
 
     /** Loads [path], recovering the session as [CampusSessions.fetch] describes, and records the status. Holds the lock. */
     private suspend fun load(path: SitePath): Loaded {
-        var attempt = Attempt(portalState.automaticSignIn(mode(), now()))
+        var attempt = Attempt()
         var step: Step = Step.FetchPage
         var html = ""
         while (step !is Step.Finish) {
@@ -145,7 +145,12 @@ private class SiteSession(
 
                 is Step.Finish -> error("finished steps exit the loop")
             }
-            val (nextAttempt, nextStep) = next(attempt, observation)
+            val permission = if (observation == Observation.PortalSignedOut) {
+                portalState.automaticSignIn(mode(), now())
+            } else {
+                null
+            }
+            val (nextAttempt, nextStep) = next(attempt, observation, permission)
             attempt = nextAttempt
             step = nextStep
         }

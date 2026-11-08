@@ -87,27 +87,26 @@ internal sealed interface Step {
 }
 
 /**
- * Budget and permissions for one fetch. Each Portal sign-in buys one more handoff, so a fetch makes at most two
+ * Budget for one fetch. Each Portal sign-in buys one more handoff, so a fetch makes at most two
  * handoffs and at most one Portal sign-in.
  */
 internal data class Attempt(
-    val automaticSignIn: AutomaticSignIn,
     val handoffs: Int = 0,
     val portalSignIns: Int = 0,
 )
 
 private const val MAX_AUTOMATIC_PORTAL_SIGN_INS = 1
 
-/** The whole recovery policy: given what a step observed, choose the next step. Every path finishes. */
-internal fun next(attempt: Attempt, observed: Observation): Pair<Attempt, Step> = when (observed) {
+/** Chooses the next step. [permission] is required only when [observed] is [Observation.PortalSignedOut]. */
+internal fun next(attempt: Attempt, observed: Observation, permission: AutomaticSignIn? = null): Pair<Attempt, Step> = when (observed) {
     Observation.PageOk -> attempt to Step.Finish(FetchOutcome.Page)
 
     Observation.SiteSignedOut, Observation.PortalSignInDone -> handoffOrGiveUp(attempt)
 
     Observation.HandoffDone -> attempt to Step.FetchPage
 
-    Observation.PortalSignedOut -> when (val permission = attempt.automaticSignIn) {
-        is AutomaticSignIn.Refused -> attempt to Step.Finish(FetchOutcome.NeedsPortal(permission.need))
+    Observation.PortalSignedOut -> when (val signIn = requireNotNull(permission)) {
+        is AutomaticSignIn.Refused -> attempt to Step.Finish(FetchOutcome.NeedsPortal(signIn.need))
 
         AutomaticSignIn.Allowed ->
             if (attempt.portalSignIns < MAX_AUTOMATIC_PORTAL_SIGN_INS) {

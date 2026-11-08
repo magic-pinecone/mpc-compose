@@ -52,6 +52,12 @@ private object UnusedHtmlParser : HtmlParser {
     override fun parse(html: String, baseUrl: String): HtmlElement = fail("Session logic must not parse HTML")
 }
 
+private object UnusedPortalGuardStore : PortalGuardStore {
+    override suspend fun read(): PortalGuard = fail("A direct site request must not read Portal's guard")
+
+    override suspend fun write(guard: PortalGuard) = fail("A direct site request must not write Portal's guard")
+}
+
 /** Answers each request from a script and records what the session layer asked for, in order. */
 private class ScriptedTransport(
     private val pages: ArrayDeque<TransportResult> = ArrayDeque(),
@@ -133,9 +139,8 @@ val defaultCampusSessionsTests by testSuite {
 
     test("checking and loading a signed-in site leave Portal untouched") {
         runTest {
-            val guardStore = InMemoryPortalGuardStore(PortalGuard(block = PortalBlock.DISPLACED))
             val transport = ScriptedTransport(pages = ArrayDeque(listOf(page(SIGNED_IN_DASHBOARD), page(SIGNED_IN_DASHBOARD))))
-            val sessions = sessions(transport, guardStore)
+            val sessions = sessions(transport, UnusedPortalGuardStore)
 
             sessions.refresh(TEST_SITE)
             assertEquals(SiteResult.Page("dashboard"), sessions.fetch(TEST_SITE, TIMETABLE) { it })
@@ -149,6 +154,19 @@ val defaultCampusSessionsTests by testSuite {
                 ),
                 transport.events,
             )
+        }
+    }
+
+    test("a failed site request leaves Portal untouched") {
+        runTest {
+            val transport = ScriptedTransport(pages = ArrayDeque(listOf(TransportResult.Failed(Unavailability.NETWORK))))
+            val sessions = sessions(transport, UnusedPortalGuardStore)
+
+            assertEquals(SiteResult.Unavailable(Unavailability.NETWORK), sessions.fetch(TEST_SITE, TIMETABLE) { it })
+
+            assertEquals(SiteStatus.Unavailable(Unavailability.NETWORK), sessions.status(TEST_SITE).value)
+            assertEquals(PortalStatus.Unknown, sessions.portal.value)
+            assertEquals(listOf("get https://ncueeclass.ncu.edu.tw/dashboard/myTimeTable"), transport.events)
         }
     }
 

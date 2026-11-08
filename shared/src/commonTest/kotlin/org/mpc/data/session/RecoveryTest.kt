@@ -10,11 +10,12 @@ import kotlin.time.Instant
 
 /** Plays [observations] in order from a fresh fetch and returns every step the policy chose. */
 private fun play(permission: AutomaticSignIn, vararg observations: Observation): List<Step> {
-    var attempt = Attempt(permission)
+    var attempt = Attempt()
     val steps = mutableListOf<Step>(Step.FetchPage)
     for (observation in observations) {
         check(steps.last() !is Step.Finish) { "observation after the fetch finished" }
-        val (nextAttempt, step) = next(attempt, observation)
+        val signIn = permission.takeIf { observation == Observation.PortalSignedOut }
+        val (nextAttempt, step) = next(attempt, observation, signIn)
         attempt = nextAttempt
         steps += step
     }
