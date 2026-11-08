@@ -12,6 +12,7 @@ struct CourseCatalogView: View {
     @Binding var query: String
     let bridge: CourseSearchBridge
     let catalogSnapshot: CourseCatalogSnapshot?
+    let onShowFilters: () -> Void
 
     private var selectedSerialNumbers: Set<String> {
         Set(selectedCourses.map(\.serialNumber))
@@ -34,6 +35,7 @@ struct CourseCatalogView: View {
                 selectedSerialNumbers: selectedSerialNumbers,
                 canEditPlan: canEditPlan,
                 isCompact: isCompact,
+                onShowFilters: onShowFilters,
                 onRetry: submitSearch,
                 onCourseDetails: { course in
                     planBridge.requestCourseDetails(semester: semester, course: course)
@@ -44,12 +46,6 @@ struct CourseCatalogView: View {
             )
         }
         .background(Color(uiColor: .systemGroupedBackground).ignoresSafeArea())
-        // TODO: optimize user experience when using bopomofo, and maybe add a debounce
-        .onChange(of: query) { _, newValue in
-            if newValue.isEmpty {
-                submitSearch()
-            }
-        }
     }
 
     private func submitSearch() {
@@ -62,11 +58,51 @@ struct CourseCatalogResultsView: View {
     let selectedSerialNumbers: Set<String>
     let canEditPlan: Bool
     let isCompact: Bool
+    let onShowFilters: () -> Void
     let onRetry: () -> Void
     let onCourseDetails: (CourseSummary) -> Void
     let onToggleCourse: (CourseSummary) -> Void
 
+    private var filterCount: Int {
+        snapshot?.filters.count ?? 0
+    }
+
     var body: some View {
+        VStack(spacing: 0) {
+            header
+            content
+        }
+    }
+
+    // The search field replaces the navigation toolbar on iPhone, so the filter button lives here.
+    private var header: some View {
+        HStack {
+            if let snapshot, !snapshot.isLoading, snapshot.failureMessage == nil, !snapshot.courses.isEmpty {
+                Text("共 \(snapshot.courses.count) 門課程")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+            Button(action: onShowFilters) {
+                Label(
+                    "篩選",
+                    systemImage: filterCount > 0
+                        ? "line.3.horizontal.decrease.circle.fill"
+                        : "line.3.horizontal.decrease.circle"
+                )
+                .labelStyle(.iconOnly)
+                .font(.title3)
+            }
+            .accessibilityValue("\(filterCount)")
+            .accessibilityIdentifier("course-filters")
+        }
+        .padding(.horizontal, 18)
+        .padding(.top, 8)
+        .frame(minHeight: 44)
+    }
+
+    @ViewBuilder
+    private var content: some View {
         if let snapshot {
             if snapshot.isLoading {
                 CourseCatalogFeedbackView(
@@ -98,11 +134,6 @@ struct CourseCatalogResultsView: View {
             } else {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: isCompact ? 8 : 12) {
-                        Text("共 \(snapshot.courses.count) 門課程")
-                            .font(.subheadline.weight(.medium))
-                            .foregroundStyle(.secondary)
-                            .padding(.horizontal, 2)
-
                         ForEach(snapshot.courses, id: \.serialNumber) { course in
                             CourseCatalogCard(
                                 course: course,
@@ -115,7 +146,7 @@ struct CourseCatalogResultsView: View {
                         }
                     }
                     .padding(.horizontal, 16)
-                    .padding(.top, 16)
+                    .padding(.top, 4)
                     .padding(.bottom, 24)
                 }
             }

@@ -24,6 +24,8 @@ struct CoursePlanningView: View {
     @State private var catalogBridge = CourseSearchBridge()
     @State private var catalogSnapshot: CourseCatalogSnapshot?
     @State private var isShowingFilters = false
+    @State private var isHidingTokens = false
+        @State private var emptiedEvent = SearchEmptiedEvent()
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.layoutDirection) private var layoutDirection
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -57,7 +59,8 @@ struct CoursePlanningView: View {
                     semester: semester,
                     query: $catalogQuery,
                     bridge: catalogBridge,
-                    catalogSnapshot: catalogSnapshot
+                    catalogSnapshot: catalogSnapshot,
+                    onShowFilters: { isShowingFilters = true }
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .offset(x: isWide ? 0 : pageOffset(for: .catalog, width: geometry.size.width))
@@ -120,8 +123,11 @@ struct CoursePlanningView: View {
             .onSubmit(of: .search) {
                 catalogBridge.submit(semester: semester, query: catalogQuery)
             }
-            .onChange(of: catalogQuery) { _, newValue in
+            .onChange(of: catalogQuery) { old, newValue in
                 catalogBridge.updateQuery(semester: semester, query: newValue)
+                if newValue.isEmpty, !old.isEmpty {
+                    noteEmptied { $0.textBeforeEmptied = old }
+                }
             }
             // Picking a suggestion makes the ViewModel clear the query; reflect that in the field.
             // Filters added from the sheet keep the query, so the field is left alone.
@@ -160,18 +166,7 @@ struct CoursePlanningView: View {
                 }
 
                 if isWide || activeSection == .catalog {
-                    ToolbarItemGroup(placement: .topBarTrailing) {
-                        Button {
-                            isShowingFilters = true
-                        } label: {
-                            Label("篩選", systemImage: filterSymbol)
-                        }
-                        // Without a new identity the item disappears from the bar after a filter
-                        // token is added and the search is dismissed (verified on iOS 26 without it).
-                        .id(activeFilterCount > 0)
-                        .accessibilityValue("\(activeFilterCount)")
-                        .accessibilityIdentifier("course-filters")
-
+                    ToolbarItem(placement: .topBarTrailing) {
                         Menu {
                             Toggle(
                                 "精簡課程卡片", systemImage: "rectangle.compress.vertical",
@@ -289,18 +284,10 @@ private extension View {
 }
 
 private extension CoursePlanningView {
-    var filterSymbol: String {
-        activeFilterCount > 0 ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle"
-    }
-
     func clearQueryAfterFilterAdded(old: Int, new: Int) {
         if new > old, catalogSnapshot?.query.isEmpty == true, !catalogQuery.isEmpty {
             catalogQuery = ""
         }
-    }
-
-    var activeFilterCount: Int {
-        catalogSnapshot?.filters.count ?? 0
     }
 
     var suggestionTokens: [CourseFilterToken] {
@@ -309,17 +296,69 @@ private extension CoursePlanningView {
 
     var tokensBinding: Binding<[CourseFilterToken]> {
         Binding {
-            (catalogSnapshot?.filters ?? []).map(CourseFilterToken.init)
+            guard !isHidingTokens else { return [] }
+            return (catalogSnapshot?.filters ?? []).map(CourseFilterToken.init)
         } set: { newTokens in
             let current = (catalogSnapshot?.filters ?? []).map(CourseFilterToken.init)
             let newIDs = Set(newTokens.map(\.id))
             let currentIDs = Set(current.map(\.id))
-            for token in current where !newIDs.contains(token.id) {
-                catalogBridge.removeFilter(filter: token.filter)
-            }
             for token in newTokens where !currentIDs.contains(token.id) {
                 catalogBridge.pickSuggestion(filter: token.filter)
             }
+            let removed = current.filter { !newIDs.contains($0.id) }
+            guard !removed.isEmpty else { return }
+            noteEmptied {
+                let known = $0.removedTokens
+                $0.removedTokens += removed.filter { !known.contains($0) }
+                $0.hadTokens = current.count
+            }
         }
     }
+
+    // SwiftUI reports Close, the field's clear button and a token backspace as text and token
+    // changes. Collect them for one turn, then tell them apart by whether search is still presented.
+    func noteEmptied(_ update: (inout SearchEmptiedEvent) -> Void) {
+        let isFirst = !emptiedEvent.isPending
+        update(&emptiedEvent)
+        emptiedEvent.isPending = true
+        guard isFirst else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15, execute: resolveEmptied)
+    }
+
+    // The field drops its tokens on Close and keeps them when the binding value never changes,
+    // so publish an empty array for one turn before the real filters.
+    func restoreTokens() {
+        isHidingTokens = true
+        DispatchQueue.main.async { isHidingTokens = false }
+    }
+
+    func resolveEmptied() {
+        let event = emptiedEvent
+        emptiedEvent = SearchEmptiedEvent()
+        if !isSearchPresented {
+            // Close only leaves focus: keep the text and the filters.
+            if let text = event.textBeforeEmptied { catalogQuery = text }
+            restoreTokens()
+            return
+        }
+        let removedAll = event.hadTokens > 0 && event.removedTokens.count == event.hadTokens
+        if removedAll && (event.hadTokens > 1 || event.textBeforeEmptied != nil) {
+            catalogBridge.clearFilters()
+            catalogBridge.submit(semester: semester, query: "")
+        } else {
+            for token in event.removedTokens {
+                catalogBridge.removeFilter(filter: token.filter)
+            }
+            if event.textBeforeEmptied != nil {
+                catalogBridge.submit(semester: semester, query: "")
+            }
+        }
+    }
+}
+
+struct SearchEmptiedEvent {
+    var isPending = false
+    var textBeforeEmptied: String?
+    var removedTokens: [CourseFilterToken] = []
+    var hadTokens = 0
 }

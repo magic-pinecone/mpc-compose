@@ -12,6 +12,7 @@ struct CourseCatalogStaticPreview: View {
             selectedSerialNumbers: Set(snapshot.courses.prefix(1).map(\.serialNumber)),
             canEditPlan: true,
             isCompact: isCompact,
+            onShowFilters: {},
             onRetry: {},
             onCourseDetails: { _ in },
             onToggleCourse: { _ in }
