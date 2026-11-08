@@ -23,6 +23,7 @@ struct CoursePlanningView: View {
     @State private var sectionBeforeSearch: Section?
     @State private var catalogBridge = CourseSearchBridge()
     @State private var catalogSnapshot: CourseCatalogSnapshot?
+    @State private var isShowingFilters = false
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.layoutDirection) private var layoutDirection
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -158,7 +159,16 @@ struct CoursePlanningView: View {
                 }
 
                 if isWide || activeSection == .catalog {
-                    ToolbarItem(placement: .topBarTrailing) {
+                    ToolbarItemGroup(placement: .topBarTrailing) {
+                        Button {
+                            isShowingFilters = true
+                        } label: {
+                            Label("篩選", systemImage: filterSymbol)
+                        }
+                        .id(activeFilterCount > 0)
+                        .accessibilityValue("\(activeFilterCount)")
+                        .accessibilityIdentifier("course-filters")
+
                         Menu {
                             Toggle(
                                 "精簡課程卡片", systemImage: "rectangle.compress.vertical",
@@ -198,6 +208,15 @@ struct CoursePlanningView: View {
             for await snapshot in catalogBridge.catalogSnapshot {
                 catalogSnapshot = snapshot
             }
+        }
+        .sheet(isPresented: $isShowingFilters) {
+            CourseFilterSheet(
+                sharedHost: sharedHost,
+                bridge: catalogBridge,
+                snapshot: catalogSnapshot
+            )
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
         }
         .sheet(isPresented: $isShowingSelectedCourses) {
             SelectedCoursesSheet(
@@ -269,6 +288,10 @@ private extension View {
 }
 
 private extension CoursePlanningView {
+    var filterSymbol: String {
+        activeFilterCount > 0 ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle"
+    }
+
     func clearQueryAfterFilterAdded(old: Int, new: Int) {
         if new > old, catalogSnapshot?.query.isEmpty == true, !catalogQuery.isEmpty {
             catalogQuery = ""
