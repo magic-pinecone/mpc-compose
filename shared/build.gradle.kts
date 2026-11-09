@@ -94,6 +94,7 @@ kotlin {
             implementation(libs.ktor.client.darwin)
         }
         commonMain.dependencies {
+            api(libs.okio)
             api(libs.calf.ui)
             api(libs.calf.webview)
             implementation(libs.compose.runtime)

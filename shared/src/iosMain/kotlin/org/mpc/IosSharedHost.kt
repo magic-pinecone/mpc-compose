@@ -10,6 +10,7 @@ import androidx.compose.ui.uikit.OnFocusBehavior
 import androidx.compose.ui.window.ComposeUIViewController
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.zacsweers.metrox.viewmodel.metroViewModel
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.Flow
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import okio.Path.Companion.toPath
 import org.mpc.bridge.CoursePlanBridge
 import org.mpc.bridge.CourseSearchBridge
 import org.mpc.bridge.PortalBridge
@@ -57,6 +59,9 @@ import org.mpc.presentation.theme.MpcSpacing
 import org.mpc.presentation.theme.MpcTheme
 import org.mpc.presentation.viewModel.AppSettingsViewModel
 import org.mpc.presentation.views.courseFilters.CourseSlotPicker
+import platform.Foundation.NSCachesDirectory
+import platform.Foundation.NSFileManager
+import platform.Foundation.NSUserDomainMask
 import platform.UIKit.UIViewController
 
 class IosSharedHost internal constructor(
@@ -167,6 +172,7 @@ class IosSharedHost internal constructor(
     }
 }
 
+@OptIn(ExperimentalForeignApi::class)
 fun createIosSharedHost(htmlParser: HtmlParser): IosSharedHost {
     val storage = createDataStore()
     val dataStore = createDataStore(storage)
@@ -174,7 +180,20 @@ fun createIosSharedHost(htmlParser: HtmlParser): IosSharedHost {
         createDatabase(
             createDatabaseBuilder(),
         )
-    return IosSharedHost(createAppGraph(dataStore, database, htmlParser))
+    val cacheDirectory =
+        requireNotNull(
+            NSFileManager.defaultManager.URLForDirectory(
+                directory = NSCachesDirectory,
+                inDomain = NSUserDomainMask,
+                appropriateForURL = null,
+                create = true,
+                error = null,
+            ),
+        )
+
+    return IosSharedHost(
+        createAppGraph(dataStore, database, htmlParser, requireNotNull(cacheDirectory.path).toPath()),
+    )
 }
 
 @Throws(Exception::class)

@@ -7,6 +7,9 @@ import org.mpc.domain.model.AppThemeMode
 import org.mpc.domain.model.PortalAuthenticationMode
 import org.mpc.domain.model.TimetableColorMode
 import org.mpc.domain.repository.AppSettingsRepository
+import org.mpc.domain.session.SiteFileDestination
+import org.mpc.domain.session.SiteFileInfo
+import org.mpc.domain.session.SiteFileMetadata
 
 /** A cookie jar keyed by exact host, enough to observe what the session layer stores and clears. */
 internal class InMemoryCookieJar : PlatformCookieJar {
@@ -27,6 +30,33 @@ internal class InMemoryCookieJar : PlatformCookieJar {
 
     override suspend fun clear(url: String, keep: Set<String>) {
         cookies[Url(url).host]?.keys?.removeAll { it !in keep }
+    }
+}
+
+internal class RecordingFileDestination(
+    private val localPath: String = "/cache/download.bin",
+) : SiteFileDestination {
+    val chunks = mutableListOf<ByteArray>()
+    var metadata: SiteFileMetadata? = null
+    var aborted = false
+        private set
+
+    override fun write(bytes: ByteArray, offset: Int, length: Int) {
+        chunks += bytes.copyOfRange(offset, offset + length)
+    }
+
+    override fun commit(info: SiteFileInfo): SiteFileMetadata = SiteFileMetadata(
+        name = info.name,
+        contentType = info.contentType,
+        contentLength = info.contentLength,
+        size = info.size,
+        localPath = localPath,
+    ).also { metadata = it }
+
+    override fun abort() {
+        aborted = true
+        chunks.clear()
+        metadata = null
     }
 }
 

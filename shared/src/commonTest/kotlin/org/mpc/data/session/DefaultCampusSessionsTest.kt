@@ -14,6 +14,8 @@ import org.mpc.domain.session.PortalSignIn
 import org.mpc.domain.session.PortalStatus
 import org.mpc.domain.session.Renewal
 import org.mpc.domain.session.SiteFile
+import org.mpc.domain.session.SiteFileInfo
+import org.mpc.domain.session.SiteFileMetadata
 import org.mpc.domain.session.SiteFollowUp
 import org.mpc.domain.session.SitePath
 import org.mpc.domain.session.SiteRequest
@@ -72,7 +74,13 @@ private class ScriptedTransport(
     override suspend fun send(request: SiteRequest<*>): TransportResult {
         events += describe(request)
         if (++requests >= gatedFromRequest) gate.await()
-        return pages.removeFirst()
+        val result = pages.removeFirst()
+        if (request is SiteRequest.Download && result is TransportResult.Response) {
+            result.response.file?.let { file ->
+                request.destination.commit(SiteFileInfo(file.name, file.contentType, file.contentLength, file.size))
+            }
+        }
+        return result
     }
 
     override suspend fun checkPortal(): PortalCheck {
@@ -343,15 +351,18 @@ val defaultCampusSessionsTests by testSuite {
 
     test("a download recovers the session and returns the named file") {
         runTest {
-            val file = SiteFile("講義.pdf", "application/pdf", byteArrayOf(9))
+            val file = SiteFileMetadata("講義.pdf", "application/pdf", 1, 1, "/cache/download.bin")
             val transport = ScriptedTransport(
                 pages = ArrayDeque(listOf(page(SIGNED_OUT_REDIRECT), page(SiteResponse(200, null, "", file)))),
                 handoffs = ArrayDeque(listOf(HandoffResult.Done)),
             )
+            val destination = RecordingFileDestination()
 
-            val result = sessions(transport).fetchFile(TEST_SITE, SitePath.of("/filedownload/5"))
+            val result = sessions(transport).fetchFile(TEST_SITE, SitePath.of("/filedownload/5"), destination)
 
             assertEquals("講義.pdf", (result as SiteResult.Page).value.name)
+            assertEquals(file, destination.metadata)
+            assertEquals(false, destination.aborted)
             assertEquals(
                 listOf(
                     "download https://ncueeclass.ncu.edu.tw/filedownload/5",
@@ -366,10 +377,12 @@ val defaultCampusSessionsTests by testSuite {
     test("a download answered with a page instead of a file is unavailable") {
         runTest {
             val transport = ScriptedTransport(pages = ArrayDeque(listOf(page(SiteResponse(200, null, "<html>error</html>")))))
+            val destination = RecordingFileDestination()
 
-            val result = sessions(transport).fetchFile(TEST_SITE, SitePath.of("/filedownload/5"))
+            val result = sessions(transport).fetchFile(TEST_SITE, SitePath.of("/filedownload/5"), destination)
 
             assertEquals(SiteResult.Unavailable(Unavailability.UNEXPECTED_RESPONSE), result)
+            assertEquals(true, destination.aborted)
         }
     }
 

@@ -14,17 +14,22 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.OutgoingContent
 import io.ktor.http.headersOf
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.yield
 import org.mpc.domain.session.CampusSites
 import org.mpc.domain.session.SiteFile
+import org.mpc.domain.session.SiteFileDestination
+import org.mpc.domain.session.SiteFileInfo
+import org.mpc.domain.session.SiteFileMetadata
 import org.mpc.domain.session.SiteHeader
 import org.mpc.domain.session.SiteRequest
 import org.mpc.domain.session.Unavailability
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -208,29 +213,115 @@ val ktorSessionTransportTests by testSuite {
 
     test("a download reads a file's bytes, name, and type, and a page as HTML") {
         runTest {
+            val bytes = ByteArray(200_000) { (it % 251).toByte() }
             val (transport, _) = transport(InMemoryCookieJar()) { request ->
                 when (request.url.encodedPath) {
                     "/filedownload/5" -> respond(
-                        content = byteArrayOf(0x25, 0x50, 0x44, 0x46, -1),
+                        content = bytes,
                         headers = headersOf(
                             HttpHeaders.ContentType to listOf("application/pdf"),
                             HttpHeaders.ContentDisposition to listOf("attachment; filename=\"fallback.pdf\"; filename*=UTF-8''%E8%AC%9B%E7%BE%A9.pdf"),
+                            HttpHeaders.ContentLength to listOf(bytes.size.toString()),
                         ),
                     )
 
                     else -> respond("<form id='login_form'></form>", headers = headersOf(HttpHeaders.ContentType, "text/html; charset=UTF-8"))
                 }
             }
+            val fileDestination = RecordingFileDestination()
+            val pageDestination = RecordingFileDestination()
+            val progress = mutableListOf<Pair<Long, Long?>>()
 
-            val file = (transport.send(SiteRequest.Download("$EECLASS/filedownload/5")) as TransportResult.Response).response
-            val page = (transport.send(SiteRequest.Download("$EECLASS/filedownload/6")) as TransportResult.Response).response
+            val file = (
+                transport.send(
+                    SiteRequest.Download("$EECLASS/filedownload/5", fileDestination, onProgress = { sent, total -> progress += sent to total }),
+                ) as TransportResult.Response
+                ).response
+            val page = (transport.send(SiteRequest.Download("$EECLASS/filedownload/6", pageDestination)) as TransportResult.Response).response
 
             assertEquals("講義.pdf", file.file?.name)
             assertEquals("application/pdf", file.file?.contentType)
-            assertContentEquals(byteArrayOf(0x25, 0x50, 0x44, 0x46, -1), file.file?.bytes)
+            assertEquals(bytes.size.toLong(), file.file?.contentLength)
+            assertEquals(bytes.size.toLong(), file.file?.size)
+            assertEquals("/cache/download.bin", file.file?.localPath)
+            val streamedBytes = ByteArray(fileDestination.chunks.sumOf { it.size })
+            var offset = 0
+            fileDestination.chunks.forEach { chunk ->
+                chunk.copyInto(streamedBytes, offset)
+                offset += chunk.size
+            }
+            assertContentEquals(bytes, streamedBytes)
+            assertTrue(fileDestination.chunks.size > 1)
+            assertTrue(fileDestination.chunks.all { it.size <= 64 * 1024 })
+            assertEquals(0L to bytes.size.toLong(), progress.first())
+            assertEquals(bytes.size.toLong() to bytes.size.toLong(), progress.last())
+            assertEquals(file.file, fileDestination.metadata)
             assertEquals("", file.html)
             assertNull(page.file)
             assertEquals("<form id='login_form'></form>", page.html)
+            assertTrue(pageDestination.chunks.isEmpty())
+            assertNull(pageDestination.metadata)
+        }
+    }
+
+    test("a WebView cookie change during a download aborts the destination and rejects its cookies") {
+        runTest {
+            val jar = InMemoryCookieJar().apply { cookies["ncueeclass.ncu.edu.tw"] = mutableMapOf("PHPSESSID" to "before") }
+            val (transport, requests) = transport(jar) {
+                jar.cookies.getValue("ncueeclass.ncu.edu.tw")["PHPSESSID"] = "after"
+                respond(
+                    content = byteArrayOf(1, 2, 3),
+                    headers = headersOf(
+                        HttpHeaders.ContentType to listOf("application/pdf"),
+                        HttpHeaders.ContentLength to listOf("3"),
+                        HttpHeaders.SetCookie to listOf("PHPSESSID=stale; Path=/"),
+                    ),
+                )
+            }
+            val destination = RecordingFileDestination()
+
+            val result = transport.send(SiteRequest.Download("$EECLASS/filedownload/5", destination))
+
+            assertEquals("PHPSESSID=before", requests.single().headers[HttpHeaders.Cookie])
+            assertEquals(TransportResult.Failed(Unavailability.UNEXPECTED_RESPONSE), result)
+            assertTrue(destination.aborted)
+            assertTrue(destination.chunks.isEmpty())
+            assertNull(destination.metadata)
+            assertEquals("after", jar.cookies.getValue("ncueeclass.ncu.edu.tw")["PHPSESSID"])
+        }
+    }
+
+    test("cancellation while writing a download aborts the destination and propagates") {
+        runTest {
+            val (transport, _) = transport(InMemoryCookieJar()) {
+                respond(
+                    content = byteArrayOf(1, 2, 3),
+                    headers = headersOf(HttpHeaders.ContentType, "application/pdf"),
+                )
+            }
+            var aborted = false
+            val destination = object : SiteFileDestination {
+                override fun write(bytes: ByteArray, offset: Int, length: Int): Unit = throw CancellationException("destination cancelled")
+
+                override fun commit(info: SiteFileInfo): SiteFileMetadata = SiteFileMetadata(
+                    name = info.name,
+                    contentType = info.contentType,
+                    contentLength = info.contentLength,
+                    size = info.size,
+                    localPath = "/cache/cancelled.pdf",
+                )
+
+                override fun abort() {
+                    aborted = true
+                }
+            }
+
+            val cancellation = assertFailsWith<CancellationException> {
+                transport.send(SiteRequest.Download("$EECLASS/filedownload/5", destination))
+            }
+
+            assertEquals("destination cancelled", cancellation.message)
+            assertTrue(aborted)
         }
     }
 

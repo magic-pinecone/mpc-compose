@@ -21,7 +21,7 @@ class EeclassDetailPagesTest {
             weight = weight,
             gradingMethod = "",
             descriptionHtml = "<p>寫報告</p>",
-            attachments = listOf(EeclassAttachment("spec.pdf", SitePath.of("/filedownload/1"))),
+            attachments = listOf(EeclassAttachment.File("spec.pdf", SitePath.of("/filedownload/1"))),
             report = report,
         ),
     )

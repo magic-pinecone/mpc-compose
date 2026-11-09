@@ -8,7 +8,9 @@ import org.mpc.domain.model.EeclassBulletin
 import org.mpc.domain.model.EeclassBulletinNumber
 import org.mpc.domain.model.EeclassHomework
 import org.mpc.domain.model.EeclassMaterial
+import org.mpc.domain.model.EeclassMediaId
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 
 private fun page(table: String): HtmlElement = JsoupHtmlParser().parse("<html><body>$table</body></html>", "https://ncueeclass.ncu.edu.tw/course/material/40001")
 
@@ -65,7 +67,7 @@ val eeclassCoursePagesTests by testSuite {
         assertEquals("人氣: 17, 公告日期 10-28, 雲端平台, by 林老師", detail?.info)
         assertEquals(true, detail?.bodyHtml?.contains("<strong>報名</strong>"))
         assertEquals(true, detail?.bodyHtml?.contains("""href="https://ncueeclass.ncu.edu.tw/media/doc/123""""))
-        assertEquals(listOf(EeclassAttachment("報名流程.pdf", SitePath.of("/filedownload/5"))), detail?.attachments)
+        assertEquals(listOf(EeclassAttachment.File("報名流程.pdf", SitePath.of("/filedownload/5"))), detail?.attachments)
         assertEquals(null, eeclassBulletinDetail(page("<p>錯誤</p>")))
     }
 
@@ -77,6 +79,48 @@ val eeclassCoursePagesTests by testSuite {
         )
 
         assertEquals(listOf(EeclassMaterial("第一章", "王老師", "3 天前", SitePath.of("/media/doc/123"))), eeclassMaterials(page(html)))
+    }
+
+    test("a material detail returns media and attachments without exposing its auth token") {
+        val hostPath = SitePath.of("/media/doc/123")
+        val detail = eeclassMaterialDetail(
+            page(
+                """
+                <div class="mod_media-docTitle"><a href="https://ncueeclass.ncu.edu.tw/media/download/123/?auth=ephemeral">Title.pdf</a></div>
+                <ul class="mod_media-attachList"><li><a href="/filedownload/45">Appendix.pdf</a></li></ul>
+                """.trimIndent(),
+            ),
+            hostPath,
+        )
+
+        assertEquals("", detail.title)
+        assertEquals(
+            listOf(
+                EeclassAttachment.Media("Title.pdf", hostPath, EeclassMediaId("123")),
+                EeclassAttachment.File("Appendix.pdf", SitePath.of("/filedownload/45")),
+            ),
+            detail.attachments,
+        )
+        assertFalse(detail.toString().contains("auth="))
+        assertFalse(detail.toString().contains("ephemeral"))
+    }
+
+    test("a material with only attachments still returns its file metadata") {
+        val hostPath = SitePath.of("/media/doc/456")
+        val detail = eeclassMaterialDetail(
+            page(
+                """
+                <ul class="mod_media-attachList"><li><a href="/filedownload/67">Worksheet.pdf</a></li></ul>
+                """.trimIndent(),
+            ),
+            hostPath,
+        )
+
+        assertEquals("", detail.title)
+        assertEquals(
+            listOf(EeclassAttachment.File("Worksheet.pdf", SitePath.of("/filedownload/67"))),
+            detail.attachments,
+        )
     }
 
     test("homework reads opening, deadline, and score") {

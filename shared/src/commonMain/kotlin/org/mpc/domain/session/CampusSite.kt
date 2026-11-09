@@ -45,22 +45,48 @@ private val TOKEN_FREE_QUERY_KEYS = setOf("page", "pageSize", "size", "category"
 private fun isPlainPair(pair: String): Boolean = '=' in pair && pair.substringBefore('=') in TOKEN_FREE_QUERY_KEYS && pair.substringAfter('=').matches(QUERY_VALUE)
 
 /**
- * What a campus site answered: status, raw `Location`, and body. No other headers, so classifiers never see cookies.
- * A [SiteRequest.Download] that is not HTML arrives as [file] with [html] empty, so no classifier parses its bytes.
+ * What a campus site answered: status, raw `Location`, body, and optional file metadata. No other headers, so
+ * classifiers never see cookies. A [SiteRequest.Download] that is not HTML arrives as [file] with [html] empty.
  */
 class SiteResponse(
     val status: Int,
     val location: String?,
     val html: String,
-    val file: SiteFile? = null,
+    val file: SiteFileMetadata? = null,
 )
 
-/** A file's bytes, named from its `Content-Disposition` and typed from its `Content-Type`; null when the site sent none. */
+/** A file's bytes, used for uploads. */
 class SiteFile(
     val name: String?,
     val contentType: String?,
     val bytes: ByteArray,
 )
+
+/** Response metadata used to finalize a streamed file destination. */
+data class SiteFileInfo(
+    val name: String?,
+    val contentType: String?,
+    val contentLength: Long?,
+    val size: Long,
+)
+
+/** A completed local download, with the actual number of bytes written and its destination path. */
+data class SiteFileMetadata(
+    val name: String?,
+    val contentType: String?,
+    val contentLength: Long?,
+    val size: Long,
+    val localPath: String,
+)
+
+/** A caller-owned temporary destination. [abort] must be safe to call more than once. */
+interface SiteFileDestination {
+    fun write(bytes: ByteArray, offset: Int, length: Int)
+
+    fun commit(info: SiteFileInfo): SiteFileMetadata
+
+    fun abort()
+}
 
 /** The request headers a caller may set. The session sets cookies and the body's type itself. */
 enum class SiteHeader(val wireName: String) {
@@ -120,15 +146,16 @@ sealed class SiteRequest<out R> {
         override fun withLink(url: String) = Multipart(url, fields, files, headers, onProgress)
     }
 
-    /** A GET read as bytes. */
+    /** A GET streamed to [destination]. */
     class Download(
         override val link: String,
+        val destination: SiteFileDestination,
         override val headers: Map<SiteHeader, String> = emptyMap(),
         val onProgress: TransferProgress? = null,
-    ) : SiteRequest<SiteFile>() {
-        override fun reply(response: SiteResponse): SiteFile? = response.file
+    ) : SiteRequest<SiteFileMetadata>() {
+        override fun reply(response: SiteResponse): SiteFileMetadata? = response.file
 
-        override fun withLink(url: String) = Download(url, headers, onProgress)
+        override fun withLink(url: String) = Download(url, destination, headers, onProgress)
     }
 }
 

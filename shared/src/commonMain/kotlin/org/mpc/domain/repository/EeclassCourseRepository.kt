@@ -1,9 +1,11 @@
 package org.mpc.domain.repository
 
 import org.mpc.domain.model.AcrossCourses
+import org.mpc.domain.model.EeclassAttachment
 import org.mpc.domain.model.EeclassBulletin
 import org.mpc.domain.model.EeclassBulletinDetail
 import org.mpc.domain.model.EeclassBulletinNumber
+import org.mpc.domain.model.EeclassCachedFile
 import org.mpc.domain.model.EeclassCourse
 import org.mpc.domain.model.EeclassCourseContent
 import org.mpc.domain.model.EeclassCourseNumber
@@ -12,6 +14,7 @@ import org.mpc.domain.model.EeclassHomeworkDetail
 import org.mpc.domain.model.EeclassMaterialDetail
 import org.mpc.domain.session.SitePath
 import org.mpc.domain.session.SiteResult
+import org.mpc.domain.session.TransferProgress
 
 interface EeclassCourseRepository {
     /** The student's enrolled courses from the ee-class dashboard, recovering the session when it can. */
@@ -26,6 +29,9 @@ interface EeclassCourseRepository {
     suspend fun fetchMaterial(path: SitePath): SiteResult<EeclassMaterialDetail>
 
     suspend fun fetchHomework(path: SitePath): SiteResult<EeclassHomeworkDetail>
+
+    /** Downloads and caches a direct file attachment or a material's media reference. */
+    suspend fun download(attachment: EeclassAttachment, onProgress: TransferProgress? = null): SiteResult<EeclassCachedFile>
 
     /** The first page of every enrolled course's homework list. */
     suspend fun fetchHomeworkAcrossCourses(): SiteResult<AcrossCourses<EeclassHomework>>
