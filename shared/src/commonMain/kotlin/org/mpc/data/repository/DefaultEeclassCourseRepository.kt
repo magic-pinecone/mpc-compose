@@ -14,6 +14,8 @@ import org.mpc.domain.model.EeclassCourseContent
 import org.mpc.domain.model.EeclassCourseItem
 import org.mpc.domain.model.EeclassCourseNumber
 import org.mpc.domain.model.EeclassHomework
+import org.mpc.domain.model.EeclassHomeworkDetail
+import org.mpc.domain.model.EeclassMaterialDetail
 import org.mpc.domain.repository.EeclassCourseRepository
 import org.mpc.domain.session.CampusSessions
 import org.mpc.domain.session.CampusSites
@@ -27,7 +29,9 @@ import org.mpc.domain.session.eeclassBulletins
 import org.mpc.domain.session.eeclassBulletinsPath
 import org.mpc.domain.session.eeclassCourses
 import org.mpc.domain.session.eeclassHomework
+import org.mpc.domain.session.eeclassHomeworkDetail
 import org.mpc.domain.session.eeclassHomeworkPath
+import org.mpc.domain.session.eeclassMaterialDetail
 import org.mpc.domain.session.eeclassMaterials
 import org.mpc.domain.session.eeclassMaterialsPath
 
@@ -56,6 +60,10 @@ internal class DefaultEeclassCourseRepository(
             }
         }
     }
+
+    override suspend fun fetchMaterial(path: SitePath): SiteResult<EeclassMaterialDetail> = fetchPage(path, ::eeclassMaterialDetail)
+
+    override suspend fun fetchHomework(path: SitePath): SiteResult<EeclassHomeworkDetail> = fetchPage(path, ::eeclassHomeworkDetail)
 
     override suspend fun fetchHomeworkAcrossCourses(): SiteResult<AcrossCourses<EeclassHomework>> = acrossCourses(::eeclassHomeworkPath, ::eeclassHomework)
 

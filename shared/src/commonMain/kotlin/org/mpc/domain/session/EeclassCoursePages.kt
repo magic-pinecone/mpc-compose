@@ -27,6 +27,7 @@ fun eeclassHomework(page: HtmlElement): List<EeclassHomework> = rows(page, "home
         due = row.text("期限"),
         score = row.text("分數"),
         path = link.path,
+        submitted = row.cell("繳交")?.select("span.fa-check.fs-text-success")?.isNotEmpty() == true,
     )
 }
 

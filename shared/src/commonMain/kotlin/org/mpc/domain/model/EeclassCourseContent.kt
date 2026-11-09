@@ -55,7 +55,36 @@ data class EeclassHomework(
     val due: String,
     val score: String,
     val path: SitePath,
+    val submitted: Boolean = false,
 )
+
+data class EeclassMaterialDetail(
+    val title: String,
+    val author: String,
+    val updated: String,
+    val bodyHtml: String,
+    val attachments: List<EeclassAttachment>,
+)
+
+data class EeclassHomeworkDetail(
+    val type: String,
+    val opens: String,
+    val due: String,
+    val lateSubmissionAllowed: Boolean,
+    val weight: String,
+    val gradingMethod: String,
+    val descriptionHtml: String,
+    val attachments: List<EeclassAttachment>,
+    val report: EeclassHomeworkReport,
+)
+
+sealed interface EeclassHomeworkReport {
+    data object None : EeclassHomeworkReport
+
+    data object Draft : EeclassHomeworkReport
+
+    data object Submitted : EeclassHomeworkReport
+}
 
 /** One row of an enrolled course's list. */
 data class EeclassCourseItem<T>(
