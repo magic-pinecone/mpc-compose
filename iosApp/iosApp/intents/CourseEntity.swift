@@ -12,11 +12,20 @@ struct CourseEntity: IndexedEntity {
 
     let id: String
 
+#if SIRI_AI_PREVIEW
+    // Property descriptions need the iOS 27.3 SDK.
     @Property(title: "課程名稱", description: "課程的名稱")
     var title: String
 
     @Property(title: "班次", description: "課程代號，包含課程種類與班別")
     var classNo: String
+#else
+    @Property(title: "課程名稱")
+    var title: String
+
+    @Property(title: "班次")
+    var classNo: String
+#endif
 
     @Property(title: "授課教師")
     var teachers: [String]
