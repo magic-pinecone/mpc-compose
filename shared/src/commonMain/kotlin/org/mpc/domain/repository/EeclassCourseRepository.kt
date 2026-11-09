@@ -8,6 +8,9 @@ import org.mpc.domain.model.EeclassCourse
 import org.mpc.domain.model.EeclassCourseContent
 import org.mpc.domain.model.EeclassCourseNumber
 import org.mpc.domain.model.EeclassHomework
+import org.mpc.domain.model.EeclassHomeworkDetail
+import org.mpc.domain.model.EeclassMaterialDetail
+import org.mpc.domain.session.SitePath
 import org.mpc.domain.session.SiteResult
 
 interface EeclassCourseRepository {
@@ -19,6 +22,10 @@ interface EeclassCourseRepository {
 
     /** One announcement's dialog, read through [course]'s announcement list, which holds the dialog's token. */
     suspend fun fetchBulletin(course: EeclassCourseNumber, bulletin: EeclassBulletinNumber): SiteResult<EeclassBulletinDetail>
+
+    suspend fun fetchMaterial(path: SitePath): SiteResult<EeclassMaterialDetail>
+
+    suspend fun fetchHomework(path: SitePath): SiteResult<EeclassHomeworkDetail>
 
     /** The first page of every enrolled course's homework list. */
     suspend fun fetchHomeworkAcrossCourses(): SiteResult<AcrossCourses<EeclassHomework>>

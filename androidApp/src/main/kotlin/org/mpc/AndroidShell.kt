@@ -80,6 +80,8 @@ import org.mpc.navigation.CoursePlanningRoot
 import org.mpc.navigation.EeclassBulletinRoute
 import org.mpc.navigation.EeclassCategoryRoute
 import org.mpc.navigation.EeclassCourseRoute
+import org.mpc.navigation.EeclassHomeworkRoute
+import org.mpc.navigation.EeclassMaterialRoute
 import org.mpc.navigation.HomeRoot
 import org.mpc.navigation.PortalRoot
 import org.mpc.navigation.PortalWebRoute
@@ -93,6 +95,8 @@ import org.mpc.presentation.EeclassBulletinScreen
 import org.mpc.presentation.EeclassCategoryScreen
 import org.mpc.presentation.EeclassCourseScreen
 import org.mpc.presentation.EeclassHomeScreen
+import org.mpc.presentation.EeclassHomeworkScreen
+import org.mpc.presentation.EeclassMaterialScreen
 import org.mpc.presentation.PortalScreen
 import org.mpc.presentation.PortalWebScreen
 import org.mpc.presentation.SettingsScreen
@@ -203,6 +207,12 @@ private fun AndroidPrimaryNavigation(
         val url = appGraph.campusSessions.browserEntry(CampusSites.Eeclass, SitePath.of(path))
         navigator.navigate(PortalWebRoute(title = title, url = url))
     }
+    val openEeclassLink = { title: String, url: String ->
+        // Links to ee-class need its session, so they stay in the in-app browser.
+        appGraph.campusSessions.browserEntry(url)
+            ?.let { navigator.navigate(PortalWebRoute(title = title, url = it)) }
+            ?: uriHandler.openUri(url)
+    }
     // The top bar goes back within the open page, so each page's navigator lives here.
     val webNavigatorScope = rememberCoroutineScope()
     val webNavigators = remember { mutableMapOf<PortalWebRoute, WebViewNavigator>() }
@@ -219,7 +229,8 @@ private fun AndroidPrimaryNavigation(
                     course = route.number,
                     onOpenCategory = { navigator.navigate(EeclassCategoryRoute(route.number, it)) },
                     onOpenBulletin = { number, title -> navigator.navigate(EeclassBulletinRoute(route.number, number, title)) },
-                    onOpenPage = openEeclassPage,
+                    onOpenMaterial = { title, path -> navigator.navigate(EeclassMaterialRoute(title, path)) },
+                    onOpenHomework = { title, path -> navigator.navigate(EeclassHomeworkRoute(title, path)) },
                 )
             }
             entry<EeclassCategoryRoute> { route ->
@@ -227,7 +238,24 @@ private fun AndroidPrimaryNavigation(
                     course = route.number,
                     category = route.category,
                     onOpenBulletin = { number, title -> navigator.navigate(EeclassBulletinRoute(route.number, number, title)) },
+                    onOpenMaterial = { title, path -> navigator.navigate(EeclassMaterialRoute(title, path)) },
+                    onOpenHomework = { title, path -> navigator.navigate(EeclassHomeworkRoute(title, path)) },
+                )
+            }
+            entry<EeclassMaterialRoute> { route ->
+                EeclassMaterialScreen(
+                    title = route.title,
+                    path = route.path,
                     onOpenPage = openEeclassPage,
+                    onOpenLink = { openEeclassLink(route.title, it) },
+                )
+            }
+            entry<EeclassHomeworkRoute> { route ->
+                EeclassHomeworkScreen(
+                    title = route.title,
+                    path = route.path,
+                    onOpenPage = openEeclassPage,
+                    onOpenLink = { openEeclassLink(route.title, it) },
                 )
             }
             entry<EeclassBulletinRoute>(metadata = BottomSheetSceneStrategy.bottomSheet()) { route ->
@@ -236,12 +264,7 @@ private fun AndroidPrimaryNavigation(
                     number = route.number,
                     title = route.title,
                     onOpenPage = openEeclassPage,
-                    onOpenLink = { url ->
-                        // Links to ee-class need its session, so they stay in the in-app browser.
-                        appGraph.campusSessions.browserEntry(url)
-                            ?.let { navigator.navigate(PortalWebRoute(title = route.title, url = it)) }
-                            ?: uriHandler.openUri(url)
-                    },
+                    onOpenLink = { openEeclassLink(route.title, it) },
                 )
             }
             entry<PortalRoot> {
@@ -551,6 +574,8 @@ private data class PrimaryTopBarState(
 private fun NavKey.pushedTitle(): String? = when (this) {
     is EeclassCourseRoute -> name
     is EeclassCategoryRoute -> category.title
+    is EeclassMaterialRoute -> "教材"
+    is EeclassHomeworkRoute -> "作業"
     else -> null
 }
 

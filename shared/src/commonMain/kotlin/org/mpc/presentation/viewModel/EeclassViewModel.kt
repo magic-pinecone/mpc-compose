@@ -11,15 +11,20 @@ import kotlinx.coroutines.flow.StateFlow
 import org.mpc.domain.model.EeclassBulletinNumber
 import org.mpc.domain.model.EeclassCourseNumber
 import org.mpc.domain.repository.EeclassCourseRepository
+import org.mpc.domain.session.SitePath
 import org.mpc.presentation.model.EeclassBulletinPage
 import org.mpc.presentation.model.EeclassCoursePage
 import org.mpc.presentation.model.EeclassCourses
+import org.mpc.presentation.model.EeclassHomeworkPage
+import org.mpc.presentation.model.EeclassMaterialPage
 import org.mpc.presentation.model.toEeclassBulletinPage
 import org.mpc.presentation.model.toEeclassCoursePage
 import org.mpc.presentation.model.toEeclassCourses
+import org.mpc.presentation.model.toEeclassHomeworkPage
+import org.mpc.presentation.model.toEeclassMaterialPage
 
 /**
- * Each navigation entry gets its own instance and uses one of the three loaders. A state stays null until its
+ * Each navigation entry gets its own instance and uses one of the loaders. A state stays null until its
  * first load finishes, and a later load keeps showing the previous result until the new one arrives.
  */
 @Inject
@@ -40,6 +45,12 @@ class EeclassViewModel(
     private val _bulletin = MutableStateFlow<EeclassBulletinPage?>(null)
     val bulletin: StateFlow<EeclassBulletinPage?> = _bulletin
 
+    private val _material = MutableStateFlow<EeclassMaterialPage?>(null)
+    val material: StateFlow<EeclassMaterialPage?> = _material
+
+    private val _homework = MutableStateFlow<EeclassHomeworkPage?>(null)
+    val homework: StateFlow<EeclassHomeworkPage?> = _homework
+
     suspend fun loadCourses() {
         _courses.value = repository.fetchEnrolledCourses().toEeclassCourses()
     }
@@ -52,5 +63,13 @@ class EeclassViewModel(
         _bulletin.value = repository
             .fetchBulletin(EeclassCourseNumber(course), EeclassBulletinNumber(bulletin))
             .toEeclassBulletinPage()
+    }
+
+    suspend fun loadMaterial(path: String) {
+        _material.value = repository.fetchMaterial(SitePath.of(path)).toEeclassMaterialPage()
+    }
+
+    suspend fun loadHomework(path: String) {
+        _homework.value = repository.fetchHomework(SitePath.of(path)).toEeclassHomeworkPage()
     }
 }

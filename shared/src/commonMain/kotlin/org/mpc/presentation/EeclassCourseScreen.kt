@@ -33,7 +33,8 @@ fun EeclassCourseScreen(
     course: String,
     onOpenCategory: (EeclassCategory) -> Unit,
     onOpenBulletin: (number: String, title: String) -> Unit,
-    onOpenPage: (title: String, path: String) -> Unit,
+    onOpenMaterial: (title: String, path: String) -> Unit,
+    onOpenHomework: (title: String, path: String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: EeclassViewModel = metroViewModel(),
 ) {
@@ -47,7 +48,7 @@ fun EeclassCourseScreen(
         val loaded = page ?: return@EeclassPageContent
         LazyColumn {
             EeclassCategory.entries.forEach { category ->
-                val rows = loaded.rows(category, onOpenBulletin, onOpenPage)
+                val rows = loaded.rows(category, onOpenBulletin, onOpenMaterial, onOpenHomework)
                 item(key = category) { EeclassSectionHeader(category.title) }
                 categoryRows(category, rows.take(OVERVIEW_LIMIT))
                 if (rows.size > OVERVIEW_LIMIT) {
@@ -71,7 +72,8 @@ fun EeclassCategoryScreen(
     course: String,
     category: EeclassCategory,
     onOpenBulletin: (number: String, title: String) -> Unit,
-    onOpenPage: (title: String, path: String) -> Unit,
+    onOpenMaterial: (title: String, path: String) -> Unit,
+    onOpenHomework: (title: String, path: String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: EeclassViewModel = metroViewModel(),
 ) {
@@ -84,7 +86,7 @@ fun EeclassCategoryScreen(
     ) {
         val loaded = page ?: return@EeclassPageContent
         LazyColumn {
-            categoryRows(category, loaded.rows(category, onOpenBulletin, onOpenPage))
+            categoryRows(category, loaded.rows(category, onOpenBulletin, onOpenMaterial, onOpenHomework))
         }
     }
 }
@@ -101,17 +103,23 @@ private fun rememberCoursePage(viewModel: EeclassViewModel, course: String): Eec
 private class EeclassListRow(
     val title: String,
     val detail: String,
+    val badge: String? = null,
     val onClick: () -> Unit,
 )
 
 private fun EeclassCoursePage.rows(
     category: EeclassCategory,
     onOpenBulletin: (number: String, title: String) -> Unit,
-    onOpenPage: (title: String, path: String) -> Unit,
+    onOpenMaterial: (title: String, path: String) -> Unit,
+    onOpenHomework: (title: String, path: String) -> Unit,
 ): List<EeclassListRow> = when (category) {
     EeclassCategory.BULLETINS -> bulletins.map { EeclassListRow(it.title, it.detail) { onOpenBulletin(it.number, it.title) } }
-    EeclassCategory.MATERIALS -> materials.map { EeclassListRow(it.title, it.detail) { onOpenPage(it.title, it.path) } }
-    EeclassCategory.HOMEWORK -> homework.map { EeclassListRow(it.title, it.detail) { onOpenPage(it.title, it.path) } }
+
+    EeclassCategory.MATERIALS -> materials.map { EeclassListRow(it.title, it.detail) { onOpenMaterial(it.title, it.path) } }
+
+    EeclassCategory.HOMEWORK -> homework.map {
+        EeclassListRow(it.title, it.detail, badge = "已繳交".takeIf { _ -> it.submitted }) { onOpenHomework(it.title, it.path) }
+    }
 }
 
 private fun LazyListScope.categoryRows(category: EeclassCategory, rows: List<EeclassListRow>) {
@@ -129,6 +137,7 @@ private fun LazyListScope.categoryRows(category: EeclassCategory, rows: List<Eec
         ListItem(
             headlineContent = { Text(row.title) },
             supportingContent = row.detail.takeIf(String::isNotEmpty)?.let { { Text(it) } },
+            trailingContent = row.badge?.let { { Text(it, style = MpcTheme.typography.label, color = MpcTheme.colors.accent) } },
             modifier = Modifier.clickable(onClick = row.onClick),
         )
     }

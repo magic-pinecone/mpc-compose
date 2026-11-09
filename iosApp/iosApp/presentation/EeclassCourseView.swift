@@ -5,7 +5,7 @@ import SwiftUI
 private let overviewLimit = 5
 
 /// One ee-class course's announcements, materials, and homework, up to `overviewLimit` each. An announcement opens in
-/// a sheet; other rows open their page in the in-app browser.
+/// a sheet; materials and homework push their native detail.
 struct EeclassCourseView: View {
     let sharedHost: IosSharedHost
     let course: EeclassCourseLink
@@ -20,6 +20,12 @@ struct EeclassCourseView: View {
             .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(for: EeclassPageLink.self) { link in
                 WebPageView(sharedHost: sharedHost, title: link.title, url: sharedHost.eeclassPageUrl(path: link.path))
+            }
+            .navigationDestination(for: EeclassMaterialLink.self) { link in
+                EeclassMaterialView(sharedHost: sharedHost, link: link)
+            }
+            .navigationDestination(for: EeclassHomeworkLink.self) { link in
+                EeclassHomeworkView(sharedHost: sharedHost, link: link)
             }
             .navigationDestination(for: EeclassCategory.self) { category in
                 if let page {
@@ -149,18 +155,18 @@ private struct EeclassCategoryRows: View {
                 .foregroundStyle(.primary)
             }
         case .materials:
-            links(page.materials)
+            if page.materials.isEmpty { empty }
+            ForEach(Array(limited(page.materials).enumerated()), id: \.offset) { _, row in
+                NavigationLink(value: EeclassMaterialLink(title: row.title, path: row.path)) {
+                    EeclassRowLabel(title: row.title, detail: row.detail)
+                }
+            }
         case .homework:
-            links(page.homework)
-        }
-    }
-
-    @ViewBuilder
-    private func links(_ rows: [EeclassItemRow]) -> some View {
-        if rows.isEmpty { empty }
-        ForEach(Array(limited(rows).enumerated()), id: \.offset) { _, row in
-            NavigationLink(value: EeclassPageLink(title: row.title, path: row.path)) {
-                EeclassRowLabel(title: row.title, detail: row.detail)
+            if page.homework.isEmpty { empty }
+            ForEach(Array(limited(page.homework).enumerated()), id: \.offset) { _, row in
+                NavigationLink(value: EeclassHomeworkLink(title: row.title, path: row.path)) {
+                    EeclassRowLabel(title: row.title, detail: row.detail, submitted: row.submitted)
+                }
             }
         }
     }
@@ -187,9 +193,22 @@ struct EeclassPageLink: Hashable {
     let path: String
 }
 
+/// Opens a material's native detail.
+struct EeclassMaterialLink: Hashable {
+    let title: String
+    let path: String
+}
+
+/// Opens a homework's native detail.
+struct EeclassHomeworkLink: Hashable {
+    let title: String
+    let path: String
+}
+
 private struct EeclassRowLabel: View {
     let title: String
     let detail: String
+    var submitted = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
@@ -198,6 +217,11 @@ private struct EeclassRowLabel: View {
                 Text(detail)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
+            }
+            if submitted {
+                Label("已繳交", systemImage: "checkmark.circle.fill")
+                    .font(.caption)
+                    .foregroundStyle(.green)
             }
         }
     }

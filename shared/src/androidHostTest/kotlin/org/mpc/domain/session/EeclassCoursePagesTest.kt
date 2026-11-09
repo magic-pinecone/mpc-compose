@@ -22,7 +22,7 @@ private fun table(id: String, headers: List<String>, vararg rows: List<String>) 
 
 private fun titleCell(link: String) = "<div class='sm-text-overflow'><div class='text-overflow'>$link</div></div>"
 
-private const val EMPTY_ROW = "<td colspan='6'>目前尚無資料</td>"
+private const val EMPTY_ROW = "<tr id='noData' role='noData'><td class='td text-center' colspan='6'>沒有資料</td></tr>"
 
 val eeclassCoursePagesTests by testSuite {
     test("announcements read title, author, and date by column header") {
@@ -92,9 +92,40 @@ val eeclassCoursePagesTests by testSuite {
         )
     }
 
+    test("homework reads a submitted mark from its success icon") {
+        val html = table(
+            "homeworkListTable",
+            listOf("項次", "名稱", "", "分組作業", "開放繳交", "期限", "繳交", "分數", "評語"),
+            listOf(
+                "1",
+                titleCell("<a href='/course/homework/77' title='HW 1'><span class='text'>HW 1</span></a>"),
+                "",
+                "",
+                "11-01 08:00",
+                "11-08 23:59",
+                "<div class='text-overflow'><span class='font-icon fs-text-success fas fa-check' aria-hidden='true'></span></div>",
+                "尚未批改",
+                "",
+            ),
+        )
+
+        assertEquals(
+            listOf(EeclassHomework("HW 1", "11-01 08:00", "11-08 23:59", "尚未批改", SitePath.of("/course/homework/77"), submitted = true)),
+            eeclassHomework(page(html)),
+        )
+    }
+
+    test("a homework noData row does not produce an assignment") {
+        val headers = listOf("項次", "名稱", "", "分組作業", "開放繳交", "期限", "繳交", "分數", "評語")
+        val html = "<table id='homeworkListTable'><thead><tr>${headers.joinToString("") { "<th>$it</th>" }}</tr></thead><tbody>" +
+            "<tr id='noData' role='noData'><td class='td text-center' colspan='9'>沒有資料</td></tr></tbody></table>"
+
+        assertEquals(emptyList(), eeclassHomework(page(html)))
+    }
+
     test("an empty list's placeholder row, foreign links, and unexpected paths yield nothing") {
         val headers = listOf("項次", "標題", "發表人", "人氣", "討論", "更新時間")
-        val html = "<table id='materialListTable'><thead><tr>${headers.joinToString("") { "<th>$it</th>" }}</tr></thead><tbody><tr>$EMPTY_ROW</tr></tbody></table>" +
+        val html = "<table id='materialListTable'><thead><tr>${headers.joinToString("") { "<th>$it</th>" }}</tr></thead><tbody>$EMPTY_ROW</tbody></table>" +
             table(
                 "materialListTable",
                 headers,
