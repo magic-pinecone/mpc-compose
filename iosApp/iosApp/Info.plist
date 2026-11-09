@@ -4,6 +4,8 @@
     <dict>
         <key>CFBundleDisplayName</key>
         <string>神奇松果</string>
+        <key>NSCalendarsFullAccessUsageDescription</key>
+        <string>將已儲存的課表加入「神奇松果課表」行事曆，並在課表變更後更新。</string>
         <key>CADisableMinimumFrameDurationOnPhone</key>
         <true/>
         <key>INAlternativeAppNames</key>

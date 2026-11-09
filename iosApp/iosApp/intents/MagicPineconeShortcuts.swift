@@ -23,6 +23,15 @@ struct MagicPineconeShortcuts: AppShortcutsProvider {
             shortTitle: "今天的課",
             systemImageName: "calendar"
         )
+        AppShortcut(
+            intent: AddClassesToCalendarIntent(),
+            phrases: [
+                "Add my classes to Calendar with \(.applicationName)",
+                "Sync my timetable to Calendar with \(.applicationName)"
+            ],
+            shortTitle: "加入行事曆",
+            systemImageName: "calendar.badge.plus"
+        )
 #if SIRI_AI_PREVIEW
         AppShortcut(
             intent: FindCoursesToolIntent(),

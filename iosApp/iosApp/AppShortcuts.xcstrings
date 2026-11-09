@@ -100,6 +100,29 @@
           }
         }
       }
+    },
+    "Add my classes to Calendar with ${applicationName}": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringSet": {
+            "state": "new",
+            "values": [
+              "Add my classes to Calendar with ${applicationName}",
+              "Sync my timetable to Calendar with ${applicationName}"
+            ]
+          }
+        },
+        "zh-Hant": {
+          "stringSet": {
+            "state": "translated",
+            "values": [
+              "用${applicationName}把課表加入行事曆",
+              "用${applicationName}同步課表到行事曆"
+            ]
+          }
+        }
+      }
     }
   },
   "version": "1.0"
