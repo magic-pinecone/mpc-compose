@@ -42,6 +42,7 @@ dependencies {
 
     implementation(libs.metrox.viewmodel.compose)
     implementation(libs.kotlinx.serialization.core)
+    implementation(libs.kotlinx.datetime)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 
     testImplementation(libs.kotlin.test)
