@@ -14,10 +14,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.plus
 import org.mpc.di.AppGraph
+import org.mpc.domain.model.CampusTimeZone
 import org.mpc.domain.schedule.ClassOccurrence
 import org.mpc.domain.schedule.occurrencesIn
 import org.mpc.presentation.formatting.periodLabel
@@ -26,15 +26,10 @@ import kotlin.time.Duration.Companion.minutes
 private const val ACCOUNT_NAME = "神奇松果"
 private const val CALENDAR_COLOR = 0xFF4F7A5A.toInt()
 
-// Classes meet on campus time wherever the phone is.
-private const val CAMPUS_TIME_ZONE_ID = "Asia/Taipei"
-
 /** Mirrors the Saved Course Plan into one local calendar the app owns, so exporting again replaces instead of duplicating. */
 internal object ClassCalendar {
     const val TITLE = "神奇松果課表"
     val permissions = arrayOf(Manifest.permission.READ_CALENDAR, Manifest.permission.WRITE_CALENDAR)
-
-    private val campusTimeZone = TimeZone.of(CAMPUS_TIME_ZONE_ID)
 
     /** Replaces this term's events with the Saved Course Plan's classes; null when the term's class days are not known. */
     suspend fun exportSavedPlan(
@@ -97,7 +92,7 @@ internal object ClassCalendar {
             put(Calendars.CALENDAR_COLOR, CALENDAR_COLOR)
             put(Calendars.CALENDAR_ACCESS_LEVEL, Calendars.CAL_ACCESS_OWNER)
             put(Calendars.OWNER_ACCOUNT, ACCOUNT_NAME)
-            put(Calendars.CALENDAR_TIME_ZONE, CAMPUS_TIME_ZONE_ID)
+            put(Calendars.CALENDAR_TIME_ZONE, CampusTimeZone.id)
             put(Calendars.VISIBLE, 1)
             put(Calendars.SYNC_EVENTS, 1)
         }
@@ -112,7 +107,7 @@ internal object ClassCalendar {
         put(Events.TITLE, course.title)
         put(Events.DTSTART, dayStart + meeting.startMinute.minutes.inWholeMilliseconds)
         put(Events.DTEND, dayStart + meeting.endMinute.minutes.inWholeMilliseconds)
-        put(Events.EVENT_TIMEZONE, CAMPUS_TIME_ZONE_ID)
+        put(Events.EVENT_TIMEZONE, CampusTimeZone.id)
         put(
             Events.DESCRIPTION,
             listOf(meeting.periodLabel(), course.teachers.joinToString("、"), "課號 ${course.serialNumber}")
@@ -121,5 +116,5 @@ internal object ClassCalendar {
         )
     }
 
-    private fun LocalDate.startMillis() = atStartOfDayIn(campusTimeZone).toEpochMilliseconds()
+    private fun LocalDate.startMillis() = atStartOfDayIn(CampusTimeZone).toEpochMilliseconds()
 }
