@@ -117,21 +117,25 @@ struct FindCoursesIntent: AppIntent, ProgressReportingIntent {
     ) async throws -> some ReturnsValue<[CourseEntity]> & ProvidesDialog & ShowsSnippetView {
         let semester = CourseIdentity.currentSemester
         let query = try await courseQuery(semester: semester)
-        if query.keyword.isEmpty, query.filters.isEmpty {
+        let searchable = !query.keyword.isEmpty || !query.filters.isEmpty
+        if !searchable, query.unmatched.isEmpty {
             throw missingCriteriaError
         }
-        let courses = try await sharedHost.findCourses(
-            semester: semester,
-            keyword: query.keyword,
-            filters: query.filters,
-            limit: Int32.max
-        )
+        // Searching with only unknown names left out would list the whole catalog.
+        let courses = searchable
+            ? try await sharedHost.findCourses(
+                semester: semester,
+                keyword: query.keyword,
+                filters: query.filters,
+                limit: Int32.max
+            )
+            : []
         let entities = courses.prefix(20).map { CourseEntity(semester: semester, course: $0) }
         return .result(
             value: Array(entities),
             dialog: IntentDialog(
-                full: LocalizedStringResource(stringLiteral: Self.spokenSummary(of: courses)),
-                supporting: LocalizedStringResource(stringLiteral: Self.countSummary(of: courses))
+                full: LocalizedStringResource(stringLiteral: query.unmatchedNote + Self.spokenSummary(of: courses)),
+                supporting: LocalizedStringResource(stringLiteral: query.unmatchedNote + Self.countSummary(of: courses))
             ),
             view: CourseSearchSnippet(
                 criteria: query.criteria,
@@ -241,9 +245,11 @@ struct CourseDetailsIntent: AppIntent, ProgressReportingIntent {
 
 /// A Course Query assembled from intent parameters, with a label for each criterion the snippet shows.
 private struct IntentCourseQuery {
-    var keyword: String
+    let keyword: String
     var filters: [CourseFilter] = []
     var criteria: [String] = []
+    /// Names Siri asked for that the catalog does not have; they are left out of the search.
+    var unmatched: [String] = []
 
     init(keyword: String) {
         self.keyword = keyword
@@ -255,20 +261,25 @@ private struct IntentCourseQuery {
         criteria.append(label ?? CourseFilterLabelKt.label(filter))
     }
 
-    /// Uses a catalog name as a filter, the way the sheet does; a spoken name that matches none is searched as text.
+    /// Turns spoken names into catalog-name filters, the way the sheet does, so several names match any one of them.
     mutating func addNames(_ names: [String]?, choices: [String], make: (String) -> CourseFilter) {
         for name in names ?? [] {
             let trimmed = name.trimmingCharacters(in: .whitespaces)
             guard !trimmed.isEmpty else { continue }
-            // Siri may transcribe 黃小華 as 黄小华; match the way the catalog search does.
-            let normalized = CourseSearchKt.normalizeForSearch(text: trimmed)
-            if let choice = choices.first(where: { CourseSearchKt.normalizeForSearch(text: $0) == normalized }) {
-                add(make(choice))
-            } else {
-                keyword = [keyword, trimmed].filter { !$0.isEmpty }.joined(separator: " ")
-                criteria.append("「\(trimmed)」")
+            let matches = CatalogNamesKt.matchCatalogNames(name: trimmed, choices: choices)
+            guard !matches.isEmpty else {
+                unmatched.append(trimmed)
+                criteria.append("找不到「\(trimmed)」")
+                continue
             }
+            filters += matches.map(make)
+            criteria.append(CourseFilterLabelKt.label(make(matches.count == 1 ? matches[0] : trimmed)))
         }
+    }
+
+    /// Tells the user which names were left out, so an empty or broad result is not mistaken for theirs.
+    var unmatchedNote: String {
+        unmatched.isEmpty ? "" : "目錄中找不到「\(unmatched.joined(separator: "」、「"))」，已略過。"
     }
 }
 
