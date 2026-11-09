@@ -24,15 +24,35 @@ struct MagicPineconeShortcuts: AppShortcutsProvider {
             systemImageName: "calendar"
         )
         AppShortcut(
+            intent: AddClassesToCalendarIntent(),
+            phrases: [
+                "Add my classes to Calendar with \(.applicationName)",
+                "Sync my timetable to Calendar with \(.applicationName)"
+            ],
+            shortTitle: "加入行事曆",
+            systemImageName: "calendar.badge.plus"
+        )
+#if SIRI_AI_PREVIEW
+        AppShortcut(
+            intent: FindCoursesToolIntent(),
+            phrases: ["Search the course catalog with \(.applicationName)"],
+            shortTitle: "找課",
+            systemImageName: "magnifyingglass"
+        )
+#else
+        AppShortcut(
             intent: FindCoursesIntent(),
             phrases: [
                 "Find courses with \(.applicationName)",
                 "Find \(\.$timeOfDay) courses with \(.applicationName)",
-                "Find courses on \(\.$day) with \(.applicationName)"
+                "Find courses on \(\.$day) with \(.applicationName)",
+                "Find \(\.$courseType) courses with \(.applicationName)",
+                "Find courses that are \(\.$seats) with \(.applicationName)"
             ],
             shortTitle: "找課",
             systemImageName: "magnifyingglass"
         )
+#endif
         AppShortcut(
             intent: CourseDetailsIntent(),
             phrases: [

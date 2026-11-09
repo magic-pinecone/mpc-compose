@@ -9,6 +9,7 @@ import dev.zacsweers.metro.createGraphFactory
 import dev.zacsweers.metrox.viewmodel.ViewModelGraph
 import org.mpc.data.local.database.AppDatabase
 import org.mpc.domain.html.HtmlParser
+import org.mpc.domain.repository.AcademicTermRepository
 import org.mpc.domain.repository.AppSettingsRepository
 import org.mpc.domain.repository.CoursePlanRepository
 import org.mpc.domain.repository.CourseRepository
@@ -22,6 +23,7 @@ interface AppGraph : ViewModelGraph {
     val appSettingsRepository: AppSettingsRepository
     val courseRepository: CourseRepository
     val coursePlanRepository: CoursePlanRepository
+    val academicTermRepository: AcademicTermRepository
     val coursePlanDraftStore: CoursePlanDraftStore
     val campusSessions: CampusSessions
     val portalFavoritesRepository: PortalFavoritesRepository

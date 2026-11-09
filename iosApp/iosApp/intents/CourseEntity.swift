@@ -12,10 +12,10 @@ struct CourseEntity: IndexedEntity {
 
     let id: String
 
-    @Property(title: "課程名稱")
+    @Property(title: "課程名稱", description: "課程的名稱")
     var title: String
 
-    @Property(title: "班次")
+    @Property(title: "班次", description: "課程代號，包含課程種類與班別")
     var classNo: String
 
     @Property(title: "授課教師")
@@ -58,8 +58,24 @@ struct CourseEntity: IndexedEntity {
     @Property(title: "分發條件")
     var distributionConditions: [String]
 
+    /// "CH2009-* · 必修 · 王小明" over "3 學分 · 1-2、4-5", the chip's subtitle.
+    let compactSummary: String
+
     init(semester: String, course: CourseSummary) {
         id = CourseIdentity(semester: semester, serialNumber: course.serialNumber).entityID
+        // Plain stored properties come first; the @Property setters need self fully initialized.
+        let identityLine = [
+            course.classNo,
+            course.courseType == .unknown ? "" : course.courseType.description_,
+            course.teachers.filter { !$0.isEmpty }.joined(separator: "、")
+        ]
+        let timeLine = [
+            "\(course.credit.formatted(.number.precision(.fractionLength(0...2)))) 學分",
+            course.scheduleDescription
+        ]
+        compactSummary = [identityLine, timeLine]
+            .map { $0.filter { !$0.isEmpty }.joined(separator: " · ") }
+            .joined(separator: "\n")
         title = course.title
         classNo = course.classNo
         teachers = course.teachers.filter { !$0.isEmpty }
@@ -89,23 +105,17 @@ struct CourseEntity: IndexedEntity {
 
     var identity: CourseIdentity? { CourseIdentity(entityID: id) }
 
-    var subtitle: String {
-        [classNo, teachers.joined(separator: "、")]
-            .filter { !$0.isEmpty }
-            .joined(separator: " · ")
-    }
-
     var displayRepresentation: DisplayRepresentation {
         DisplayRepresentation(
             title: "\(title)",
-            subtitle: "\(subtitle)",
-            image: .init(systemName: "book.closed")
+            subtitle: "\(compactSummary)",
+            image: CourseCodeBadge.image(classNo: classNo) ?? .init(systemName: "book.closed")
         )
     }
 
     var attributeSet: CSSearchableItemAttributeSet {
         let attributes = defaultAttributeSet
-        attributes.contentDescription = "\(subtitle)\n\(schedule)"
+        attributes.contentDescription = "\(compactSummary)\n\(schedule)"
         attributes.keywords = teachers + [department, college, classNo, identity?.serialNumber ?? ""]
             .filter { !$0.isEmpty }
         return attributes

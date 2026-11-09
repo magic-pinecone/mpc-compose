@@ -181,6 +181,10 @@ struct CoursePlanningView: View {
                     }
                 }
 
+                if isWide || activeSection == .timetable {
+                    ToolbarItem(placement: .topBarTrailing) { CalendarExportButton(sharedHost: sharedHost) }
+                }
+
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("設定", systemImage: "gear", action: onOpenSettings)
                         .labelStyle(.iconOnly)
