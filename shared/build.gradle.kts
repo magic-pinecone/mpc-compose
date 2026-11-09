@@ -155,6 +155,11 @@ detekt {
     buildUponDefaultConfig = true
 }
 
+// The Android-typed pass cannot resolve iOS types, so it misreads every iosMain call; :shared:detekt still covers iosMain.
+tasks.named<dev.detekt.gradle.Detekt>("detektMainAndroid") {
+    exclude { "/iosMain/" in it.file.invariantSeparatorsPath }
+}
+
 ktlint {
     version.set(libs.versions.ktlint)
     filter {
