@@ -37,9 +37,59 @@ data class EeclassBulletinDetail(
     val attachments: List<EeclassAttachment>,
 )
 
-data class EeclassAttachment(
+sealed interface EeclassAttachment {
+    val name: String
+    val path: SitePath
+
+    /** A direct `/filedownload/{id}` attachment. */
+    data class File(override val name: String, override val path: SitePath) : EeclassAttachment {
+        init {
+            require(ATTACHMENT_ID.matches(path.value))
+        }
+
+        /** Stable, token-free ee-class file number used to identify this download in the local cache. */
+        val id: EeclassAttachmentId
+            get() = EeclassAttachmentId(requireNotNull(ATTACHMENT_ID.matchEntire(path.value)).groupValues[1])
+    }
+
+    /** The main media file on a material page; the one-time URL is re-read when downloading. */
+    data class Media(
+        override val name: String,
+        override val path: SitePath,
+        val mediaId: EeclassMediaId,
+    ) : EeclassAttachment {
+        init {
+            require(MATERIAL_PATH.matches(path.value))
+        }
+    }
+}
+
+/** ee-class's stable numeric identifier for a file attachment. */
+@JvmInline
+value class EeclassAttachmentId(
+    val value: String,
+) {
+    init {
+        require(value.matches(Regex("""\d+""")))
+    }
+}
+
+/** ee-class's stable numeric identifier for a material download. */
+@JvmInline
+value class EeclassMediaId(
+    val value: String,
+) {
+    init {
+        require(value.matches(Regex("""\d+""")))
+    }
+}
+
+/** A completed ee-class file in the app cache. [path] is a local path, never a campus URL. */
+data class EeclassCachedFile(
+    val path: String,
     val name: String,
-    val path: SitePath,
+    val contentType: String?,
+    val size: Long,
 )
 
 data class EeclassMaterial(
@@ -85,6 +135,8 @@ sealed interface EeclassHomeworkReport {
 
     data object Submitted : EeclassHomeworkReport
 }
+private val ATTACHMENT_ID = Regex("""/filedownload/(\d+)""")
+private val MATERIAL_PATH = Regex("""/media/doc/\d+""")
 
 /** One row of an enrolled course's list. */
 data class EeclassCourseItem<T>(

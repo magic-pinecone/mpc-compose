@@ -4,7 +4,6 @@ import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.content.ProgressListener
 import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.onDownload
 import io.ktor.client.plugins.onUpload
 import io.ktor.client.plugins.timeout
 import io.ktor.client.request.HttpRequestBuilder
@@ -15,17 +14,13 @@ import io.ktor.client.request.header
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.bodyAsBytes
 import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentDisposition
 import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.Url
 import io.ktor.http.content.OutgoingContent
-import io.ktor.http.contentType
-import io.ktor.http.decodeURLPart
 import io.ktor.http.parameters
 import io.ktor.http.quote
 import io.ktor.utils.io.ByteReadChannel
@@ -114,16 +109,23 @@ internal class KtorSessionTransport(
     private val requestLock = Mutex()
 
     override suspend fun send(request: SiteRequest<*>): TransportResult = requestLock.withLock {
+        if (request is SiteRequest.Download) {
+            sendDownload(httpClient, cookieJar, request, ::storeResponseCookies)
+        } else {
+            sendBuffered(request)
+        }
+    }
+
+    private suspend fun sendBuffered(request: SiteRequest<*>): TransportResult {
         val url = request.link
-        try {
+        return try {
             val cookiesBeforeRequest = cookieJar.cookieHeader(url)
             val response = httpClient.request(url) {
                 cookiesBeforeRequest?.let { header(HttpHeaders.Cookie, it.value) }
                 request.headers.forEach { (name, value) -> header(name.wireName, value) }
                 describe(request)
             }
-            val file = if (request is SiteRequest.Download) siteFile(response) else null
-            val body = if (file == null) response.bodyAsText() else ""
+            val body = response.bodyAsText()
             if (cookieJar.cookieHeader(url) != cookiesBeforeRequest) {
                 TransportResult.Failed(Unavailability.UNEXPECTED_RESPONSE)
             } else {
@@ -134,7 +136,6 @@ internal class KtorSessionTransport(
                         status = response.status.value,
                         location = response.headers[HttpHeaders.Location],
                         html = body,
-                        file = file,
                     ),
                 )
             }
@@ -164,6 +165,11 @@ internal class KtorSessionTransport(
         cookieJar.clear(url, keep)
     }
 
+    private suspend fun storeResponseCookies(url: String, response: HttpResponse) {
+        val setCookies = response.headers.getAll(HttpHeaders.SetCookie).orEmpty()
+        if (setCookies.isNotEmpty()) cookieJar.storeSetCookies(url, setCookies)
+    }
+
     private suspend fun hop(site: CampusSite, url: Url): Hop = when (val result = get(url.toString())) {
         is TransportResult.Failed -> Hop.End(HandoffResult.Failed(result.reason))
         is TransportResult.Response -> nextHop(site, url, result.response)
@@ -179,7 +185,6 @@ private fun HttpRequestBuilder.describe(request: SiteRequest<*>) {
         is SiteRequest.Download -> {
             method = HttpMethod.Get
             transferTimeout()
-            onDownload(request.onProgress?.let { progress -> ProgressListener { sent, total -> progress(sent, total) } })
         }
 
         is SiteRequest.Form -> {
@@ -222,24 +227,6 @@ private class OneShot(private val content: OutgoingContent.ByteArrayContent) : O
 private fun fileHeaders(field: String, file: SiteFile): Headers = Headers.build {
     append(HttpHeaders.ContentType, file.contentType ?: ContentType.Application.OctetStream.toString())
     append(HttpHeaders.ContentDisposition, "filename=${(file.name ?: field).quote()}")
-}
-
-private suspend fun siteFile(response: HttpResponse): SiteFile? {
-    val contentType = response.contentType()
-    if (contentType?.match(ContentType.Text.Html) == true) return null
-    return SiteFile(
-        name = response.headers[HttpHeaders.ContentDisposition]?.let(::dispositionFileName),
-        contentType = contentType?.withoutParameters()?.toString(),
-        bytes = response.bodyAsBytes(),
-    )
-}
-
-internal fun dispositionFileName(value: String): String? {
-    val disposition = runCatching { ContentDisposition.parse(value) }.getOrNull() ?: return null
-    val extended = disposition.parameter("filename*")
-        ?.takeIf { it.startsWith("UTF-8''", ignoreCase = true) }
-        ?.let { runCatching { it.substringAfter("''").decodeURLPart() }.getOrNull() }
-    return (extended ?: disposition.parameter(ContentDisposition.Parameters.FileName))?.takeIf { it.isNotBlank() }
 }
 
 private val PORTAL_HOME = Url("$PORTAL_BASE_URL/")

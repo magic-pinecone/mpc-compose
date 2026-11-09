@@ -58,7 +58,7 @@ val eeclassDetailsTests by testSuite {
         assertEquals(true, detail.bodyHtml.contains("<strong>本週講義</strong>"))
         assertEquals(true, detail.bodyHtml.contains("href=\"https://ncueeclass.ncu.edu.tw/course/40001\""))
         assertEquals(
-            listOf(EeclassAttachment("講義.pdf", SitePath.of("/filedownload/123")), EeclassAttachment("習題.pdf", SitePath.of("/filedownload/124"))),
+            listOf(EeclassAttachment.File("講義.pdf", SitePath.of("/filedownload/123")), EeclassAttachment.File("習題.pdf", SitePath.of("/filedownload/124"))),
             detail.attachments,
         )
     }
@@ -81,7 +81,7 @@ val eeclassDetailsTests by testSuite {
         assertEquals("直接打分數", detail.gradingMethod)
         assertEquals(true, detail.descriptionHtml.contains("<strong>練習</strong>"))
         assertEquals(true, detail.descriptionHtml.contains("href=\"https://ncueeclass.ncu.edu.tw/course/40001\""))
-        assertEquals(listOf(EeclassAttachment("作業說明.pdf", SitePath.of("/filedownload/456"))), detail.attachments)
+        assertEquals(listOf(EeclassAttachment.File("作業說明.pdf", SitePath.of("/filedownload/456"))), detail.attachments)
         assertEquals(EeclassHomeworkReport.Draft, detail.report)
     }
 

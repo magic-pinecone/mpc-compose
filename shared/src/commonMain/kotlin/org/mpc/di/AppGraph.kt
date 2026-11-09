@@ -7,6 +7,7 @@ import dev.zacsweers.metro.DependencyGraph
 import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.createGraphFactory
 import dev.zacsweers.metrox.viewmodel.ViewModelGraph
+import okio.Path
 import org.mpc.data.local.database.AppDatabase
 import org.mpc.domain.html.HtmlParser
 import org.mpc.domain.repository.AcademicTermRepository
@@ -35,6 +36,7 @@ interface AppGraph : ViewModelGraph {
             @Provides dataStore: DataStore<Preferences>,
             @Provides database: AppDatabase,
             @Provides htmlParser: HtmlParser,
+            @Provides cacheDirectory: Path,
         ): AppGraph
     }
 }
@@ -43,4 +45,5 @@ fun createAppGraph(
     dataStore: DataStore<Preferences>,
     database: AppDatabase,
     htmlParser: HtmlParser,
-): AppGraph = createGraphFactory<AppGraph.Factory>().create(dataStore, database, htmlParser)
+    cacheDirectory: Path,
+): AppGraph = createGraphFactory<AppGraph.Factory>().create(dataStore, database, htmlParser, cacheDirectory)

@@ -23,7 +23,14 @@ struct EeclassBulletinSheet: View {
     @State private var page: EeclassBulletinPage?
     @State private var reloadID = 0
     @State private var path = NavigationPath()
+    @State private var opener: EeclassFileOpener
     @Environment(\.dismiss) private var dismiss
+
+    init(sharedHost: IosSharedHost, selection: EeclassBulletinSelection) {
+        self.sharedHost = sharedHost
+        self.selection = selection
+        _opener = State(initialValue: EeclassFileOpener(sharedHost: sharedHost))
+    }
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -36,17 +43,11 @@ struct EeclassBulletinSheet: View {
                             .labelStyle(.iconOnly)
                     }
                 }
-                .navigationDestination(for: EeclassPageLink.self) { link in
-                    WebPageView(
-                        sharedHost: sharedHost,
-                        title: link.title,
-                        url: sharedHost.eeclassPageUrl(path: link.path)
-                    )
-                }
                 .navigationDestination(for: EeclassBodyLink.self) { link in
                     WebPageView(sharedHost: sharedHost, title: selection.bulletin.title, url: link.url)
                 }
         }
+        .eeclassFilePreview(opener)
         .task(id: reloadID) { await load() }
     }
 
@@ -67,17 +68,9 @@ struct EeclassBulletinSheet: View {
                                     .foregroundStyle(.secondary)
                             }
                         }
-                        EeclassHtmlText(sharedHost: sharedHost, html: page.bodyHtml) { path.append($0) }
+                        EeclassHtmlText(sharedHost: sharedHost, opener: opener, html: page.bodyHtml) { path.append($0) }
                     }
-                    if !page.attachments.isEmpty {
-                        Section("附件") {
-                            ForEach(Array(page.attachments.enumerated()), id: \.offset) { _, attachment in
-                                NavigationLink(value: EeclassPageLink(title: attachment.title, path: attachment.path)) {
-                                    Label(attachment.title, systemImage: "paperclip")
-                                }
-                            }
-                        }
-                    }
+                    EeclassAttachmentsSection(attachments: page.attachments, opener: opener)
                 }
             case .needsPortal:
                 EeclassUnavailableView(
@@ -108,9 +101,11 @@ struct EeclassBulletinSheet: View {
 }
 
 /// A teacher-written HTML fragment as selectable rich text. A link to ee-class goes to `onOpenLink`, so it stays in
-/// the in-app browser with the ee-class session; other links open in the system.
+/// the in-app browser with the ee-class session, except a file link, which opens in QuickLook. Other links open in
+/// the system.
 struct EeclassHtmlText: View {
     let sharedHost: IosSharedHost
+    let opener: EeclassFileOpener
     let html: String
     let onOpenLink: (EeclassBodyLink) -> Void
 
@@ -122,6 +117,7 @@ struct EeclassHtmlText: View {
                 Text(text)
                     .textSelection(.enabled)
                     .environment(\.openURL, OpenURLAction { url in
+                        if opener.openLink(url) { return .handled }
                         guard let entry = sharedHost.campusLinkUrl(url: url.absoluteString) else {
                             return .systemAction
                         }

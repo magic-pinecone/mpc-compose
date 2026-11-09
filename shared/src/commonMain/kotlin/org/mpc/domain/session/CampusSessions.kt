@@ -87,8 +87,13 @@ interface CampusSessions {
      */
     suspend fun <T> fetch(site: CampusSite, path: SitePath, parse: (String) -> T): SiteResult<T>
 
-    /** Downloads [path] on [site] like [fetch]. An HTML page where a file was expected is [SiteResult.Unavailable]. */
-    suspend fun fetchFile(site: CampusSite, path: SitePath, onProgress: TransferProgress? = null): SiteResult<SiteFile>
+    /** Streams [path] on [site] to [destination] like [fetch]. HTML where a file was expected is unavailable. */
+    suspend fun fetchFile(
+        site: CampusSite,
+        path: SitePath,
+        destination: SiteFileDestination,
+        onProgress: TransferProgress? = null,
+    ): SiteResult<SiteFileMetadata>
 
     /**
      * Loads [path] like [fetch], then runs [then] on its HTML. [then] sends follow-up requests built from tokens on

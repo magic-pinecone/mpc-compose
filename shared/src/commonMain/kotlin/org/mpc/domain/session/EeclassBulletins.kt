@@ -35,7 +35,7 @@ fun eeclassBulletinDetail(page: HtmlElement): EeclassBulletinDetail? {
         bodyHtml = body.htmlWithAbsoluteLinks(),
         attachments = page.select(".fs-filelist").flatMap { list ->
             list.select("a[href]").mapNotNull { anchor -> anchor.siteLink(ATTACHMENT_PATH) }
-        }.distinctBy { it.path }.map { EeclassAttachment(it.name, it.path) },
+        }.distinctBy { it.path }.map { EeclassAttachment.File(it.name, it.path) },
     )
 }
 

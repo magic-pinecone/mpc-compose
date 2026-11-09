@@ -24,6 +24,8 @@ import org.mpc.domain.session.PortalSignIn
 import org.mpc.domain.session.PortalStatus
 import org.mpc.domain.session.Renewal
 import org.mpc.domain.session.SiteFile
+import org.mpc.domain.session.SiteFileDestination
+import org.mpc.domain.session.SiteFileMetadata
 import org.mpc.domain.session.SiteFollowUp
 import org.mpc.domain.session.SitePath
 import org.mpc.domain.session.SiteRequest
@@ -78,11 +80,18 @@ private class SiteSession(
     val status = MutableStateFlow<SiteStatus>(SiteStatus.Unknown)
 
     suspend fun <R, T> fetch(request: SiteRequest<R>, read: (R) -> T): SiteResult<T> = lock.withLock {
-        when (val loaded = load(request)) {
-            is Loaded.Page -> request.reply(loaded.response)?.let { SiteResult.Page(read(it)) }
-                ?: SiteResult.Unavailable(Unavailability.UNEXPECTED_RESPONSE)
+        var destinationAccepted = false
+        try {
+            val result = when (val loaded = load(request)) {
+                is Loaded.Page -> request.reply(loaded.response)?.let { SiteResult.Page(read(it)) }
+                    ?: SiteResult.Unavailable(Unavailability.UNEXPECTED_RESPONSE)
 
-            is Loaded.Stopped -> loaded.result
+                is Loaded.Stopped -> loaded.result
+            }
+            destinationAccepted = result is SiteResult.Page
+            result
+        } finally {
+            if (!destinationAccepted) request.abortDownload()
         }
     }
 
@@ -187,21 +196,28 @@ private class SiteSession(
     }
 
     private suspend fun <R> sendOnce(request: SiteRequest<R>): SiteResult<R> {
-        val onSite = onSite(request) ?: return SiteResult.Unavailable(Unavailability.UNEXPECTED_RESPONSE)
-        return when (val result = transport.send(onSite)) {
-            is TransportResult.Failed -> SiteResult.Unavailable(result.reason)
+        val onSite = onSite(request) ?: return SiteResult.Unavailable(Unavailability.UNEXPECTED_RESPONSE).also { request.abortDownload() }
+        var destinationAccepted = false
+        return try {
+            val result = when (val result = transport.send(onSite)) {
+                is TransportResult.Failed -> SiteResult.Unavailable(result.reason)
 
-            is TransportResult.Response -> when {
-                site.signals.classify(result.response, parser) == SiteVerdict.SIGNED_OUT -> {
-                    status.value = SiteStatus.SignedOut(renewal())
-                    SiteResult.Unavailable(Unavailability.UNEXPECTED_RESPONSE)
+                is TransportResult.Response -> when {
+                    site.signals.classify(result.response, parser) == SiteVerdict.SIGNED_OUT -> {
+                        status.value = SiteStatus.SignedOut(renewal())
+                        SiteResult.Unavailable(Unavailability.UNEXPECTED_RESPONSE)
+                    }
+
+                    result.response.status == HTTP_STATUS_OK -> onSite.reply(result.response)?.let { SiteResult.Page(it) }
+                        ?: SiteResult.Unavailable(Unavailability.UNEXPECTED_RESPONSE)
+
+                    else -> SiteResult.Unavailable(Unavailability.UNEXPECTED_RESPONSE)
                 }
-
-                result.response.status == HTTP_STATUS_OK -> onSite.reply(result.response)?.let { SiteResult.Page(it) }
-                    ?: SiteResult.Unavailable(Unavailability.UNEXPECTED_RESPONSE)
-
-                else -> SiteResult.Unavailable(Unavailability.UNEXPECTED_RESPONSE)
             }
+            destinationAccepted = result is SiteResult.Page
+            result
+        } finally {
+            if (!destinationAccepted) onSite.abortDownload()
         }
     }
 
@@ -253,7 +269,14 @@ internal class DefaultCampusSessions(
 
     override suspend fun <T> fetch(site: CampusSite, path: SitePath, parse: (String) -> T): SiteResult<T> = site.session.fetch(SiteRequest.Get(site.url(path)), parse)
 
-    override suspend fun fetchFile(site: CampusSite, path: SitePath, onProgress: TransferProgress?): SiteResult<SiteFile> = site.session.fetch(SiteRequest.Download(site.url(path), onProgress = onProgress)) { it }
+    override suspend fun fetchFile(
+        site: CampusSite,
+        path: SitePath,
+        destination: SiteFileDestination,
+        onProgress: TransferProgress?,
+    ): SiteResult<SiteFileMetadata> = site.session.fetch(
+        SiteRequest.Download(site.url(path), destination, onProgress = onProgress),
+    ) { it }
 
     override suspend fun <T> fetchThen(site: CampusSite, path: SitePath, then: suspend SiteFollowUp.(String) -> T?): SiteResult<T> = site.session.fetchThen(path, then)
 
@@ -305,6 +328,10 @@ internal class DefaultCampusSessions(
 
 // Not an Exception, so a catch-all in the caller's block does not swallow the stop.
 private class FollowUpStopped(val result: SiteResult<Nothing>) : Throwable()
+
+private fun SiteRequest<*>.abortDownload() {
+    (this as? SiteRequest.Download)?.let { request -> runCatching { request.destination.abort() } }
+}
 
 private sealed interface Loaded {
     class Page(val response: SiteResponse) : Loaded

@@ -1,6 +1,7 @@
 package org.mpc
 
 import android.app.Application
+import okio.Path.Companion.toOkioPath
 import org.mpc.core.createDataStore
 import org.mpc.core.createDatabase
 import org.mpc.core.createDatabaseBuilder
@@ -22,6 +23,6 @@ class MpcApplication : Application() {
                 createDatabaseBuilder(this),
             )
 
-        appGraph = createAppGraph(dataStore, database, JsoupHtmlParser())
+        appGraph = createAppGraph(dataStore, database, JsoupHtmlParser(), cacheDir.toOkioPath())
     }
 }

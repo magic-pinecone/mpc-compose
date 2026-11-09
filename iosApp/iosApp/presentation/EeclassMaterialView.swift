@@ -9,6 +9,13 @@ struct EeclassMaterialView: View {
     @State private var page: EeclassMaterialPage?
     @State private var reloadID = 0
     @State private var openedLink: EeclassBodyLink?
+    @State private var opener: EeclassFileOpener
+
+    init(sharedHost: IosSharedHost, link: EeclassMaterialLink) {
+        self.sharedHost = sharedHost
+        self.link = link
+        _opener = State(initialValue: EeclassFileOpener(sharedHost: sharedHost))
+    }
 
     var body: some View {
         EeclassDetailContent(
@@ -20,14 +27,15 @@ struct EeclassMaterialView: View {
                 List {
                     Section {
                         EeclassDetailHeader(title: link.title, subtitle: page.info)
-                        EeclassHtmlText(sharedHost: sharedHost, html: page.bodyHtml) { openedLink = $0 }
+                        EeclassHtmlText(sharedHost: sharedHost, opener: opener, html: page.bodyHtml) { openedLink = $0 }
                     }
-                    EeclassAttachmentsSection(attachments: page.attachments)
+                    EeclassAttachmentsSection(attachments: page.attachments, opener: opener)
                     EeclassOpenOnWebSection(title: link.title, path: link.path)
                 }
                 .refreshable { await load() }
             }
         }
+        .eeclassFilePreview(opener)
         .navigationTitle("教材")
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(item: $openedLink) { opened in
@@ -87,22 +95,6 @@ struct EeclassDetailHeader: View {
                 Text(subtitle)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-            }
-        }
-    }
-}
-
-struct EeclassAttachmentsSection: View {
-    let attachments: [EeclassItemRow]
-
-    var body: some View {
-        if !attachments.isEmpty {
-            Section("附件") {
-                ForEach(Array(attachments.enumerated()), id: \.offset) { _, attachment in
-                    NavigationLink(value: EeclassPageLink(title: attachment.title, path: attachment.path)) {
-                        Label(attachment.title, systemImage: "paperclip")
-                    }
-                }
             }
         }
     }

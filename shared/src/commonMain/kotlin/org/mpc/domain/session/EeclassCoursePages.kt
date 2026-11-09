@@ -5,19 +5,9 @@ import org.mpc.domain.model.EeclassCourseNumber
 import org.mpc.domain.model.EeclassHomework
 import org.mpc.domain.model.EeclassMaterial
 
-fun eeclassMaterialsPath(course: EeclassCourseNumber): SitePath = SitePath.of("/course/material/${course.value}")
-
 fun eeclassHomeworkPath(course: EeclassCourseNumber): SitePath = SitePath.of("/course/homeworkList/${course.value}")
 
-private val MATERIAL_PATH = Regex("""/media/doc/\d+""")
 private val HOMEWORK_PATH = Regex("""/course/homework/\d+""")
-
-// Columns are found by header label, so a reordered or added column cannot shift a field into the wrong one.
-
-fun eeclassMaterials(page: HtmlElement): List<EeclassMaterial> = rows(page, "materialListTable").mapNotNull { row ->
-    val link = row.cell("標題")?.firstSiteLink(MATERIAL_PATH) ?: return@mapNotNull null
-    EeclassMaterial(title = link.name, author = row.text("發表人"), updated = row.text("更新時間"), path = link.path)
-}
 
 fun eeclassHomework(page: HtmlElement): List<EeclassHomework> = rows(page, "homeworkListTable").mapNotNull { row ->
     val link = row.cell("名稱")?.firstSiteLink(HOMEWORK_PATH) ?: return@mapNotNull null
@@ -65,4 +55,15 @@ internal fun HtmlElement.siteLink(pattern: Regex): SiteLink? {
 internal fun eeclassPath(anchor: HtmlElement): String? {
     val url = anchor.absUrl("href")?.let(::parseHttpsUrl) ?: return null
     return url.encodedPath.takeIf { url.host.equals(CampusSites.Eeclass.host, ignoreCase = true) }
+}
+
+fun eeclassMaterialsPath(course: EeclassCourseNumber): SitePath = SitePath.of("/course/material/${course.value}")
+
+private val MATERIAL_PATH = Regex("""/media/doc/\d+""")
+
+// Columns are found by header label, so a reordered or added column cannot shift a field into the wrong one.
+
+fun eeclassMaterials(page: HtmlElement): List<EeclassMaterial> = rows(page, "materialListTable").mapNotNull { row ->
+    val link = row.cell("標題")?.firstSiteLink(MATERIAL_PATH) ?: return@mapNotNull null
+    EeclassMaterial(title = link.name, author = row.text("發表人"), updated = row.text("更新時間"), path = link.path)
 }
