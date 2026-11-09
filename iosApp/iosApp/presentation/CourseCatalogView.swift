@@ -68,10 +68,7 @@ struct CourseCatalogResultsView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            header
-            content
-        }
+        content.coursePlanningTopBar { header }
     }
 
     // The search field replaces the navigation toolbar on iPhone, so the filter button lives here.
@@ -81,6 +78,9 @@ struct CourseCatalogResultsView: View {
                 Text("共 \(snapshot.courses.count) 門課程")
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(.secondary)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 7)
+                    .coursePlanningGlassCapsule()
             }
             Spacer()
             Button(action: onShowFilters) {
@@ -92,12 +92,15 @@ struct CourseCatalogResultsView: View {
                 )
                 .labelStyle(.iconOnly)
                 .font(.title3)
+                .foregroundStyle(filterCount > 0 ? Color.accentColor : Color.primary)
+                .padding(5)
+                .coursePlanningGlassCapsule()
             }
             .accessibilityValue("\(filterCount)")
             .accessibilityIdentifier("course-filters")
         }
-        .padding(.horizontal, 18)
-        .padding(.top, 8)
+        .padding(.horizontal, 16)
+        .padding(.top, 4)
         .frame(minHeight: 44)
     }
 
@@ -152,6 +155,7 @@ struct CourseCatalogResultsView: View {
                     .padding(.top, 4)
                     .padding(.bottom, 24)
                 }
+                .coursePlanningSoftTopEdge()
             }
         } else {
             CourseCatalogFeedbackView(

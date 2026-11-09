@@ -276,20 +276,6 @@ struct CoursePlanningView: View {
     }
 }
 
-private extension View {
-    // Let both pages scroll beneath the section picker so it shares the navigation bar's edge effect.
-    @ViewBuilder
-    func coursePlanningTopBar(@ViewBuilder content: () -> some View) -> some View {
-        if #available(iOS 26.0, *) {
-            safeAreaBar(edge: .top, spacing: 0, content: content)
-        } else {
-            safeAreaInset(edge: .top, spacing: 0) {
-                content().background(Color(uiColor: .systemGroupedBackground))
-            }
-        }
-    }
-}
-
 private extension CoursePlanningView {
     func openPendingRoute() async {
         if let query = router.take(\.catalogSearch) {
