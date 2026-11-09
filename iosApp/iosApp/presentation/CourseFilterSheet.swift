@@ -93,27 +93,29 @@ private struct CourseFilterForm: View {
     let options: CourseFilterOptions?
     let active: ActiveCourseFilters
 
+    // Suggestions can add both values of a kind; `.both` then matches no segment, so none shows as selected.
     private enum TypeChoice: Hashable {
-        case all, required, elective
+        case all, required, elective, both
     }
 
     private enum SeatsChoice: Hashable {
-        case all, open, full
+        case all, open, full, both
     }
 
     private var typeChoice: Binding<TypeChoice> {
         Binding {
-            switch active.type {
-            case .required: .required
-            case .elective: .elective
-            default: .all
+            switch active.types {
+            case []: .all
+            case [.required]: .required
+            case [.elective]: .elective
+            default: .both
             }
         } set: { choice in
-            if let current = active.type {
-                bridge.removeFilter(filter: CourseFilterType(type: current))
+            for type in active.types {
+                bridge.removeFilter(filter: CourseFilterType(type: type))
             }
             switch choice {
-            case .all: break
+            case .all, .both: break
             case .required: bridge.addFilter(filter: CourseFilterType(type: .required))
             case .elective: bridge.addFilter(filter: CourseFilterType(type: .elective))
             }
@@ -123,16 +125,17 @@ private struct CourseFilterForm: View {
     private var seatsChoice: Binding<SeatsChoice> {
         Binding {
             switch active.seats {
-            case .open: .open
-            case .full: .full
-            case nil: .all
+            case []: .all
+            case [.open]: .open
+            case [.full]: .full
+            default: .both
             }
         } set: { choice in
-            if let current = active.seats {
-                bridge.removeFilter(filter: CourseFilterSeats(availability: current))
+            for availability in active.seats {
+                bridge.removeFilter(filter: CourseFilterSeats(availability: availability))
             }
             switch choice {
-            case .all: break
+            case .all, .both: break
             case .open: bridge.addFilter(filter: CourseFilterSeats(availability: .open))
             case .full: bridge.addFilter(filter: CourseFilterSeats(availability: .full))
             }

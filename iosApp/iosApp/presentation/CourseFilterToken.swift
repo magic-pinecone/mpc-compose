@@ -35,8 +35,8 @@ struct CourseFilterToken: Identifiable, Hashable {
 
 /// The current filters grouped by kind, for the filter sheet's controls.
 struct ActiveCourseFilters {
-    var type: CourseType?
-    var seats: SeatAvailability?
+    var types: Set<CourseType> = []
+    var seats: Set<SeatAvailability> = []
     var credits: Set<Double> = []
     var teachers: Set<String> = []
     var departments: Set<String> = []
@@ -47,8 +47,8 @@ struct ActiveCourseFilters {
         count = filters.count
         for filter in filters {
             switch filter {
-            case let value as CourseFilterType: type = value.type
-            case let value as CourseFilterSeats: seats = value.availability
+            case let value as CourseFilterType: types.insert(value.type)
+            case let value as CourseFilterSeats: seats.insert(value.availability)
             case let value as CourseFilterCredits: credits.insert(value.credits)
             case let value as CourseFilterTeacher: teachers.insert(value.name)
             case let value as CourseFilterDepartment: departments.insert(value.name)
