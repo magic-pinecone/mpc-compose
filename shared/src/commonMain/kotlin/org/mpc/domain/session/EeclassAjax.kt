@@ -22,7 +22,7 @@ sealed interface EeclassAjax {
 fun eeclassAjax(text: String): EeclassAjax? {
     val root = runCatching { Json.parseToJsonElement(text) }.getOrNull() as? JsonObject ?: return null
     val envelope = root["ret"] as? JsonObject ?: root
-    // ee-class sends `true` or the string "true"; booleanOrNull reads either.
+    // Editor saves send the string "true"; submit and withdraw send a boolean. booleanOrNull reads either.
     return when ((envelope["status"] as? JsonPrimitive)?.booleanOrNull) {
         true -> EeclassAjax.Done(envelope["data"] ?: JsonNull)
         false -> EeclassAjax.Refused((envelope["msg"] as? JsonPrimitive)?.takeIf { it.isString }?.content)

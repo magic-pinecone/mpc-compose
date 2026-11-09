@@ -46,6 +46,12 @@ val campusSitesTests by testSuite {
         assertNull(SitePath.parse("/dashboard/"))
     }
 
+    test("a request prints no link or field") {
+        val request = SiteRequest.Form("/save/?ajaxAuth=secret", listOf("anticsrf" to "secret"))
+
+        assertEquals("SiteRequest", request.toString())
+    }
+
     test("paging queries round-trip in order") {
         val bulletins = SitePath.of("/dashboard/latestBulletin").withQuery("category" to "all", "condition" to "0", "page" to "2", "pageSize" to "20")
 

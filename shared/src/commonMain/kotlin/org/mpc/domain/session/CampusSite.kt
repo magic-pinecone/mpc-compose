@@ -40,10 +40,9 @@ value class SitePath private constructor(val value: String) {
 private val PATH_SEGMENT = Regex("[A-Za-z0-9_-]+")
 private val QUERY_VALUE = Regex("[A-Za-z0-9_.~-]*")
 
-// Add a key here only when its values are never tokens.
-private val QUERY_KEYS = setOf("page", "pageSize", "size", "category", "condition")
+private val TOKEN_FREE_QUERY_KEYS = setOf("page", "pageSize", "size", "category", "condition")
 
-private fun isPlainPair(pair: String): Boolean = '=' in pair && pair.substringBefore('=') in QUERY_KEYS && pair.substringAfter('=').matches(QUERY_VALUE)
+private fun isPlainPair(pair: String): Boolean = '=' in pair && pair.substringBefore('=') in TOKEN_FREE_QUERY_KEYS && pair.substringAfter('=').matches(QUERY_VALUE)
 
 /**
  * What a campus site answered: status, raw `Location`, and body. No other headers, so classifiers never see cookies.
@@ -75,18 +74,18 @@ typealias TransferProgress = (sent: Long, total: Long?) -> Unit
 
 /**
  * A request to a campus site, answered with what [R] names. Its [link] may carry tokens, so build it inside
- * [CampusSessions.fetchThen] and let it go nowhere else. Not data classes, so [toString] prints no link or field.
+ * [CampusSessions.fetchThen] and let it go nowhere else.
  */
 sealed class SiteRequest<out R> {
     /** An absolute URL or a root-relative path; it must resolve to https on the requested site. */
     abstract val link: String
     abstract val headers: Map<SiteHeader, String>
 
-    /** What a successful [response] gives the caller, or null when it is not what this request reads. */
     internal abstract fun reply(response: SiteResponse): R?
 
-    /** This request sent to [url] instead. */
-    internal abstract fun at(url: String): SiteRequest<R>
+    internal abstract fun withLink(url: String): SiteRequest<R>
+
+    final override fun toString(): String = "SiteRequest"
 
     class Get(
         override val link: String,
@@ -94,7 +93,7 @@ sealed class SiteRequest<out R> {
     ) : SiteRequest<String>() {
         override fun reply(response: SiteResponse): String = response.html
 
-        override fun at(url: String) = Get(url, headers)
+        override fun withLink(url: String) = Get(url, headers)
     }
 
     /** A POST of [fields] as `application/x-www-form-urlencoded`, in order. */
@@ -105,7 +104,7 @@ sealed class SiteRequest<out R> {
     ) : SiteRequest<String>() {
         override fun reply(response: SiteResponse): String = response.html
 
-        override fun at(url: String) = Form(url, fields, headers)
+        override fun withLink(url: String) = Form(url, fields, headers)
     }
 
     /** A `multipart/form-data` POST of [fields], then [files] keyed by form field name. */
@@ -118,7 +117,7 @@ sealed class SiteRequest<out R> {
     ) : SiteRequest<String>() {
         override fun reply(response: SiteResponse): String = response.html
 
-        override fun at(url: String) = Multipart(url, fields, files, headers, onProgress)
+        override fun withLink(url: String) = Multipart(url, fields, files, headers, onProgress)
     }
 
     /** A GET read as bytes. */
@@ -129,7 +128,7 @@ sealed class SiteRequest<out R> {
     ) : SiteRequest<SiteFile>() {
         override fun reply(response: SiteResponse): SiteFile? = response.file
 
-        override fun at(url: String) = Download(url, headers, onProgress)
+        override fun withLink(url: String) = Download(url, headers, onProgress)
     }
 }
 

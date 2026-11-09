@@ -77,7 +77,6 @@ private class SiteSession(
     private val lock = Mutex()
     val status = MutableStateFlow<SiteStatus>(SiteStatus.Unknown)
 
-    /** Loads [request], a GET of a path on this site, recovering the session, and reads the reply. */
     suspend fun <R, T> fetch(request: SiteRequest<R>, read: (R) -> T): SiteResult<T> = lock.withLock {
         when (val loaded = load(request)) {
             is Loaded.Page -> request.reply(loaded.response)?.let { SiteResult.Page(read(it)) }
@@ -141,7 +140,6 @@ private class SiteSession(
         }
     }
 
-    /** Sends [request], recovering the session as [CampusSessions.fetch] describes, and records the status. Holds the lock. */
     private suspend fun load(request: SiteRequest<*>): Loaded {
         portalState.load()
         var attempt = Attempt(portalState.automaticSignIn(mode(), now()))
@@ -175,13 +173,12 @@ private class SiteSession(
         }
     }
 
-    /** Sends requests built from a page just loaded, each once, and ends the [fetchThen] call on the first that fails. */
     private inner class FollowUp : SiteFollowUp {
         var open = true
 
         override suspend fun <R> send(request: SiteRequest<R>): R {
             check(open) { "A follow-up ends with its fetchThen call" }
-            return when (val reply = exchange(request)) {
+            return when (val reply = sendOnce(request)) {
                 is SiteResult.Page -> reply.value
                 is SiteResult.NeedsPortal -> throw FollowUpStopped(reply)
                 is SiteResult.Unavailable -> throw FollowUpStopped(reply)
@@ -189,8 +186,7 @@ private class SiteSession(
         }
     }
 
-    /** Sends [request] once, without recovering: a signed-out answer makes the next fetch hand off instead. */
-    private suspend fun <R> exchange(request: SiteRequest<R>): SiteResult<R> {
+    private suspend fun <R> sendOnce(request: SiteRequest<R>): SiteResult<R> {
         val onSite = onSite(request) ?: return SiteResult.Unavailable(Unavailability.UNEXPECTED_RESPONSE)
         return when (val result = transport.send(onSite)) {
             is TransportResult.Failed -> SiteResult.Unavailable(result.reason)
@@ -209,12 +205,11 @@ private class SiteSession(
         }
     }
 
-    /** [request] sent to its link as an absolute URL, when that is https on this site. A built request goes nowhere else. */
     private fun <R> onSite(request: SiteRequest<R>): SiteRequest<R>? {
         val link = request.link
         val absolute = if (link.startsWith("/") && !link.startsWith("//")) site.baseUrl + link else link
         val url = parseHttpsUrl(absolute)?.takeIf { it.host.equals(site.host, ignoreCase = true) } ?: return null
-        return request.at(url.toString())
+        return request.withLink(url.toString())
     }
 
     private suspend fun renewal(): Renewal = portalState.renewal(mode(), now())
@@ -308,7 +303,7 @@ internal class DefaultCampusSessions(
     private val CampusSite.session: SiteSession get() = requireNotNull(sessions[id]) { "Unknown campus site" }
 }
 
-/** Ends a [SiteSession.fetchThen] call from inside its follow-up. Not an [Exception], so a caller's catch-all keeps out of the way. */
+// Not an Exception, so a catch-all in the caller's block does not swallow the stop.
 private class FollowUpStopped(val result: SiteResult<Nothing>) : Throwable()
 
 private sealed interface Loaded {

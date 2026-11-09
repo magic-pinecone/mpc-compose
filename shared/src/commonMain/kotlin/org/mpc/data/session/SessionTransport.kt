@@ -74,7 +74,6 @@ internal sealed interface PortalCheck {
 
 /** HTTP for campus sessions over the shared [PlatformCookieJar]. The only client that carries campus cookies. */
 internal interface SessionTransport {
-    /** Sends [request], whose link must be an absolute URL. Requests run one at a time. */
     suspend fun send(request: SiteRequest<*>): TransportResult
 
     /** Reads Portal's home page without following redirects. Checking never signs anyone in or out. */
@@ -173,7 +172,6 @@ internal class KtorSessionTransport(
 
 internal suspend fun SessionTransport.get(url: String): TransportResult = send(SiteRequest.Get(url))
 
-/** Sets the method, body, timeout, and progress listeners [request] asks for. */
 private fun HttpRequestBuilder.describe(request: SiteRequest<*>) {
     when (request) {
         is SiteRequest.Get -> method = HttpMethod.Get
@@ -226,7 +224,6 @@ private fun fileHeaders(field: String, file: SiteFile): Headers = Headers.build 
     append(HttpHeaders.ContentDisposition, "filename=${(file.name ?: field).quote()}")
 }
 
-/** The file a download answered with, or null for an HTML page, which the classifier reads instead. */
 private suspend fun siteFile(response: HttpResponse): SiteFile? {
     val contentType = response.contentType()
     if (contentType?.match(ContentType.Text.Html) == true) return null
@@ -237,7 +234,6 @@ private suspend fun siteFile(response: HttpResponse): SiteFile? {
     )
 }
 
-/** The `filename*` (RFC 5987, UTF-8) or `filename` parameter of a `Content-Disposition` value. */
 internal fun dispositionFileName(value: String): String? {
     val disposition = runCatching { ContentDisposition.parse(value) }.getOrNull() ?: return null
     val extended = disposition.parameter("filename*")
