@@ -54,6 +54,26 @@ struct MagicPineconeShortcuts: AppShortcutsProvider {
         )
 #endif
         AppShortcut(
+            intent: DueHomeworkIntent(),
+            phrases: [
+                "What homework is due in \(.applicationName)",
+                "Show my homework in \(.applicationName)",
+                "Check ee-class homework with \(.applicationName)"
+            ],
+            shortTitle: "近期作業",
+            systemImageName: "doc.text"
+        )
+        AppShortcut(
+            intent: NewestBulletinsIntent(),
+            phrases: [
+                "Show the latest announcements in \(.applicationName)",
+                "Any new announcements in \(.applicationName)",
+                "Check ee-class announcements with \(.applicationName)"
+            ],
+            shortTitle: "最新公告",
+            systemImageName: "megaphone"
+        )
+        AppShortcut(
             intent: CourseDetailsIntent(),
             phrases: [
                 "Course details in \(.applicationName)",

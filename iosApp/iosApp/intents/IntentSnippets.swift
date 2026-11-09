@@ -47,7 +47,7 @@ private extension CourseSummary {
 }
 
 /// Siri draws snippets on its own material, where a concrete label color stays legible in both appearances.
-private extension ShapeStyle where Self == Color {
+extension ShapeStyle where Self == Color {
     static var snippetSecondary: Color { Color(uiColor: .secondaryLabel) }
 }
 
@@ -290,7 +290,7 @@ private struct CourseSnippetRows: View {
     }
 }
 
-private struct SnippetDetailLabelStyle: LabelStyle {
+struct SnippetDetailLabelStyle: LabelStyle {
     func makeBody(configuration: Configuration) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 6) {
             configuration.icon
