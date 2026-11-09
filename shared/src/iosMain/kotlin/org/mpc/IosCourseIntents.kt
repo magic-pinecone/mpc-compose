@@ -1,5 +1,7 @@
 package org.mpc
 
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.number
 import org.mpc.domain.model.CourseDay
 import org.mpc.domain.model.CourseFilter
 import org.mpc.domain.model.CourseQuery
@@ -9,6 +11,8 @@ import org.mpc.domain.schedule.ClassMeeting
 import org.mpc.domain.schedule.UpcomingMeeting
 import org.mpc.domain.schedule.meetingsOn
 import org.mpc.domain.schedule.nextMeeting
+import org.mpc.domain.schedule.occurrencesIn
+import org.mpc.presentation.formatting.periodLabel
 import org.mpc.presentation.state.CourseFilterOptions
 import org.mpc.presentation.state.courseFilterOptions
 
@@ -59,3 +63,44 @@ suspend fun IosSharedHost.nextSavedMeeting(
     day: CourseDay,
     minuteOfDay: Int,
 ): UpcomingMeeting? = appGraph.coursePlanRepository.loadPlan(semester).nextMeeting(day, minuteOfDay)
+
+/** A date as Swift reads it; kotlinx-datetime types do not export to Objective-C usefully. */
+data class CalendarDay(
+    val year: Int,
+    val month: Int,
+    val day: Int,
+)
+
+/** One class of the Saved Course Plan on a term day. */
+data class CalendarClass(
+    val course: CourseSummary,
+    val date: CalendarDay,
+    val startMinute: Int,
+    val endMinute: Int,
+    val periodLabel: String,
+)
+
+/** The term's class days and every Saved Course Plan class on them. */
+data class TermCalendar(
+    val firstClassDay: CalendarDay,
+    val lastClassDay: CalendarDay,
+    val classes: List<CalendarClass>,
+)
+
+/** The Saved Course Plan laid over this term, or null when the term's class days are not known. */
+@Throws(Exception::class)
+suspend fun IosSharedHost.savedTermCalendar(semester: String): TermCalendar? {
+    val term = appGraph.academicTermRepository.term(semester) ?: return null
+    val classes = appGraph.coursePlanRepository.loadPlan(semester).occurrencesIn(term).map {
+        CalendarClass(
+            course = it.meeting.course,
+            date = it.date.toCalendarDay(),
+            startMinute = it.meeting.startMinute,
+            endMinute = it.meeting.endMinute,
+            periodLabel = it.meeting.periodLabel(),
+        )
+    }
+    return TermCalendar(term.firstClassDay.toCalendarDay(), term.lastClassDay.toCalendarDay(), classes)
+}
+
+private fun LocalDate.toCalendarDay() = CalendarDay(year, month.number, day)
