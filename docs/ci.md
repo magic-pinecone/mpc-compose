@@ -15,4 +15,4 @@ Keep the existing rulesets in place. This ruleset adds CI checks without replaci
 
 The normal iOS build, tests, and SwiftLint use Xcode 27.1. Swift CodeQL temporarily uses the ARM64 `macos-26` runner and Xcode 26.6 because [CodeQL tracing does not support macOS 27 and Xcode 27](https://github.com/github/codeql/issues/22742#issuecomment-5949040893).
 
-The iOS 27.1 reserved-region layout branch requires Swift 6.4. Older compilers use the existing layout fallback. CodeQL does not scan that branch with Xcode 26.6. The normal Xcode 27.1 build still compiles that branch and runs the shared iOS tests.
+The iOS 27.1 reserved-region layout branch requires Swift 6.4. Older compilers use the existing layout fallback. CodeQL does not scan that branch with Xcode 26.6. The normal Xcode 27.1 build still compiles that branch and runs the shared iOS tests. The Siri open and in-app search intents and the onscreen course context use the same `#if compiler(>=6.4)` guard, because the Xcode 26.6 SDK lacks their App Intents APIs.
