@@ -3,6 +3,7 @@ package org.mpc.data.repository
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import okio.IOException
@@ -47,6 +48,7 @@ import org.mpc.domain.session.eeclassMaterials
 import org.mpc.domain.session.eeclassMaterialsPath
 
 @ContributesBinding(AppScope::class)
+@SingleIn(AppScope::class)
 @Inject
 internal class DefaultEeclassCourseRepository(
     private val campusSessions: CampusSessions,

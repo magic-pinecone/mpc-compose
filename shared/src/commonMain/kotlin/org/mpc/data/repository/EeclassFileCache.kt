@@ -184,8 +184,16 @@ private fun sanitizeFileName(value: String): String {
     val cleaned = value.map(::sanitizeFileNameCharacter).joinToString("")
         .trim()
         .trimEnd('.')
-        .take(180)
+        .limitedToUtf8Bytes(MAX_FILE_NAME_BYTES)
     return if (cleaned.isEmpty() || cleaned == "." || cleaned == "..") "download" else cleaned
+}
+
+private fun String.limitedToUtf8Bytes(limit: Int): String {
+    val extension = substringAfterLast('.', "").takeIf { it.length in 1..MAX_EXTENSION_LENGTH }?.let { ".$it" }.orEmpty()
+    var stem = removeSuffix(extension)
+    val budget = limit - extension.encodeToByteArray().size
+    while (stem.encodeToByteArray().size > budget) stem = stem.dropLast(1).dropLastWhile(Char::isHighSurrogate)
+    return stem + extension
 }
 
 private fun sanitizeFileNameCharacter(character: Char): Char = when {
@@ -196,6 +204,8 @@ private fun sanitizeFileNameCharacter(character: Char): Char = when {
     else -> character
 }
 
+private const val MAX_FILE_NAME_BYTES = 180
+private const val MAX_EXTENSION_LENGTH = 10
 private const val RESERVED_FILE_NAME_CHARACTERS = "<>:\"|?*"
 private const val FIRST_NON_CONTROL_ASCII_CODE = 0x20
 private const val FIRST_DELETE_CONTROL_ASCII_CODE = 0x7f

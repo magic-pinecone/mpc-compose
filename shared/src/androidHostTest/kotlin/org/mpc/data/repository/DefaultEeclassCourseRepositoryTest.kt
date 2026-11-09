@@ -264,4 +264,23 @@ val eeclassRepositoryTests by testSuite {
             }
         }
     }
+
+    test("a long Chinese filename is cut to the filesystem byte limit and keeps its extension") {
+        runTest {
+            val root = testCacheDirectory()
+            FileSystem.SYSTEM.createDirectories(root)
+            try {
+                val name = "講".repeat(90) + ".pdf"
+                val sessions = RepositorySessions().apply { metadata = SiteFileInfo(name, "application/pdf", content.size.toLong(), content.size.toLong()) }
+                val attachment = EeclassAttachment.File("long.pdf", SitePath.of("/filedownload/9"))
+
+                val file = assertIs<SiteResult.Page<EeclassCachedFile>>(repository(sessions, root).download(attachment)).value
+
+                assertTrue(file.name.endsWith(".pdf"))
+                assertTrue(file.name.encodeToByteArray().size <= 180)
+            } finally {
+                FileSystem.SYSTEM.deleteRecursively(root, mustExist = false)
+            }
+        }
+    }
 }
