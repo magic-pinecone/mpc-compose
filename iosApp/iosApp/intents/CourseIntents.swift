@@ -23,7 +23,7 @@ struct SearchCoursesInAppIntent: ShowInAppSearchResultsIntent {
 #endif
 
 /// The Course Catalog search with the same keyword and filters as the search bar and filter sheet, answered in Siri.
-struct FindCoursesIntent: AppIntent {
+struct FindCoursesIntent: AppIntent, ProgressReportingIntent {
     static let title: LocalizedStringResource = "找課程"
     static let description = IntentDescription(
         "依關鍵字與篩選條件搜尋本學期課程，直接在 Siri 回覆結果。可只指定篩選條件，不必提供關鍵字。上課時段篩選只保留所有上課時間都落在所選範圍內的課程。"
@@ -107,9 +107,11 @@ struct FindCoursesIntent: AppIntent {
     @Dependency private var sharedHost: IosSharedHost
 
     func perform() async throws -> some ReturnsValue<[CourseEntity]> & ProvidesDialog & ShowsSnippetView {
-        try await execute(missingCriteriaError: $keyword.needsValueError())
+        progress.localizedDescription = "正在搜尋課程…"
+        return try await execute(missingCriteriaError: $keyword.needsValueError())
     }
 
+    /// Runs the search without touching `progress`, which exists only on an intent the system performs.
     func execute(
         missingCriteriaError: AppIntentError
     ) async throws -> some ReturnsValue<[CourseEntity]> & ProvidesDialog & ShowsSnippetView {

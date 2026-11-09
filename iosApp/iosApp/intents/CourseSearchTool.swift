@@ -42,7 +42,7 @@ struct CourseSearchRequest: TransientAppEntity {
 }
 
 @AppIntent(.tool)
-struct FindCoursesToolIntent: AppIntent {
+struct FindCoursesToolIntent: AppIntent, ProgressReportingIntent {
     static let title: LocalizedStringResource = "搜尋課程目錄"
     static let description = IntentDescription("依課名、課號或篩選條件搜尋課程目錄，並直接在 Siri 回覆結果。")
 
@@ -54,6 +54,7 @@ struct FindCoursesToolIntent: AppIntent {
     var request: CourseSearchRequest
 
     func perform() async throws -> some ReturnsValue<[CourseEntity]> & ProvidesDialog & ShowsSnippetView {
+        progress.localizedDescription = "正在搜尋課程…"
         var intent = FindCoursesIntent()
         intent.keyword = request.keyword
         intent.courseType = request.courseType

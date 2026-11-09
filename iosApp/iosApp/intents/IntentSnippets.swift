@@ -31,16 +31,6 @@ struct CourseSnippetRow: Identifiable {
         badges = []
     }
 
-    init(upcoming: UpcomingMeeting) {
-        let meeting = upcoming.meeting
-        id = meeting.course.serialNumber
-        leading = upcoming.inProgress ? "上課中" : upcoming.whenLabel()
-        title = meeting.course.title
-        people = Self.people(meeting.course)
-        time = "\(meeting.periodLabel()) \(meeting.timeRangeLabel())"
-        badges = []
-    }
-
     private static func people(_ course: CourseSummary) -> String {
         (course.teachers.filter { !$0.isEmpty }.prefix(2) + [course.classNo])
             .filter { !$0.isEmpty }
@@ -61,17 +51,36 @@ private extension ShapeStyle where Self == Color {
     static var snippetSecondary: Color { Color(uiColor: .secondaryLabel) }
 }
 
-/// The card Siri and Shortcuts show under a schedule intent's spoken answer.
+/// What a card answers, so it still reads on its own when Siri shows the card without the dialog.
+struct SnippetHeadline: View {
+    let title: String
+    let detail: String
+    let systemImage: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Label(title, systemImage: systemImage)
+                .font(.subheadline.weight(.medium))
+                .lineLimit(2)
+            Text(detail)
+                .font(.footnote)
+                .foregroundStyle(.snippetSecondary)
+        }
+    }
+}
+
+/// The card Siri and Shortcuts show under a schedule or calendar intent's spoken answer.
 struct CourseSnippetList: View {
+    let headline: SnippetHeadline
     let rows: [CourseSnippetRow]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            if rows.isEmpty {
-                Label("沒有課程", systemImage: "calendar")
-                    .foregroundStyle(.snippetSecondary)
+            headline
+            if !rows.isEmpty {
+                Divider()
+                CourseSnippetRows(rows: rows)
             }
-            CourseSnippetRows(rows: rows)
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -86,14 +95,11 @@ struct CourseSearchSnippet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            VStack(alignment: .leading, spacing: 4) {
-                Label(criteria.joined(separator: " · "), systemImage: "magnifyingglass")
-                    .font(.subheadline.weight(.medium))
-                    .lineLimit(2)
-                Text(total == 0 ? "沒有符合的課程" : "\(total) 門課程")
-                    .font(.footnote)
-                    .foregroundStyle(.snippetSecondary)
-            }
+            SnippetHeadline(
+                title: criteria.joined(separator: " · "),
+                detail: total == 0 ? "沒有符合的課程" : "共 \(total) 門課程",
+                systemImage: "magnifyingglass"
+            )
             if !rows.isEmpty {
                 Divider()
                 CourseSnippetRows(rows: rows)
