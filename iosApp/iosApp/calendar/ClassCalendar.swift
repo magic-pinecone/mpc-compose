@@ -18,8 +18,6 @@ enum ClassCalendarError: Error, CustomLocalizedStringResourceConvertible {
 enum ClassCalendar {
     static let title = "神奇松果課表"
     private static let identifierKey = "classCalendarIdentifier"
-    // Classes meet on campus time wherever the phone is.
-    private static let campusTimeZone = TimeZone(identifier: "Asia/Taipei")!
 
     /// Replaces this term's events with the Saved Course Plan's classes and returns how many were added.
     static func exportSavedPlan(sharedHost: IosSharedHost, semester: String) async throws -> Int {
@@ -40,7 +38,7 @@ enum ClassCalendar {
             let event = EKEvent(eventStore: store)
             event.calendar = calendar
             event.title = item.course.title
-            event.timeZone = campusTimeZone
+            event.timeZone = .campus
             event.startDate = date(item.date, minute: item.startMinute)
             event.endDate = date(item.date, minute: item.endMinute)
             let teachers = item.course.teachers.joined(separator: "、")
@@ -76,11 +74,16 @@ enum ClassCalendar {
     private static func date(_ day: CalendarDay, minute: Int32) -> Date {
         var components = DateComponents()
         components.calendar = Calendar(identifier: .gregorian)
-        components.timeZone = campusTimeZone
+        components.timeZone = .campus
         components.year = Int(day.year)
         components.month = Int(day.month)
         components.day = Int(day.day)
         components.minute = Int(minute)
         return components.date!
     }
+}
+
+extension TimeZone {
+    /// Classes meet on campus time wherever the phone is.
+    static let campus = TimeZone(identifier: "Asia/Taipei")!
 }

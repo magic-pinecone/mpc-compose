@@ -36,7 +36,7 @@ struct ClassClock {
     let day: CourseDay
     let minuteOfDay: Int32
 
-    init(date: Date = .now, calendar: Calendar = .current) {
+    init(date: Date = .now, calendar: Calendar = .campus) {
         // Calendar weekdays start at 1 for Sunday; course days start at 1 for Monday.
         let isoWeekday = (calendar.component(.weekday, from: date) + 5) % 7 + 1
         day = CourseDay.companion.fromIsoWeekday(isoWeekday: Int32(isoWeekday))
@@ -183,4 +183,13 @@ struct CreditOptions: DynamicOptionsProvider {
     func results() async throws -> [Double] {
         try await sharedHost.courseFilterOptions(semester: CourseIdentity.currentSemester).credits.map(\.doubleValue)
     }
+}
+
+extension Calendar {
+    /// Reads weekdays and times on campus, so a phone abroad still matches the period table.
+    static let campus: Calendar = {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = .campus
+        return calendar
+    }()
 }
