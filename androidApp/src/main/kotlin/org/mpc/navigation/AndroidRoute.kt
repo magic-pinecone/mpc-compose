@@ -47,6 +47,18 @@ data class EeclassBulletinRoute(
 ) : AndroidRoute
 
 @Serializable
+data class EeclassMaterialRoute(
+    val title: String,
+    val path: String,
+) : AndroidRoute
+
+@Serializable
+data class EeclassHomeworkRoute(
+    val title: String,
+    val path: String,
+) : AndroidRoute
+
+@Serializable
 data object CoursePlanningRoot : TopLevelRoute
 
 val topLevelRoutes: Set<TopLevelRoute> =
