@@ -248,4 +248,20 @@ val eeclassRepositoryTests by testSuite {
             }
         }
     }
+
+    test("a cache directory that cannot be created is an unavailable download, not a crash") {
+        runTest {
+            val root = testCacheDirectory()
+            FileSystem.SYSTEM.createDirectories(root)
+            FileSystem.SYSTEM.write(root.resolve("eeclass")) { writeUtf8("not a directory") }
+            try {
+                val repository = repository(RepositorySessions(), root)
+                val attachment = EeclassAttachment.File("full.pdf", SitePath.of("/filedownload/8"))
+
+                assertIs<SiteResult.Unavailable>(repository.download(attachment))
+            } finally {
+                FileSystem.SYSTEM.deleteRecursively(root, mustExist = false)
+            }
+        }
+    }
 }

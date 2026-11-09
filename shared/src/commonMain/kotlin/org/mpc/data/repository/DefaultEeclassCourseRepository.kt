@@ -5,6 +5,7 @@ import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import okio.IOException
 import okio.Path
 import org.mpc.domain.html.HtmlElement
 import org.mpc.domain.html.HtmlParser
@@ -126,7 +127,11 @@ internal class DefaultEeclassCourseRepository(
         val lock = downloadLocksMutex.withLock { downloadLocks.getOrPut(key) { Mutex() } }
         return lock.withLock {
             fileCache.cached(key)?.let { return@withLock SiteResult.Page(it) }
-            val destination = fileCache.destination(key, fallbackName)
+            val destination = try {
+                fileCache.destination(key, fallbackName)
+            } catch (_: IOException) {
+                return@withLock SiteResult.Unavailable(Unavailability.UNEXPECTED_RESPONSE)
+            }
             try {
                 when (val result = fetch(destination)) {
                     is SiteResult.Page -> {
