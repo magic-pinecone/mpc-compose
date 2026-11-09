@@ -46,9 +46,13 @@ import org.mpc.presentation.SettingsScreen
 import org.mpc.presentation.model.EeclassBulletinPage
 import org.mpc.presentation.model.EeclassCoursePage
 import org.mpc.presentation.model.EeclassCourses
+import org.mpc.presentation.model.EeclassHomeworkPage
+import org.mpc.presentation.model.EeclassMaterialPage
 import org.mpc.presentation.model.toEeclassBulletinPage
 import org.mpc.presentation.model.toEeclassCoursePage
 import org.mpc.presentation.model.toEeclassCourses
+import org.mpc.presentation.model.toEeclassHomeworkPage
+import org.mpc.presentation.model.toEeclassMaterialPage
 import org.mpc.presentation.theme.MpcSpacing
 import org.mpc.presentation.theme.MpcTheme
 import org.mpc.presentation.viewModel.AppSettingsViewModel
@@ -172,6 +176,12 @@ fun createIosSharedHost(htmlParser: HtmlParser): IosSharedHost {
         )
     return IosSharedHost(createAppGraph(dataStore, database, htmlParser))
 }
+
+@Throws(Exception::class)
+suspend fun IosSharedHost.loadEeclassMaterial(path: String): EeclassMaterialPage = appGraph.eeclassCourseRepository.fetchMaterial(SitePath.of(path)).toEeclassMaterialPage()
+
+@Throws(Exception::class)
+suspend fun IosSharedHost.loadEeclassHomework(path: String): EeclassHomeworkPage = appGraph.eeclassCourseRepository.fetchHomework(SitePath.of(path)).toEeclassHomeworkPage()
 
 /** The URL the in-app browser opens for a link in ee-class content, or null when the system should open it. */
 fun IosSharedHost.campusLinkUrl(url: String): String? = appGraph.campusSessions.browserEntry(url)

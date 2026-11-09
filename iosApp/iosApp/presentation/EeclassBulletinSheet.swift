@@ -10,8 +10,8 @@ struct EeclassBulletinSelection: Identifiable {
     var id: String { bulletin.number }
 }
 
-/// A link in an announcement body that opens in the in-app browser.
-private struct EeclassBodyLink: Hashable {
+/// A link in an announcement, material, or homework body that opens in the in-app browser.
+struct EeclassBodyLink: Hashable {
     let url: String
 }
 
@@ -21,7 +21,6 @@ struct EeclassBulletinSheet: View {
     let selection: EeclassBulletinSelection
 
     @State private var page: EeclassBulletinPage?
-    @State private var bodyText: AttributedString?
     @State private var reloadID = 0
     @State private var path = NavigationPath()
     @Environment(\.dismiss) private var dismiss
@@ -68,18 +67,7 @@ struct EeclassBulletinSheet: View {
                                     .foregroundStyle(.secondary)
                             }
                         }
-                        if let bodyText {
-                            Text(bodyText)
-                                .textSelection(.enabled)
-                                .environment(\.openURL, OpenURLAction { url in
-                                    // Links to ee-class need its session, so they stay in the in-app browser.
-                                    guard let entry = sharedHost.campusLinkUrl(url: url.absoluteString) else {
-                                        return .systemAction
-                                    }
-                                    path.append(EeclassBodyLink(url: entry))
-                                    return .handled
-                                })
-                        }
+                        EeclassHtmlText(sharedHost: sharedHost, html: page.bodyHtml) { path.append($0) }
                     }
                     if !page.attachments.isEmpty {
                         Section("附件") {
@@ -115,8 +103,34 @@ struct EeclassBulletinSheet: View {
             course: selection.course,
             bulletin: selection.bulletin.number
         ) else { return }
-        bodyText = result.status == .loaded ? EeclassRichText.attributed(html: result.bodyHtml) : nil
         page = result
+    }
+}
+
+/// A teacher-written HTML fragment as selectable rich text. A link to ee-class goes to `onOpenLink`, so it stays in
+/// the in-app browser with the ee-class session; other links open in the system.
+struct EeclassHtmlText: View {
+    let sharedHost: IosSharedHost
+    let html: String
+    let onOpenLink: (EeclassBodyLink) -> Void
+
+    @State private var text: AttributedString?
+
+    var body: some View {
+        Group {
+            if let text {
+                Text(text)
+                    .textSelection(.enabled)
+                    .environment(\.openURL, OpenURLAction { url in
+                        guard let entry = sharedHost.campusLinkUrl(url: url.absoluteString) else {
+                            return .systemAction
+                        }
+                        onOpenLink(EeclassBodyLink(url: entry))
+                        return .handled
+                    })
+            }
+        }
+        .task(id: html) { text = EeclassRichText.attributed(html: html) }
     }
 }
 
