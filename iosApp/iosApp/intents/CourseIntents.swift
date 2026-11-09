@@ -116,10 +116,57 @@ struct FindCoursesIntent: AppIntent {
     }
 }
 
+struct CourseDetailsIntent: AppIntent {
+    static let title: LocalizedStringResource = "課程資訊"
+    static let description = IntentDescription("查看一門課的學分、上課時間、名額、課程說明與分發條件。")
+
+    @Parameter(title: "課程", requestValueDialog: "要查哪一門課？")
+    var course: CourseEntity
+
+    static var parameterSummary: some ParameterSummary {
+        Summary("查看\(\.$course)的課程資訊")
+    }
+
+    @Dependency private var sharedHost: IosSharedHost
+
+    func perform() async throws -> some ReturnsValue<CourseEntity> & ProvidesDialog & ShowsSnippetView {
+        // Read the catalog again so seats are current, not what the entity held when it was resolved.
+        guard let identity = course.identity,
+              let summary = try await sharedHost.course(
+                  semester: identity.semester,
+                  serialNumber: identity.serialNumber
+              ) else {
+            return .result(
+                value: course,
+                dialog: "找不到這門課的資訊。",
+                view: CourseDetailSnippet(details: nil)
+            )
+        }
+        // The description is a separate request; answer with the basics when it fails.
+        let detail = try? await sharedHost.loadCourseDetail(
+            semester: identity.semester,
+            serialNumber: identity.serialNumber
+        )
+        let entity = detail.map { CourseEntity(semester: identity.semester, course: summary, detail: $0) }
+            ?? CourseEntity(semester: identity.semester, course: summary)
+        return .result(
+            value: entity,
+            dialog: IntentDialog(stringLiteral: summary.spokenDetails),
+            view: CourseDetailSnippet(details: CourseSnippetDetails(course: summary, detail: detail))
+        )
+    }
+}
+
 extension CourseSummary {
     /// "王小明老師的微積分", which tells sections of the same course apart when read aloud.
     var spokenName: String {
         guard let teacher = teachers.first(where: { !$0.isEmpty }) else { return title }
         return "\(teacher)老師的\(title)"
+    }
+
+    /// "王小明老師的微積分，3 學分，必修。上課時間：…。已選 50／60 人，尚餘 10 個名額。"
+    var spokenDetails: String {
+        "\(spokenName)，\(credit.formatted()) 學分，\(courseType.description_)。"
+            + "上課時間：\(meetingsDescription)。\(seatsDescription)。"
     }
 }

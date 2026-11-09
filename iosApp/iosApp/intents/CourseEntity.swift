@@ -39,6 +39,25 @@ struct CourseEntity: IndexedEntity {
     @Property(title: "名額")
     var seats: String
 
+    // Filled only when the course details were loaded, as CourseDetailsIntent does.
+    @Property(title: "課程目標")
+    var objectives: String
+
+    @Property(title: "課程內容")
+    var content: String
+
+    @Property(title: "教科書")
+    var books: String
+
+    @Property(title: "教學方式")
+    var teachingMethod: String
+
+    @Property(title: "評量方式")
+    var gradingPolicy: String
+
+    @Property(title: "分發條件")
+    var distributionConditions: [String]
+
     init(semester: String, course: CourseSummary) {
         id = CourseIdentity(semester: semester, serialNumber: course.serialNumber).entityID
         title = course.title
@@ -50,6 +69,22 @@ struct CourseEntity: IndexedEntity {
         courseType = course.courseType.description_
         schedule = course.meetingsDescription
         seats = course.seatsDescription
+        objectives = ""
+        content = ""
+        books = ""
+        teachingMethod = ""
+        gradingPolicy = ""
+        distributionConditions = []
+    }
+
+    init(semester: String, course: CourseSummary, detail: CourseDetail) {
+        self.init(semester: semester, course: course)
+        objectives = detail.objectives
+        content = detail.content
+        books = detail.books
+        teachingMethod = detail.teachingMethod
+        gradingPolicy = detail.gradingPolicy
+        distributionConditions = detail.rankedDistributionRules
     }
 
     var identity: CourseIdentity? { CourseIdentity(entityID: id) }
@@ -92,6 +127,13 @@ extension CourseSummary {
         return remaining > 0
             ? "已選 \(admitCnt)／\(limitCnt) 人，尚餘 \(remaining) 個名額"
             : "已選 \(admitCnt)／\(limitCnt) 人，已額滿"
+    }
+}
+
+extension CourseDetail {
+    /// Distribution rules in the order they are applied.
+    var rankedDistributionRules: [String] {
+        distributionConditions.sorted { $0.priority < $1.priority }.map(\.rule)
     }
 }
 

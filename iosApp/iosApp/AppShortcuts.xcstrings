@@ -11,6 +11,16 @@
         }
       }
     },
+    "Course details in ${applicationName}": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用${applicationName}查課程資訊"
+          }
+        }
+      }
+    },
     "Find ${timeOfDay} courses with ${applicationName}": {
       "localizations": {
         "zh-Hant": {
@@ -57,6 +67,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "用${applicationName}看今天的課"
+          }
+        }
+      }
+    },
+    "Tell me about ${course} in ${applicationName}": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用${applicationName}查${course}的課程資訊"
           }
         }
       }

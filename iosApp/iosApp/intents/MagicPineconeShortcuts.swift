@@ -33,5 +33,14 @@ struct MagicPineconeShortcuts: AppShortcutsProvider {
             shortTitle: "找課",
             systemImageName: "magnifyingglass"
         )
+        AppShortcut(
+            intent: CourseDetailsIntent(),
+            phrases: [
+                "Course details in \(.applicationName)",
+                "Tell me about \(\.$course) in \(.applicationName)"
+            ],
+            shortTitle: "課程資訊",
+            systemImageName: "book.closed"
+        )
     }
 }
