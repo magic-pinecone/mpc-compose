@@ -1,8 +1,6 @@
 import AppIntents
 
 // The system.open schema needs iOS 27; earlier systems open the app without routing to the result.
-// Swift CodeQL still builds with Xcode 26.6 (docs/ci.md), whose SDK lacks the schema.
-#if compiler(>=6.4)
 @available(iOS 27.0, *)
 @AppIntent(schema: .system.open)
 struct OpenCourseIntent: OpenIntent {
@@ -40,4 +38,3 @@ struct OpenPortalShortcutIntent: OpenIntent {
         return .result()
     }
 }
-#endif

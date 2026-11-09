@@ -1,8 +1,7 @@
 import AppIntents
 @preconcurrency import Shared
 
-// The system.searchInApp schema needs the iOS 27 SDK; Swift CodeQL still builds with Xcode 26.6 (docs/ci.md).
-#if !SIRI_AI_PREVIEW && compiler(>=6.4)
+#if !SIRI_AI_PREVIEW
 @available(iOS 27.0, *)
 @AppIntent(schema: .system.searchInApp)
 struct SearchCoursesInAppIntent: ShowInAppSearchResultsIntent {
