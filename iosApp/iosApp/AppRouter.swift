@@ -29,8 +29,14 @@ struct CourseIdentity: Hashable, Sendable {
 }
 
 struct PortalDestination: Hashable, Sendable {
+    enum Kind: Hashable, Sendable {
+        case web
+        case eeclassWrapper
+    }
+
     let title: String
     let url: String
+    var kind: Kind = .web
 }
 
 enum AppRoute: Hashable, Sendable {
