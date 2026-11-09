@@ -39,20 +39,24 @@ struct CourseEntity: IndexedEntity {
     @Property(title: "名額")
     var seats: String
 
-    /// The compact catalog card's metadata line: type, slots, teachers, and credits.
+    /// "CH2009-* · 必修 · 王小明" over "3 學分 · 1-2、4-5", the chip's subtitle.
     let compactSummary: String
 
     init(semester: String, course: CourseSummary) {
         id = CourseIdentity(semester: semester, serialNumber: course.serialNumber).entityID
         // Plain stored properties come first; the @Property setters need self fully initialized.
-        compactSummary = [
+        let identityLine = [
+            course.classNo,
             course.courseType == .unknown ? "" : course.courseType.description_,
-            course.scheduleDescription,
-            course.teachers.filter { !$0.isEmpty }.joined(separator: "、"),
-            "\(course.credit.formatted(.number.precision(.fractionLength(0...2)))) 學分"
+            course.teachers.filter { !$0.isEmpty }.joined(separator: "、")
         ]
-            .filter { !$0.isEmpty }
-            .joined(separator: " · ")
+        let timeLine = [
+            "\(course.credit.formatted(.number.precision(.fractionLength(0...2)))) 學分",
+            course.scheduleDescription
+        ]
+        compactSummary = [identityLine, timeLine]
+            .map { $0.filter { !$0.isEmpty }.joined(separator: " · ") }
+            .joined(separator: "\n")
         title = course.title
         classNo = course.classNo
         teachers = course.teachers.filter { !$0.isEmpty }
@@ -76,7 +80,7 @@ struct CourseEntity: IndexedEntity {
 
     var attributeSet: CSSearchableItemAttributeSet {
         let attributes = defaultAttributeSet
-        attributes.contentDescription = "\(classNo) · \(compactSummary)\n\(schedule)"
+        attributes.contentDescription = "\(compactSummary)\n\(schedule)"
         attributes.keywords = teachers + [department, college, classNo, identity?.serialNumber ?? ""]
             .filter { !$0.isEmpty }
         return attributes
