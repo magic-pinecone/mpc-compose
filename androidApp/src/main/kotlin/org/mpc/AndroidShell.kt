@@ -71,6 +71,7 @@ import org.mpc.calendar.CalendarExportButton
 import org.mpc.calendar.ClassCalendar
 import org.mpc.di.AppGraph
 import org.mpc.domain.model.CourseSummary
+import org.mpc.domain.model.PortalShortcutKind
 import org.mpc.domain.session.CampusSites
 import org.mpc.domain.session.SitePath
 import org.mpc.domain.session.browserEntry
@@ -80,6 +81,7 @@ import org.mpc.navigation.CoursePlanningRoot
 import org.mpc.navigation.EeclassBulletinRoute
 import org.mpc.navigation.EeclassCategoryRoute
 import org.mpc.navigation.EeclassCourseRoute
+import org.mpc.navigation.EeclassRoot
 import org.mpc.navigation.HomeRoot
 import org.mpc.navigation.PortalRoot
 import org.mpc.navigation.PortalWebRoute
@@ -214,6 +216,12 @@ private fun AndroidPrimaryNavigation(
                     modifier = Modifier.fillMaxSize(),
                 )
             }
+            entry<EeclassRoot> {
+                EeclassHomeScreen(
+                    onOpenCourse = { number, name -> navigator.navigate(EeclassCourseRoute(number, name)) },
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
             entry<EeclassCourseRoute> { route ->
                 EeclassCourseScreen(
                     course = route.number,
@@ -249,10 +257,10 @@ private fun AndroidPrimaryNavigation(
                     modifier = Modifier.fillMaxSize(),
                     onOpenDestination = { destination ->
                         navigator.navigate(
-                            PortalWebRoute(
-                                title = destination.title,
-                                url = destination.url,
-                            ),
+                            when (destination.kind) {
+                                PortalShortcutKind.WEB -> PortalWebRoute(title = destination.title, url = destination.url)
+                                PortalShortcutKind.EECLASS_WRAPPER -> EeclassRoot
+                            },
                         )
                     },
                 )
@@ -309,6 +317,7 @@ private fun AndroidPrimaryNavigation(
             PrimaryTopBarState(
                 currentPortalWebRoute = currentPortalWebRoute,
                 pushedTitle = navigationState.currentBackStack.lastOrNull { it !is EeclassBulletinRoute }?.pushedTitle(),
+                isEeclassRoot = navigationState.currentBackStack.lastOrNull() == EeclassRoot,
                 canGoBackInPage = currentWebNavigator?.canGoBack == true,
                 selectedTopLevelRoute = navigationState.selectedTopLevelRoute,
                 isExpanded = isExpanded,
@@ -342,7 +351,12 @@ private fun AndroidPrimaryNavigation(
                         onOpenSelectedCourses = { isShowingSelectedCourses = true },
                     ),
                     onBack = { navigator.goBack() },
-                    onBackInPage = { currentWebNavigator?.navigateBack() },
+                    pageActions = PushedTopBarActions(
+                        onBackInPage = { currentWebNavigator?.navigateBack() },
+                        onOpenEeclassWeb = {
+                            navigator.navigate(PortalWebRoute(title = EECLASS_TITLE, url = CampusSites.Eeclass.portalEntryUrl))
+                        },
+                    ),
                     onOpenSettings = onOpenSettings,
                 )
             },
@@ -369,7 +383,7 @@ private fun AndroidPrimaryTopBar(
     state: PrimaryTopBarState,
     coursePlanActions: CoursePlanTopBarActions,
     onBack: () -> Unit,
-    onBackInPage: () -> Unit,
+    pageActions: PushedTopBarActions,
     onOpenSettings: () -> Unit,
 ) {
     TopAppBar(
@@ -387,7 +401,7 @@ private fun AndroidPrimaryTopBar(
         actions = {
             if (state.currentPortalWebRoute != null) {
                 if (state.canGoBackInPage) {
-                    IconButton(onClick = onBackInPage) {
+                    IconButton(onClick = pageActions.onBackInPage) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Undo,
                             contentDescription = "上一頁",
@@ -395,6 +409,8 @@ private fun AndroidPrimaryTopBar(
                     }
                 }
                 WebPageMenu(url = state.currentPortalWebRoute.url)
+            } else if (state.isEeclassRoot) {
+                TextButton(onClick = pageActions.onOpenEeclassWeb) { Text("在網頁開啟") }
             } else if (state.pushedTitle == null) {
                 if (state.showsCoursePlanAction) {
                     TextButton(onClick = coursePlanActions.onSavePlan, enabled = state.canSavePlan) {
@@ -511,6 +527,11 @@ private fun WebPageMenu(url: String) {
     }
 }
 
+private data class PushedTopBarActions(
+    val onBackInPage: () -> Unit,
+    val onOpenEeclassWeb: () -> Unit,
+)
+
 private data class CoursePlanTopBarActions(
     val onSavePlan: () -> Unit,
     val onExportToCalendar: suspend () -> Unit,
@@ -523,6 +544,7 @@ private data class PrimaryTopBarState(
     val currentPortalWebRoute: PortalWebRoute?,
     /** The title of the pushed ee-class screen showing, or null on a top-level screen. */
     val pushedTitle: String?,
+    val isEeclassRoot: Boolean,
     val canGoBackInPage: Boolean,
     val selectedTopLevelRoute: NavKey,
     val isExpanded: Boolean,
@@ -549,12 +571,14 @@ private data class PrimaryTopBarState(
 }
 
 private fun NavKey.pushedTitle(): String? = when (this) {
+    is EeclassRoot -> EECLASS_TITLE
     is EeclassCourseRoute -> name
     is EeclassCategoryRoute -> category.title
     else -> null
 }
 
 private const val MAX_COURSE_COUNT_BADGE = 99
+private const val EECLASS_TITLE = "新 ee-class"
 
 @Composable
 private fun SettingsDialog(
