@@ -28,6 +28,9 @@ data class PortalWebRoute(
 ) : AndroidRoute
 
 @Serializable
+data object EeclassRoot : AndroidRoute
+
+@Serializable
 data class EeclassCourseRoute(
     val number: String,
     val name: String,

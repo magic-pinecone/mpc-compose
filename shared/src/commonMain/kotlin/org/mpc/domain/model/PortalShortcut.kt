@@ -24,9 +24,19 @@ enum class PortalShortcutIcon {
     WORKSPACE_PREMIUM,
 }
 
+/** How a platform opens a Portal shortcut. */
+enum class PortalShortcutKind {
+    /** The shortcut's [PortalShortcutDestination.url] in the in-app browser. */
+    WEB,
+
+    /** The native ee-class screens, with [PortalShortcutDestination.url] as their web fallback. */
+    EECLASS_WRAPPER,
+}
+
 data class PortalShortcutDestination(
     val title: String,
     val url: String,
+    val kind: PortalShortcutKind = PortalShortcutKind.WEB,
 )
 
 /** A category color. Each platform maps it to its own system palette. */

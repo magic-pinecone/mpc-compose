@@ -74,12 +74,8 @@ struct PortalView: View {
             }
         }
         .navigationTitle("Portal")
-        .navigationDestination(for: PortalDestination.self) { destination in
-            WebPageView(sharedHost: sharedHost, title: destination.title, url: destination.url)
-        }
-        .navigationDestination(item: $pushedDestination) { destination in
-            WebPageView(sharedHost: sharedHost, title: destination.title, url: destination.url)
-        }
+        .navigationDestination(for: PortalDestination.self) { destinationView($0) }
+        .navigationDestination(item: $pushedDestination) { destinationView($0) }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button(editMode.isEditing ? "完成" : "編輯") {
@@ -113,8 +109,18 @@ struct PortalView: View {
         }
     }
 
+    @ViewBuilder
+    private func destinationView(_ destination: PortalDestination) -> some View {
+        switch destination.kind {
+        case .web:
+            WebPageView(sharedHost: sharedHost, title: destination.title, url: destination.url)
+        case .eeclassWrapper:
+            EeclassRootView(sharedHost: sharedHost, destination: destination)
+        }
+    }
+
     private func shortcutRow(_ item: PortalShortcutItem, isFavorite: Bool) -> some View {
-        NavigationLink(value: PortalDestination(title: item.destination.title, url: item.destination.url)) {
+        NavigationLink(value: PortalDestination(item.destination)) {
             Label {
                 Text(item.label)
             } icon: {
@@ -277,6 +283,16 @@ private extension PortalShortcutTint {
         case .purple: .purple
         case .teal: .teal
         }
+    }
+}
+
+extension PortalDestination {
+    init(_ destination: PortalShortcutDestination) {
+        self.init(
+            title: destination.title,
+            url: destination.url,
+            kind: destination.kind == .eeclassWrapper ? .eeclassWrapper : .web
+        )
     }
 }
 

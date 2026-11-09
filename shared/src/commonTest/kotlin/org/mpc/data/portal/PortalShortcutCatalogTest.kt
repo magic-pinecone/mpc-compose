@@ -2,6 +2,7 @@ package org.mpc.data.portal
 
 import de.infix.testBalloon.framework.core.testSuite
 import org.mpc.domain.model.PortalShortcutDestination
+import org.mpc.domain.model.PortalShortcutKind
 import kotlin.test.assertEquals
 
 val portalShortcutCatalogTests by testSuite {
@@ -39,6 +40,15 @@ val portalShortcutCatalogTests by testSuite {
             .first { it.label == "新 ee-class" }
 
         assertEquals("https://portal.ncu.edu.tw/system/ncueeclass", item.destination.url)
+    }
+
+    test("ee-class opens the native wrapper and keeps its id, and no other shortcut does") {
+        val items = defaultPortalShortcutSections.flatMap { it.items }
+        val eeclass = items.first { it.label == "新 ee-class" }
+
+        assertEquals(PortalShortcutKind.EECLASS_WRAPPER, eeclass.destination.kind)
+        assertEquals("https://portal.ncu.edu.tw/system/ncueeclass", eeclass.id)
+        assertEquals(listOf(eeclass), items.filter { it.destination.kind != PortalShortcutKind.WEB })
     }
 
     test("the course selection system opens directly in the app browser") {

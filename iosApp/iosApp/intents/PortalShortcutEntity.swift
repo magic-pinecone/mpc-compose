@@ -16,17 +16,20 @@ struct PortalShortcutEntity: IndexedEntity {
     var section: String
 
     let pageTitle: String
+    let kind: PortalDestination.Kind
     let systemImage: String
 
     init(item: PortalShortcutItem, section: PortalShortcutSection) {
         id = item.id
-        pageTitle = item.destination.title
+        let destination = PortalDestination(item.destination)
+        pageTitle = destination.title
+        kind = destination.kind
         systemImage = item.icon.systemImage
         label = item.label
         self.section = section.title
     }
 
-    var destination: PortalDestination { PortalDestination(title: pageTitle, url: id) }
+    var destination: PortalDestination { PortalDestination(title: pageTitle, url: id, kind: kind) }
 
     var displayRepresentation: DisplayRepresentation {
         DisplayRepresentation(
