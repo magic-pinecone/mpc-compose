@@ -260,10 +260,9 @@ private struct IntentCourseQuery {
         for name in names ?? [] {
             let trimmed = name.trimmingCharacters(in: .whitespaces)
             guard !trimmed.isEmpty else { continue }
-            let sameName = { (choice: String) in
-                choice.compare(trimmed, options: [.caseInsensitive, .widthInsensitive]) == .orderedSame
-            }
-            if let choice = choices.first(where: sameName) {
+            // Siri may transcribe 黃小華 as 黄小华; match the way the catalog search does.
+            let normalized = CourseSearchKt.normalizeForSearch(text: trimmed)
+            if let choice = choices.first(where: { CourseSearchKt.normalizeForSearch(text: $0) == normalized }) {
                 add(make(choice))
             } else {
                 keyword = [keyword, trimmed].filter { !$0.isEmpty }.joined(separator: " ")
