@@ -4,6 +4,7 @@ import org.mpc.domain.model.PORTAL_HOME_URL
 import org.mpc.domain.model.PortalShortcutDestination
 import org.mpc.domain.model.PortalShortcutIcon
 import org.mpc.domain.model.PortalShortcutItem
+import org.mpc.domain.model.PortalShortcutKind
 import org.mpc.domain.model.PortalShortcutSection
 import org.mpc.domain.model.PortalShortcutTint
 import org.mpc.domain.model.portalUrl
@@ -14,7 +15,7 @@ val defaultPortalShortcutSections: List<PortalShortcutSection> = listOf(
         title = "課務",
         tint = PortalShortcutTint.BLUE,
         items = listOf(
-            portalShortcut("新 ee-class", PortalShortcutIcon.BOOK, "/system/ncueeclass"),
+            portalShortcut("新 ee-class", PortalShortcutIcon.BOOK, "/system/ncueeclass", PortalShortcutKind.EECLASS_WRAPPER),
             shortcut("選課系統", PortalShortcutIcon.EVENT, "https://cis.ncu.edu.tw/Course/"),
             portalShortcut("成績查詢", PortalShortcutIcon.GRADE, "/system/incu-studentscore"),
             portalShortcut("期中預警查詢", PortalShortcutIcon.WARNING, "/system/incu-ewarningstudent"),
@@ -105,17 +106,19 @@ private fun portalShortcut(
     label: String,
     icon: PortalShortcutIcon,
     path: String,
-): TintedShortcut = shortcut(label, icon, portalUrl(path))
+    kind: PortalShortcutKind = PortalShortcutKind.WEB,
+): TintedShortcut = shortcut(label, icon, portalUrl(path), kind)
 
 private fun shortcut(
     label: String,
     icon: PortalShortcutIcon,
     url: String,
+    kind: PortalShortcutKind = PortalShortcutKind.WEB,
 ): TintedShortcut = { tint ->
     PortalShortcutItem(
         label = label,
         icon = icon,
         tint = tint,
-        destination = PortalShortcutDestination(title = label, url = url),
+        destination = PortalShortcutDestination(title = label, url = url, kind = kind),
     )
 }
