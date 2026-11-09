@@ -38,7 +38,7 @@ fun eeclassHomeworkDetail(page: HtmlElement): EeclassHomeworkDetail {
         type = text("類型"),
         opens = text("開放繳交"),
         due = text("繳交期限"),
-        lateSubmissionAllowed = text("允許遲交") == "是",
+        lateSubmissionAllowed = text("允許遲交").takeIf(String::isNotEmpty)?.let { it == "是" },
         weight = text("成績比重"),
         gradingMethod = text("評分方式"),
         descriptionHtml = field("說明")?.htmlWithAbsoluteLinks().orEmpty(),

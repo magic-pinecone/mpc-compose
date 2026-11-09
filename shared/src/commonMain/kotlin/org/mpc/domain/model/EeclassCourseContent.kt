@@ -70,7 +70,7 @@ data class EeclassHomeworkDetail(
     val type: String,
     val opens: String,
     val due: String,
-    val lateSubmissionAllowed: Boolean,
+    val lateSubmissionAllowed: Boolean?,
     val weight: String,
     val gradingMethod: String,
     val descriptionHtml: String,

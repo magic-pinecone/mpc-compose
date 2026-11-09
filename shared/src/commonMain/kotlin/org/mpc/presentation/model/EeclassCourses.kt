@@ -117,7 +117,7 @@ fun SiteResult<EeclassHomeworkDetail>.toEeclassHomeworkPage(): EeclassHomeworkPa
             EeclassDetailField("類型", value.type),
             EeclassDetailField("開放繳交", value.opens),
             EeclassDetailField("繳交期限", value.due),
-            EeclassDetailField("遲交", if (value.lateSubmissionAllowed) "允許" else "不允許"),
+            EeclassDetailField("遲交", value.lateSubmissionAllowed?.let { if (it) "允許" else "不允許" }.orEmpty()),
             EeclassDetailField("成績比重", value.weight),
             EeclassDetailField("評分方式", value.gradingMethod),
         ).filter { it.value.isNotBlank() },

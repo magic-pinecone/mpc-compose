@@ -12,7 +12,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class EeclassDetailPagesTest {
-    private fun homework(report: EeclassHomeworkReport, late: Boolean = false, weight: String = "10") = SiteResult.Page(
+    private fun homework(report: EeclassHomeworkReport, late: Boolean? = false, weight: String = "10") = SiteResult.Page(
         EeclassHomeworkDetail(
             type = "個人作業",
             opens = "2026-11-01",
@@ -33,6 +33,13 @@ class EeclassDetailPagesTest {
         assertEquals(listOf("類型", "開放繳交", "繳交期限", "遲交", "成績比重"), page.fields.map { it.label })
         assertEquals("不允許", page.fields.single { it.label == "遲交" }.value)
         assertEquals("spec.pdf", page.attachments.single().title)
+    }
+
+    @Test
+    fun homeworkOmitsALatePolicyEeclassDidNotState() {
+        val page = homework(EeclassHomeworkReport.None, late = null).toEeclassHomeworkPage()
+
+        assertFalse(page.fields.any { it.label == "遲交" })
     }
 
     @Test
