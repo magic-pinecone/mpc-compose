@@ -12,10 +12,10 @@ struct CourseEntity: IndexedEntity {
 
     let id: String
 
-    @Property(title: "課程名稱")
+    @Property(title: "課程名稱", description: "課程的名稱")
     var title: String
 
-    @Property(title: "班次")
+    @Property(title: "班次", description: "課程代號，包含課程種類與班別")
     var classNo: String
 
     @Property(title: "授課教師")
