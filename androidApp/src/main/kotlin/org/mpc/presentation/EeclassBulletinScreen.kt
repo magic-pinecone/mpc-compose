@@ -20,7 +20,6 @@ fun EeclassBulletinScreen(
     course: String,
     number: String,
     title: String,
-    onOpenPage: (title: String, path: String) -> Unit,
     onOpenLink: (url: String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: EeclassViewModel = metroViewModel(),
@@ -30,6 +29,8 @@ fun EeclassBulletinScreen(
         if (viewModel.bulletin.value == null) viewModel.loadBulletin(course, number)
     }
 
+    val openLink = eeclassFileAwareLinkHandler(viewModel, onOpenLink)
+    EeclassFileEffects(viewModel)
     EeclassPageContent(
         status = page?.status,
         unavailableTitle = "無法載入公告",
@@ -40,9 +41,9 @@ fun EeclassBulletinScreen(
         Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
             Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                 EeclassDetailHeader(title = title, subtitle = loaded.info)
-                EeclassHtmlBody(loaded.bodyHtml, onOpenLink)
+                EeclassHtmlBody(loaded.bodyHtml, openLink)
             }
-            EeclassAttachmentList(loaded.attachments, onOpenPage)
+            EeclassAttachmentList(loaded.attachments, viewModel)
         }
     }
 }

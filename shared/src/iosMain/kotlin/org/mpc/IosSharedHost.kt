@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.stateIn
 import okio.Path.Companion.toPath
 import org.mpc.bridge.CoursePlanBridge
 import org.mpc.bridge.CourseSearchBridge
+import org.mpc.bridge.EeclassFilesBridge
 import org.mpc.bridge.PortalBridge
 import org.mpc.bridge.PortalWebPageBridge
 import org.mpc.core.createDataStore
@@ -201,6 +202,8 @@ suspend fun IosSharedHost.loadEeclassMaterial(path: String): EeclassMaterialPage
 
 @Throws(Exception::class)
 suspend fun IosSharedHost.loadEeclassHomework(path: String): EeclassHomeworkPage = appGraph.eeclassCourseRepository.fetchHomework(SitePath.of(path)).toEeclassHomeworkPage()
+
+fun IosSharedHost.eeclassFilesBridge(): EeclassFilesBridge = EeclassFilesBridge(appGraph.eeclassCourseRepository)
 
 /** The URL the in-app browser opens for a link in ee-class content, or null when the system should open it. */
 fun IosSharedHost.campusLinkUrl(url: String): String? = appGraph.campusSessions.browserEntry(url)

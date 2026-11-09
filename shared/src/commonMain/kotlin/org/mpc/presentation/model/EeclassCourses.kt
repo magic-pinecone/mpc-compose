@@ -53,7 +53,7 @@ class EeclassMaterialPage internal constructor(
     val status: EeclassLoadStatus,
     val info: String = "",
     val bodyHtml: String = "",
-    val attachments: List<EeclassItemRow> = emptyList(),
+    val attachments: List<EeclassAttachmentRow> = emptyList(),
 )
 
 /**
@@ -66,7 +66,7 @@ class EeclassHomeworkPage internal constructor(
     val report: String = "",
     val submitted: Boolean = false,
     val descriptionHtml: String = "",
-    val attachments: List<EeclassItemRow> = emptyList(),
+    val attachments: List<EeclassAttachmentRow> = emptyList(),
 )
 
 /** An announcement row. A tap loads announcement [number] with [org.mpc.IosSharedHost]'s bulletin loader. */
@@ -81,7 +81,7 @@ class EeclassBulletinPage internal constructor(
     val status: EeclassLoadStatus,
     val info: String = "",
     val bodyHtml: String = "",
-    val attachments: List<EeclassItemRow> = emptyList(),
+    val attachments: List<EeclassAttachmentRow> = emptyList(),
 )
 
 fun SiteResult<EeclassBulletinDetail>.toEeclassBulletinPage(): EeclassBulletinPage = when (this) {
@@ -89,7 +89,7 @@ fun SiteResult<EeclassBulletinDetail>.toEeclassBulletinPage(): EeclassBulletinPa
         status = EeclassLoadStatus.LOADED,
         info = value.info,
         bodyHtml = value.bodyHtml,
-        attachments = value.attachments.map { EeclassItemRow(it.name, "", it.path.value) },
+        attachments = value.attachments.map { it.toRow() },
     )
 
     is SiteResult.NeedsPortal -> EeclassBulletinPage(EeclassLoadStatus.NEEDS_PORTAL)
@@ -102,7 +102,7 @@ fun SiteResult<EeclassMaterialDetail>.toEeclassMaterialPage(): EeclassMaterialPa
         status = EeclassLoadStatus.LOADED,
         info = detail(value.author, value.updated.takeIf(String::isNotEmpty)?.let { "更新 $it" }),
         bodyHtml = value.bodyHtml,
-        attachments = value.attachments.map { EeclassItemRow(it.name, "", it.path.value) },
+        attachments = value.attachments.map { it.toRow() },
     )
 
     is SiteResult.NeedsPortal -> EeclassMaterialPage(EeclassLoadStatus.NEEDS_PORTAL)
@@ -128,7 +128,7 @@ fun SiteResult<EeclassHomeworkDetail>.toEeclassHomeworkPage(): EeclassHomeworkPa
         },
         submitted = value.report == EeclassHomeworkReport.Submitted,
         descriptionHtml = value.descriptionHtml,
-        attachments = value.attachments.map { EeclassItemRow(it.name, "", it.path.value) },
+        attachments = value.attachments.map { it.toRow() },
     )
 
     is SiteResult.NeedsPortal -> EeclassHomeworkPage(EeclassLoadStatus.NEEDS_PORTAL)

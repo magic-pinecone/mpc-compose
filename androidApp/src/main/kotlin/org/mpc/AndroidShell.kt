@@ -263,7 +263,6 @@ private fun AndroidPrimaryNavigation(
                     course = route.course,
                     number = route.number,
                     title = route.title,
-                    onOpenPage = openEeclassPage,
                     onOpenLink = { openEeclassLink(route.title, it) },
                 )
             }
