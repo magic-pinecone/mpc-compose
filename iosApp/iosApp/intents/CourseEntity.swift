@@ -142,6 +142,8 @@ extension CourseSummary {
     }
 
     var seatsDescription: String {
+        // A limitCnt of 0 means the catalog publishes no cap, as in the open-seats filter.
+        if limitCnt == 0 { return "已選 \(admitCnt) 人，不限名額" }
         let remaining = Int(limitCnt) - Int(admitCnt)
         return remaining > 0
             ? "已選 \(admitCnt)／\(limitCnt) 人，尚餘 \(remaining) 個名額"
