@@ -26,7 +26,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.zacsweers.metrox.viewmodel.metroViewModel
@@ -51,7 +51,7 @@ fun CourseCatalogScreen(
     var query by rememberSaveable { mutableStateOf(searchUiState.query) }
     var showsFilterSheet by rememberSaveable { mutableStateOf(false) }
     val filterCount = searchUiState.filters.size
-    val keyboard = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
 
@@ -60,10 +60,14 @@ fun CourseCatalogScreen(
         if (query != searchUiState.query) query = searchUiState.query
     }
 
-    val submitSearch = {
+    val runSearch = {
         searchViewModel.updateQuery(semester = searchUiState.semester, query = query)
         searchViewModel.onSearch()
-        keyboard?.hide()
+    }
+    val submitSearch = {
+        runSearch()
+        // Leaving the field closes the suggestions so the new results show.
+        focusManager.clearFocus()
     }
     val selectedCourseSerialNumbers =
         (planUiState as? CoursePlanUiState.Success)?.plan?.selectedCourses?.keys.orEmpty()
@@ -76,7 +80,7 @@ fun CourseCatalogScreen(
             onQueryChange = { value ->
                 query = value
                 searchViewModel.updateQuery(semester = searchUiState.semester, query = value)
-                if (value.isEmpty()) submitSearch()
+                if (value.isEmpty()) runSearch()
             },
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
             placeholder = { Text("搜尋課程") },
