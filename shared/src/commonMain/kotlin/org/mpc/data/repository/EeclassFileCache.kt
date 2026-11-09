@@ -102,18 +102,18 @@ internal class EeclassFileCache(
             bytesWritten += length
         }
 
-        override fun commit(metadata: SiteFileInfo): SiteFileMetadata {
+        override fun commit(info: SiteFileInfo): SiteFileMetadata {
             check(state == State.OPEN)
             try {
                 sink.close()
-                check(metadata.size == bytesWritten) { "Downloaded file size did not match bytes written" }
-                val name = safeFileName(metadata.name ?: fallbackName, metadata.contentType)
+                check(info.size == bytesWritten) { "Downloaded file size did not match bytes written" }
+                val name = safeFileName(info.name ?: fallbackName, info.contentType)
                 val finalFile = filesDirectory.resolve(name)
                 val cacheRecord = CacheRecord(
                     name = name,
-                    contentType = metadata.contentType?.takeIf(String::isNotBlank),
-                    contentLength = metadata.contentLength,
-                    size = metadata.size,
+                    contentType = info.contentType?.takeIf(String::isNotBlank),
+                    contentLength = info.contentLength,
+                    size = info.size,
                 )
                 writeRecord(cacheRecord)
 
@@ -125,10 +125,10 @@ internal class EeclassFileCache(
                 fileSystem.atomicMove(temporaryRecord, record)
                 state = State.COMMITTED
                 return SiteFileMetadata(
-                    name = metadata.name,
-                    contentType = metadata.contentType,
-                    contentLength = metadata.contentLength,
-                    size = metadata.size,
+                    name = info.name,
+                    contentType = info.contentType,
+                    contentLength = info.contentLength,
+                    size = info.size,
                     localPath = finalFile.toString(),
                 )
             } finally {
