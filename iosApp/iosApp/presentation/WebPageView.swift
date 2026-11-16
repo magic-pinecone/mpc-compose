@@ -19,6 +19,7 @@ struct WebPageView: View {
 
     var body: some View {
         WebPageComposeView(page: page)
+            .ignoresSafeArea(.container, edges: .bottom)
             .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
